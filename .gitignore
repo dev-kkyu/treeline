@@ -1,0 +1,18 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs / temp
+*.log
+*.tmp
+
+# Claude Code (개인 설정 — .claude/settings.json 은 팀 공용이라 커밋)
+.claude/settings.local.json
+CLAUDE.local.md
