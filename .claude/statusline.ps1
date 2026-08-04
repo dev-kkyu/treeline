@@ -1,6 +1,13 @@
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# stdin carries UTF-8 JSON and git prints UTF-8. Without this the console
+# codepage (CP949 here) mangles non-ASCII, and a Korean path in the JSON
+# breaks ConvertFrom-Json outright - the whole status line then renders empty.
+try { [Console]::InputEncoding  = New-Object System.Text.UTF8Encoding($false) } catch { }
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
 
-$json = $input | Out-String | ConvertFrom-Json
+$reader = New-Object System.IO.StreamReader(
+    [Console]::OpenStandardInput(),
+    (New-Object System.Text.UTF8Encoding($false)))
+$json = $reader.ReadToEnd() | ConvertFrom-Json
 
 $model = $json.model.display_name
 $pct   = $json.context_window.used_percentage
@@ -22,7 +29,6 @@ $cSep      = C 239   # dark grey     - separators
 $cDirUp    = C 65    # dark sage     - parent dir
 $cDir      = C 151   # pale sage     - working dir
 $cBranch   = C 176   # soft violet   - branch
-$cModelLbl = C 67    # muted steel   - "model:" label
 $cModel    = C 110   # soft blue     - model name
 $cCtxLbl   = C 73    # muted teal    - "context:" label
 $cEmpty    = C 237   # dark grey     - unused bar
@@ -60,7 +66,7 @@ if ($cwd) {
     $parts += $dirText
 }
 if ($branch) { $parts += "$cBranch$branch$reset" }
-$parts += "${cModelLbl}model:$reset $cModel$model$reset"
+$parts += "$cModel$model$reset"
 $parts += "${cCtxLbl}context:$reset $bar $cBar$pctInt%$reset"
 $parts += "${cCostLbl}usage:$reset $cCost`$$('{0:N2}' -f $cost)$reset"
 

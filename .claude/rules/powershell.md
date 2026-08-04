@@ -31,8 +31,36 @@ $dot   = [char]0x00B7   # ·
 $block = [char]0x2593   # ▓
 ```
 
-스크립트가 비ASCII를 출력한다면 맨 위에 다음을 추가한다:
+## 입출력 인코딩
+
+IMPORTANT: 소스 인코딩과는 **별개 문제**다. 소스가 ASCII뿐이어도 런타임에
+주고받는 데이터가 깨진다.
+
+PowerShell은 stdin을 콘솔 코드페이지(여기선 CP949)로 디코딩하고, 네이티브
+명령의 출력도 같은 방식으로 읽는다. Claude Code의 훅·상태줄은 UTF-8 JSON을
+보내고 `git`도 UTF-8을 출력하므로, 그대로 두면 한글이 전부 깨진다.
+
+특히 **stdin으로 받는 JSON에 한글이 섞이면 `ConvertFrom-Json`이 파싱 자체에
+실패한다.** 깨진 바이트가 JSON 구조를 무너뜨리기 때문이다. 글자만 깨지는 게
+아니라 스크립트가 통째로 동작하지 않으므로 증상만 봐서는 원인을 찾기 어렵다.
+
+stdin으로 JSON을 받는 스크립트는 맨 위에 다음을 넣는다:
 
 ```powershell
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+try { [Console]::InputEncoding  = New-Object System.Text.UTF8Encoding($false) } catch { }
+try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch { }
+
+$reader = New-Object System.IO.StreamReader(
+    [Console]::OpenStandardInput(),
+    (New-Object System.Text.UTF8Encoding($false)))
+$json = $reader.ReadToEnd() | ConvertFrom-Json
+```
+
+`$input | Out-String`으로 읽으면 안 된다. 이미 콘솔 코드페이지로 디코딩된
+뒤라서 되돌릴 수 없다.
+
+파일에 쓸 때도 인코딩을 명시한다. `Set-Content`의 기본값은 ANSI다:
+
+```powershell
+[System.IO.File]::AppendAllText($path, $text, (New-Object System.Text.UTF8Encoding($false)))
 ```
