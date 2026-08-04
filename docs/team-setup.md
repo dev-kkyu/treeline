@@ -69,8 +69,8 @@ Unity Hub 에서 이 버전을 설치하고, 모듈로 **WebGL Build Support** �
 체크한다. 나중에 추가할 수도 있지만 빌드하려는 시점에 없으면 다시 받느라
 시간을 버린다.
 
-프로젝트는 저장소 루트가 아니라 **`game/`** 폴더다. Unity Hub 에서 열 때
-`mutual-game/game` 을 지정한다.
+프로젝트는 저장소 루트가 아니라 **`Mutual/`** 폴더다. Unity Hub 에서 열 때
+`mutual-game/Mutual` 을 지정한다.
 
 ---
 
