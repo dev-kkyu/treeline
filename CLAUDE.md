@@ -60,7 +60,14 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 
 - 커밋 메시지에 `Co-Authored-By: Claude ...` 트레일러를 넣지 않는다.
 
-- `git pull`은 항상 `--rebase`를 붙인다.
+- `git pull`은 항상 `--rebase --autostash`를 붙인다. 프롬프트 로깅 훅이 매
+  프롬프트마다 `docs/ai-log/prompts/`를 고쳐서 작업 트리가 늘 더럽다.
+  `--autostash` 없이는 rebase가 시작되지 않는다.
+
+- IMPORTANT: `.unity`, `.prefab`에 충돌이 나면 손으로 병합하지 않는다. Unity
+  YAML은 GUID와 fileID가 얽혀 있어 겉보기에 맞춰놔도 씬이 조용히 깨진다.
+  한쪽을 통째로 택하고 나머지 작업은 에디터에서 다시 하며, 어느 쪽을 버릴지는
+  사용자에게 확인한다.
 
 - 브랜치는 `develop` 하나를 쓴다. 작업용 브랜치를 새로 만들지 않고 `develop`에
   직접 커밋한다.
