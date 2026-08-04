@@ -72,6 +72,22 @@ Unity Hub 에서 이 버전을 설치하고, 모듈로 **WebGL Build Support** �
 프로젝트는 저장소 루트가 아니라 **`Mutual/`** 폴더다. Unity Hub 에서 열 때
 `mutual-game/Mutual` 을 지정한다.
 
+## 6. 빌드 타깃을 Web 으로 전환
+
+IMPORTANT: **각자 한 번씩 해야 한다.** 활성 빌드 타깃은 `UserSettings/` 에
+저장되는데 이 폴더는 저장소에서 제외되므로 팀원 간에 공유되지 않는다. 안 하면
+빌드가 PC 용으로 나온다.
+
+`File → Build Profiles` (`Ctrl+Shift+B`) → 플랫폼 목록에서 **`Web`** 선택 →
+`Switch Platform`.
+
+Unity 6 에서 `WebGL` 은 **`Web`** 으로 이름이 바뀌었다. 목록에서 `WebGL` 을
+찾으면 안 나온다.
+
+전환하면 텍스처를 플랫폼에 맞게 다시 압축하느라 몇 분 걸린다. `Web` 이 회색으로
+비활성이면 모듈이 없는 것이니 Unity Hub → Installs → 해당 버전 → `Add modules`
+에서 **Web Build Support** 를 설치한다.
+
 ---
 
 ## 알아둘 것

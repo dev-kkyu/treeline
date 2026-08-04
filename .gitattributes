@@ -1,0 +1,90 @@
+# 줄바꿈 정규화
+#
+# 저장소에는 항상 LF 로 저장하고, 체크아웃할 때는 각자 OS 관례를 따른다.
+# 이 파일이 없으면 팀원의 core.autocrlf 설정에 따라 결과가 갈려서, 아무것도
+# 고치지 않았는데 Unity YAML 파일 전체가 "수정됨" 으로 뜨는 일이 생긴다.
+# 개인 설정보다 이 파일이 우선하므로 팀 전체가 동일하게 동작한다.
+
+* text=auto
+
+# --- Unity 텍스트 에셋 -------------------------------------------------------
+# Asset Serialization 이 Force Text 이므로 아래는 모두 YAML 텍스트다.
+
+*.cs             text diff=csharp
+*.unity          text
+*.prefab         text
+*.asset          text
+*.mat            text
+*.meta           text
+*.anim           text
+*.controller     text
+*.overrideController text
+*.physicMaterial text
+*.physicsMaterial2D text
+*.mask           text
+*.playable       text
+*.terrainlayer   text
+*.signal         text
+*.shader         text
+*.shadergraph    text
+*.shadersubgraph text
+*.compute        text
+*.cginc          text
+*.hlsl           text
+*.inputactions   text
+*.asmdef         text
+*.asmref         text
+*.json           text
+*.md             text
+*.txt            text
+*.yml            text
+*.yaml           text
+*.xml            text
+*.ps1            text
+
+# --- 바이너리 ---------------------------------------------------------------
+# 자동 판별에 맡기지 않고 명시한다. 잘못 텍스트로 처리되면 파일이 깨진다.
+
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.bmp  binary
+*.tga  binary
+*.tif  binary
+*.tiff binary
+*.psd  binary
+*.exr  binary
+*.hdr  binary
+*.cubemap binary
+
+*.fbx  binary
+*.obj  binary
+*.blend binary
+*.dae  binary
+*.3ds  binary
+*.max  binary
+*.ma   binary
+*.mb   binary
+
+*.wav  binary
+*.mp3  binary
+*.ogg  binary
+*.aif  binary
+*.aiff binary
+
+*.ttf  binary
+*.otf  binary
+
+*.dll  binary
+*.so   binary
+*.dylib binary
+*.a    binary
+*.pdb  binary
+
+*.unitypackage binary
+*.wlt  binary
+*.zip  binary
+*.7z   binary
+*.rar  binary
+*.pdf  binary
