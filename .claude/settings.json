@@ -25,6 +25,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/log-prompt.ps1",
+            "timeout": 15
+          }
+        ]
+      }
     ]
   }
 }
