@@ -78,3 +78,7 @@ Projects/mutual-game | develop | Opus 5 | context: ▓▓▓░░░░░░�
 
 **제3자 에셋 원본은 커밋하지 않는다.** `Assets/ThirdParty/` 아래에 두면 자동으로
 제외된다. 자세한 정책은 `CLAUDE.md` 참고.
+
+**에셋을 받으면 그 자리에서 [`docs/assets.md`](assets.md)에 출처와 라이선스를
+적는다.** 제출 요건이라 빠뜨리면 안 되고, 나중에 몰아서 쓰려 하면 어디서 받았는지
+복원할 수 없다. 받은 직후 한 줄이 제일 싸다.
