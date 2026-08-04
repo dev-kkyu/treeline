@@ -66,8 +66,7 @@ try {
     $sid   = "$($json.session_id)"
     if ($sid.Length -gt 8) { $sid = $sid.Substring(0, 8) }
 
-    $fence = '`' * 4
-    $entry = "`n## $stamp - session $sid`n`n$fence text`n$prompt`n$fence`n"
+    $entry = "`n## $stamp - session $sid`n$prompt`n"
 
     if (-not (Test-Path $file)) {
         $header = "# AI prompt log - $author`n`n" +
