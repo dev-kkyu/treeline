@@ -5,6 +5,8 @@ $json = $input | Out-String | ConvertFrom-Json
 $model = $json.model.display_name
 $pct   = $json.context_window.used_percentage
 $cost  = $json.cost.total_cost_usd
+$cwd   = $json.workspace.current_dir
+if (-not $cwd) { $cwd = $json.cwd }
 
 if ($null -eq $pct)  { $pct = 0 }
 if ($null -eq $cost) { $cost = 0 }
@@ -17,6 +19,8 @@ $reset = "$e[0m"
 function C($n) { "$e[38;5;${n}m" }
 
 $cSep      = C 239   # dark grey     - separators
+$cDirUp    = C 65    # dark sage     - parent dir
+$cDir      = C 151   # pale sage     - working dir
 $cBranch   = C 176   # soft violet   - branch
 $cModelLbl = C 67    # muted steel   - "model:" label
 $cModel    = C 110   # soft blue     - model name
@@ -42,9 +46,19 @@ if ($filled -gt 10) { $filled = 10 }
 if ($filled -lt 0)  { $filled = 0 }
 $bar = "$cBar" + ([string][char]0x2593 * $filled) + "$cEmpty" + ([string][char]0x2591 * (10 - $filled)) + $reset
 
-$sep = "$cSep  " + [char]0x00B7 + "  $reset"
+$sep = "$cSep | $reset"
 
 $parts = @()
+if ($cwd) {
+    # last two path segments: "parent/leaf"
+    $seg = @($cwd -split '[\\/]' | Where-Object { $_ -ne '' })
+    if ($seg.Count -ge 2) {
+        $dirText = "$cDirUp$($seg[-2])/$reset$cDir$($seg[-1])$reset"
+    } else {
+        $dirText = "$cDir$($seg[-1])$reset"
+    }
+    $parts += $dirText
+}
 if ($branch) { $parts += "$cBranch$branch$reset" }
 $parts += "${cModelLbl}model:$reset $cModel$model$reset"
 $parts += "${cCtxLbl}context:$reset $bar $cBar$pctInt%$reset"
