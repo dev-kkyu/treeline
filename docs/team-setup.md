@@ -88,6 +88,18 @@ Unity 6 에서 `WebGL` 은 **`Web`** 으로 이름이 바뀌었다. 목록에서
 비활성이면 모듈이 없는 것이니 Unity Hub → Installs → 해당 버전 → `Add modules`
 에서 **Web Build Support** 를 설치한다.
 
+## 7. 씬 열기
+
+클론 후 처음 열면 Unity 가 **빈 씬**을 띄운다. 마지막으로 연 씬 기록은
+`Library/` 에 저장되는데 이 폴더는 저장소에서 제외되기 때문이다.
+
+Project 창에서 **`Assets/Scenes/SampleScene.unity`** 를 더블클릭해 연다.
+한 번 열어두면 다음부터는 Unity 가 기억한다.
+
+빈 씬에도 `Main Camera` 와 `Directional Light` 는 있으므로 얼핏 정상으로 보인다.
+`Global Volume` 이 없거나 상단 씬 이름이 `Untitled` 면 잘못된 씬을 보고 있는
+것이다.
+
 ---
 
 ## 알아둘 것
@@ -107,6 +119,11 @@ Unity 6 에서 `WebGL` 은 **`Web`** 으로 이름이 바뀌었다. 목록에서
 실행해야 한다.
 
 **브랜치는 `develop` 하나를 쓴다.** 별도 브랜치를 만들지 않는다.
+
+**Unity 가 에셋을 자동으로 고쳐놓는 경우가 있다.** URP 설정 에셋에서
+`k_AssetVersion` 이 올라가고 새 필드가 붙는 식이다. 패키지가 구버전 포맷을
+로드하면서 마이그레이션한 것이라 정상이고, **되돌리지 말고 커밋한다.** 안 그러면
+팀원 전원이 같은 변경을 계속 보게 된다.
 
 **제3자 에셋 원본은 커밋하지 않는다.** `Assets/ThirdParty/` 아래에 두면 자동으로
 제외된다. 자세한 정책은 `CLAUDE.md` 참고.
