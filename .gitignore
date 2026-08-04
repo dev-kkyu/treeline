@@ -6,6 +6,7 @@ desktop.ini
 # Editor / IDE
 .vscode/
 .idea/
+.vs/
 *.swp
 *~
 
@@ -16,3 +17,70 @@ desktop.ini
 # Claude Code (개인 설정 — .claude/settings.json 은 팀 공용이라 커밋)
 .claude/settings.local.json
 CLAUDE.local.md
+
+
+# ---------------------------------------------------------------------------
+# Unity
+# 경로는 앞에 / 를 붙이지 않아 프로젝트가 루트든 하위 폴더든 동일하게 걸린다.
+# ---------------------------------------------------------------------------
+
+# 생성물 / 캐시
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+.gradle/
+
+# 자동 생성되는 솔루션 / 프로젝트 파일
+ExportedObj/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+sysinfo.txt
+crashlytics-build.properties
+
+# Rider 자동 생성 플러그인
+[Aa]ssets/Plugins/Editor/JetBrains*
+
+# 빌드 산출물 (gh-pages 브랜치로 별도 배포)
+*.apk
+*.aab
+*.app
+*.unitypackage
+
+# Addressables 패킹 결과
+[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+[Aa]ssets/[Ss]treamingAssets/aa.meta
+[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# .meta 는 대응하는 에셋이 무시될 때만 함께 무시한다
+!*.meta
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# ---------------------------------------------------------------------------
+# 제3자 에셋 원본
+# 에셋스토어 표준 EULA는 원본 재배포를 금지하므로 저장소에 넣지 않는다.
+# 빌드 산출물에 포함하는 것은 허용된 사용이다. 자세한 정책은 CLAUDE.md 참고.
+# CC0 / MIT 등 재배포가 허용된 에셋은 이 폴더 밖에 두고 커밋한다.
+# ---------------------------------------------------------------------------
+[Aa]ssets/ThirdParty/
+[Aa]ssets/ThirdParty.meta
+
+# docs/ 에서 생성되는 PDF는 제출물이므로 무시하지 않고 커밋한다.
