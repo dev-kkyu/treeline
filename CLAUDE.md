@@ -15,6 +15,11 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 ## 기술 스택
 
 - Unity WebGL. GitHub Pages로 배포하고, 빌드 산출물은 `gh-pages` 브랜치에 둔다.
+- Unity 프로젝트는 저장소 루트가 아니라 `game/` 아래에 둔다. 루트는 `.claude/`,
+  `docs/`, `game/` 세 폴더로 유지한다.
+- IMPORTANT: Unity 6.3 LTS (`6000.3.21f1`). 팀 전원이 이 버전을 쓴다. 상위
+  버전으로 열면 프로젝트가 자동 업그레이드되어 되돌리기 어렵고,
+  `ProjectSettings/ProjectVersion.txt`가 계속 충돌한다.
 
 ## 문서
 

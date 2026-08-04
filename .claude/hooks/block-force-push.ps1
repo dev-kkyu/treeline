@@ -12,17 +12,28 @@ try {
 
 if ([string]::IsNullOrWhiteSpace($cmd)) { exit 0 }
 
-# only inspect git push commands
-if ($cmd -notmatch '(?i)\bgit\b[^&|;]*\bpush\b') { exit 0 }
+# Inspect each subcommand on its own. Judging the whole string at once made
+# "git commit -F - && git push origin develop" look like a force push, because
+# commit's -F matched the -f short flag rule.
+$isForce = $false
 
-# --force, --force-with-lease, --force-if-includes
-$isForce = $cmd -match '(?i)--force'
+foreach ($seg in ($cmd -split '(?:&&|\|\||;|\||\r?\n)')) {
 
-# short flag cluster containing f, e.g. -f / -uf
-if ($cmd -match '(?i)(^|\s)-[a-z]*f([a-z]*)(\s|$)') { $isForce = $true }
+    # A segment counts as a git command only when it starts with git, after any
+    # env assignments or wrappers. Without this anchor a heredoc line that merely
+    # mentions "git push --force" in prose would trip the check.
+    if ($seg -notmatch '(?i)^\s*(?:\w+=\S+\s+)*(?:sudo\s+|timeout\s+\S+\s+|time\s+|nice\s+|nohup\s+)*git\b') { continue }
+    if ($seg -notmatch '(?i)\bpush\b') { continue }
 
-# forced refspec, e.g. git push origin +develop:develop
-if ($cmd -match '\s\+[^\s:]+:') { $isForce = $true }
+    # --force, --force-with-lease, --force-if-includes
+    if ($seg -match '(?i)--force') { $isForce = $true; break }
+
+    # short flag cluster containing f, e.g. -f / -uf
+    if ($seg -match '(?i)(^|\s)-[a-z]*f([a-z]*)(\s|$)') { $isForce = $true; break }
+
+    # forced refspec, e.g. git push origin +develop:develop
+    if ($seg -match '\s\+[^\s:]+:') { $isForce = $true; break }
+}
 
 if ($isForce) {
     [Console]::Error.WriteLine(

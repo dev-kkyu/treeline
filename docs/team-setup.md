@@ -43,10 +43,11 @@ git config --show-scope user.name
 설정은 시작할 때 읽히므로 한 번 재시작한다. 화면 하단에 이런 줄이 보이면 정상이다.
 
 ```
-Projects/mutual-game | develop | Opus 5 | context: ▓▓▓░░░░░░░ 32% | usage: $0.42
+Projects/mutual-game | develop | Opus 5 | [▓▓▓░░░░░░░] 32% | usage: $0.42 | limit: 5h 18%
 ```
 
-작업 경로 / 브랜치 / 모델 / 컨텍스트 사용률 / 세션 비용 순이다.
+작업 경로 / 브랜치 / 모델 / 컨텍스트 사용률 / 세션 비용 / 5시간 사용량 한도 순이다.
+맨 뒤 `limit` 은 Claude.ai 구독자에게만 나오므로 안 보여도 정상이다.
 
 **안 보이면** `.claude/settings.json` 의 `statusLine` 이 개인 설정
 (`~/.claude/settings.json`) 에 밀렸을 수 있다. 확인이 필요하면 공유해 달라.
@@ -55,6 +56,21 @@ Projects/mutual-game | develop | Opus 5 | context: ▓▓▓░░░░░░�
 
 세션에서 `/context` 를 실행하고 **Memory files** 에 `CLAUDE.md` 가 있는지 본다.
 없으면 Claude 가 프로젝트 규칙을 읽지 못한 상태다.
+
+## 5. Unity 설치
+
+**Unity 6.3 LTS — `6000.3.21f1`**
+
+IMPORTANT: 반드시 이 버전이어야 한다. 상위 버전으로 프로젝트를 열면 자동으로
+업그레이드되고 되돌리기 어렵다. `ProjectSettings/ProjectVersion.txt` 도 매번
+충돌한다.
+
+Unity Hub 에서 이 버전을 설치하고, 모듈로 **WebGL Build Support** 를 함께
+체크한다. 나중에 추가할 수도 있지만 빌드하려는 시점에 없으면 다시 받느라
+시간을 버린다.
+
+프로젝트는 저장소 루트가 아니라 **`game/`** 폴더다. Unity Hub 에서 열 때
+`mutual-game/game` 을 지정한다.
 
 ---
 
