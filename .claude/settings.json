@@ -12,6 +12,11 @@
             "type": "command",
             "if": "Bash(git push *)",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-force-push.ps1"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/check-korean-username.ps1"
           }
         ]
       },
@@ -22,6 +27,11 @@
             "type": "command",
             "if": "PowerShell(git push *)",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-force-push.ps1"
+          },
+          {
+            "type": "command",
+            "if": "PowerShell(git commit *)",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/check-korean-username.ps1"
           }
         ]
       }

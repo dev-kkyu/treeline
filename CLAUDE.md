@@ -46,3 +46,6 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 - 커밋 메시지에 `Co-Authored-By: Claude ...` 트레일러를 넣지 않는다.
 
 - `git pull`은 항상 `--rebase`를 붙인다.
+
+- 브랜치는 `develop` 하나를 쓴다. 작업용 브랜치를 새로 만들지 않고 `develop`에
+  직접 커밋한다.
