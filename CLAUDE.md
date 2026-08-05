@@ -44,18 +44,18 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 
 | 제출물 | 원본 |
 | --- | --- |
-| 게임 소개 및 설명 문서 | `docs/design/overview.md` |
+| 게임 소개 및 설명 문서 | `docs/game-design/overview.md` |
 | AI 활용 기술 문서 | `docs/ai/setup.md`(구조) + `prompts/`·`milestones/`(활용 내역) + `docs/assets.md`(에셋 출처) |
 | 팀원 롤 기술서 | `docs/roles.md` |
 
 - `overview.md`의 섹션 구성은 과제 요구 항목을 그대로 따른다. 임의로 지우거나
   순서를 바꾸지 않는다.
 - IMPORTANT: 기획을 정했으면 결과를 `overview.md`에 반영하고, **왜 그렇게
-  정했는지와 버린 안**을 `docs/design/decisions.md`에 함께 남긴다. 이유를 안
+  정했는지와 버린 안**을 `docs/game-design/decisions.md`에 함께 남긴다. 이유를 안
   남기면 몇 주 뒤 같은 논의를 반복한다.
 - IMPORTANT: 문서 구조는 필요해진 뒤에 만든다. 파일을 미리 쪼개거나 인덱스를
   미리 두지 않는다. `overview.md`가 길어져 읽기 불편해지면 그때
-  `docs/design/<주제>.md`로 떼어내고, 폴더에서 어느 파일을 볼지 바로 안 보이게
+  `docs/game-design/<주제>.md`로 떼어내고, 폴더에서 어느 파일을 볼지 바로 안 보이게
   되면 그때 인덱스를 만든다. 낡은 인덱스는 없는 것보다 나쁘다.
 - 기획 문서를 고치면 상단의 `상태` 줄을 갱신한다.
 
@@ -63,20 +63,19 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 
 - `docs/ai/` — **AI 개발 환경**. 어떻게 Claude Code로 개발하는가.
   제출물 4번의 원본이다.
-- `docs/design/`, `docs/tech/` — **게임**. 무엇을 만드는가(기획),
+- `docs/game-design/`, `docs/tech-design/` — **게임**. 무엇을 만드는가(기획),
   어떻게 만드는가(기술).
 
 IMPORTANT: 이 경계를 지킨다. 훅·규칙·로깅처럼 AI 환경에 관한 결정은
-`docs/ai/setup.md`에 적고 `docs/tech/`에 넣지 않는다. `docs/tech/`는 게임 자체의
-기술만 다룬다.
+`docs/ai/setup.md`에 적는다. `docs/tech-design/`는 게임 자체의 기술만 다룬다.
 
 ### 게임 기술 문서
 
 제출물이 아니라 팀이 읽는 내부 문서다. 동시에 내가 코드를 쓸 때 따르는 기준이
 되므로, 세 사람의 세션이 같은 구조를 만들게 하는 역할도 한다.
 
-- `docs/tech/decisions.md` — 기술 결정과 그 이유. 버린 안도 함께 적는다.
-- `docs/tech/architecture.md` — 시스템 구조. **첫 코드가 들어올 때** 만든다.
+- `docs/tech-design/decisions.md` — 기술 결정과 그 이유. 버린 안도 함께 적는다.
+- `docs/tech-design/architecture.md` — 시스템 구조. **첫 코드가 들어올 때** 만든다.
   지금 쓰면 상상이고 곧 실제와 어긋난다. 만들 때 "새 컨텐츠를 추가하려면 무엇을
   해야 하나" 섹션을 반드시 둔다. 세 사람이 각자 컨텐츠를 붙이므로 구조 설명보다
   실사용 빈도가 높다.

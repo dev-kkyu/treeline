@@ -5,7 +5,7 @@
 
 **게임 자체의 기술**만 다룬다. Claude Code 환경 구성은
 [`docs/ai/setup.md`](../ai/setup.md) 로, 게임 기획은
-[`docs/design/decisions.md`](../design/decisions.md) 로 분리했다.
+[`docs/game-design/decisions.md`](../game-design/decisions.md) 로 분리했다.
 
 ## 쓰는 법
 

@@ -7,7 +7,7 @@
 
 프롬프트 원본은 [`prompts/`](prompts/), 작업 단위 메모는
 [`milestones/`](milestones/) 에 쌓인다. 게임 자체의 기술은
-[`docs/tech/`](../tech/) 로 분리했다.
+[`docs/tech-design/`](../tech-design/) 로 분리했다.
 
 ---
 
