@@ -137,9 +137,19 @@ Project 창에서 **`Assets/Scenes/SampleScene.unity`** 를 더블클릭해 연�
 쓰지 않는다. 커밋 기록 자체가 제출물이라 사람이 읽는 문장이 우선이다.
 자세한 기준은 `CLAUDE.md` 의 Git 항목 참고.
 
-**빌드할 때 출력 폴더는 반드시 `Build/` 아래로 지정한다.** 출력 경로는 빌드
+**빌드할 때 출력 폴더는 반드시 `Mutual/Build/` 로 지정한다.** 출력 경로는 빌드
 시점에 직접 고르는 값이라 `.gitignore` 가 이름을 예측해 막을 수 없다. 다른
 이름을 쓰면 WebGL 산출물 수백 MB 가 그대로 커밋 대상이 된다.
+
+**빌드 확인은 로컬 웹서버로 한다.** 배포할 때마다 산출물이 `gh-pages` 에 쌓이므로
+매번 올릴 필요가 없다. 실제 배포와 거의 같은 조건이다.
+
+```bash
+cd Mutual/Build && python -m http.server 8080
+```
+
+**공유가 필요할 때 `/deploy`** 를 실행한다. 배포 주소는
+https://dev-kkyu.github.io/mutual-game/ 이고 갱신까지 1~2분 걸린다.
 
 **Unity 가 에셋을 자동으로 고쳐놓는 경우가 있다.** URP 설정 에셋에서
 `k_AssetVersion` 이 올라가고 새 필드가 붙는 식이다. 패키지가 구버전 포맷을
