@@ -13,6 +13,14 @@ desktop.ini
 # Logs / temp
 *.log
 *.tmp
+*.bak
+
+# 병합 충돌 잔여물
+*.orig
+*.rej
+
+# 문서 변환 등 도구 의존성
+node_modules/
 
 # Claude Code (개인 설정 — .claude/settings.json 은 팀 공용이라 커밋)
 .claude/settings.local.json
@@ -44,6 +52,8 @@ ExportedObj/
 *.csproj
 *.unityproj
 *.sln
+*.slnx
+*.slnf
 *.suo
 *.user
 *.userprefs
@@ -60,7 +70,14 @@ crashlytics-build.properties
 # Rider 자동 생성 플러그인
 **/[Aa]ssets/Plugins/Editor/JetBrains*
 
+# 에셋스토어 툴 (설치 시 생성)
+**/[Aa]ssets/AssetStoreTools*
+
 # 빌드 산출물 (gh-pages 브랜치로 별도 배포)
+#
+# IMPORTANT: Unity 빌드 출력 폴더는 반드시 Build/ 아래로 지정한다.
+# 출력 경로는 빌드할 때 사람이 고르기 때문에 여기서 이름을 예측해 막을 수 없다.
+# 다른 이름을 쓰면 WebGL 산출물 수백 MB 가 그대로 커밋 대상이 된다.
 *.apk
 *.aab
 *.app

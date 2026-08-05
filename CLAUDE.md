@@ -18,6 +18,9 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 ## 기술 스택
 
 - Unity WebGL. GitHub Pages로 배포하고, 빌드 산출물은 `gh-pages` 브랜치에 둔다.
+- IMPORTANT: Unity 빌드 출력 폴더는 반드시 `Build/` 아래로 지정한다. 출력 경로는
+  빌드할 때 사람이 고르는 값이라 `.gitignore`로 이름을 예측해 막을 수 없고,
+  다른 이름을 쓰면 WebGL 산출물 수백 MB가 그대로 커밋 대상이 된다.
 - Unity 프로젝트는 저장소 루트가 아니라 `Mutual/` 아래에 둔다. 루트는 `.claude/`,
   `docs/`, `Mutual/` 세 폴더로 유지한다. 이 폴더명이 Unity Hub에 프로젝트 이름으로
   표시된다. 빌드에 쓰이는 제품명은 별개이며 Player 설정에서 정한다.
