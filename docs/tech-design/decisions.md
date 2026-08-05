@@ -24,6 +24,32 @@
 
 ---
 
+## 2026-08-06 · WebGL 을 `gh-pages` 브랜치로 배포
+
+빈 씬으로 배포 경로를 먼저 뚫었다. 게임을 다 만든 뒤에 배포가 막히면 손쓸 시간이
+없기 때문이다. 실제로 `https://dev-kkyu.github.io/mutual-game/` 에서 로딩까지
+확인했다.
+
+세 가지 설정이 맞물려야 동작한다. 하나라도 빠지면 조용히 실패한다.
+
+- **Decompression Fallback 켜기** (Player → Web → Publishing Settings).
+  압축은 Brotli 인데, GitHub Pages 는 `.br` 파일에 `Content-Encoding` 헤더를
+  붙여주지 않는다. 폴백이 없으면 브라우저가 압축을 풀지 못해 로딩이 멈춘다.
+- **`.nojekyll` 을 브랜치 루트에 두기.** GitHub Pages 는 기본으로 Jekyll 처리를
+  하면서 밑줄로 시작하는 파일을 무시한다. 빌드에 그런 파일이 섞이면 404 가 난다.
+- **`.gitattributes` 에 `* -text`.** 줄바꿈 변환이 `.wasm` 이나 `.unityweb` 에
+  닿으면 파일이 깨지는데, 증상만 봐서는 원인을 찾기 어렵다.
+
+브랜치 이름을 `gh-pages` 로 한 덕에 Pages 설정이 자동으로 켜졌다. GitHub 이 이
+이름을 특별 취급한다.
+
+재배포는 빌드 산출물을 이 브랜치에 **일반 커밋으로 쌓는다.** 브랜치를 통째로
+갈아끼우는 방식이 흔하지만 그건 force push 가 필요하고, 이 저장소에서는 훅으로
+막혀 있다. 히스토리가 무거워지지만 이 기간에는 문제되지 않는다.
+
+버린 안: GitHub Actions 로 빌드까지 자동화. Unity 라이선스를 CI 에 넣어야 해서
+설정 비용이 크고, 짧은 기간에 얻을 이득이 작다.
+
 ## 2026-08-05 · Unity 프로젝트를 저장소 루트가 아닌 `Mutual/` 에 배치
 
 루트에 두면 `Assets/`, `Library/`, `Temp/`, `obj/`, `*.sln` 이 `docs/` 와 섞여
