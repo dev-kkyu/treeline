@@ -58,7 +58,7 @@ try {
     foreach ($rule in $rules) { $prompt = $prompt -replace $rule.p, $rule.r }
 
     # ---- write -----------------------------------------------------------
-    $dir = Join-Path $root 'docs/ai-log/prompts'
+    $dir = Join-Path $root 'docs/ai/prompts'
     if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
 
     $file  = Join-Path $dir ($author + '.md')

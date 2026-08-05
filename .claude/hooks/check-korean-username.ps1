@@ -1,6 +1,6 @@
 # PreToolUse hook: require a Korean git user.name before committing.
 #
-# The AI usage log (docs/ai-log/) is keyed by git user.name, so a romanized or
+# The AI usage log (docs/ai/) is keyed by git user.name, so a romanized or
 # default name would split one person's records across two files.
 #
 # exit 2 = block the tool call (stderr is shown to Claude)
@@ -41,7 +41,7 @@ if ([string]::IsNullOrWhiteSpace($name)) { $current = '(not set)' } else { $curr
 [Console]::Error.WriteLine(@"
 BLOCKED: git user.name is not a Korean name (current: $current).
 
-This repository keys the AI usage log (docs/ai-log/) by git user.name, so a
+This repository keys the AI usage log (docs/ai/) by git user.name, so a
 romanized or unset name would split one person's records across two files.
 
 Do NOT pick a name yourself and do NOT work around this check. Ask the user

@@ -1,5 +1,5 @@
 ---
-description: 이번 세션에서 AI로 한 작업을 docs/ai-log/milestones/<이름>.md 에 메모로 남긴다. 의미 있는 작업을 마치고 커밋할 때 사용한다. 제출물인 "AI 활용 기술 문서"의 재료가 된다.
+description: 이번 세션에서 AI로 한 작업을 docs/ai/milestones/<이름>.md 에 메모로 남긴다. 의미 있는 작업을 마치고 커밋할 때 사용한다. 제출물인 "AI 활용 기술 문서"의 재료가 된다.
 ---
 
 # 마일스톤 메모 남기기
@@ -18,7 +18,7 @@ description: 이번 세션에서 AI로 한 작업을 docs/ai-log/milestones/<이
 
    비어 있으면 사용자에게 물어본다. 임의로 정하지 않는다.
 
-2. `docs/ai-log/milestones/<이름>.md` 에 **append** 한다. 기존 내용을 덮어쓰지
+2. `docs/ai/milestones/<이름>.md` 에 **append** 한다. 기존 내용을 덮어쓰지
    않는다. 파일이 없으면 `# AI 활용 마일스톤 - <이름>` 제목으로 새로 만든다.
 
 3. 아래 형식으로 항목을 추가한다. 날짜는 오늘 날짜를 쓴다.
