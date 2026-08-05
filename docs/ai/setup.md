@@ -24,6 +24,7 @@
 | `.claude/skills/milestone/` | `/milestone` 명령 | 호출 시 |
 | `.claude/hooks/` | 도구 호출 차단·기록 | 해당 이벤트마다 |
 | `.claude/statusline.ps1` | 상태줄 | 세션 중 계속 |
+| `.mcp.json` | Unity MCP 서버 등록 | 세션 시작 시 |
 
 ### 훅
 
@@ -67,6 +68,43 @@
 
 이름이 영문이면 한 사람의 기록이 두 파일로 갈리므로, 커밋 시 한글 이름인지
 검사하는 훅을 뒀다.
+
+### Unity MCP 를 붙인 이유와 구현체 선택
+
+Claude 가 씬·GameObject·컴포넌트·프리팹을 직접 조작할 수 있게 한다. 이것이
+없으면 C# 스크립트만 쓸 수 있고 씬 배치는 사람이 에디터에서 해야 한다. 웹
+네이티브 대신 Unity 를 고른 근거가 여기에 있었으므로
+(`docs/tech-design/decisions.md` 참고) 첫 구현 전에 붙였다.
+
+**CoplayDev/unity-mcp v10.0.0** 을 쓴다. MIT 이고 무료다.
+
+버린 안: Unity 공식 MCP(`com.unity.ai.assistant`). 설치가 간단하고 relay 바이너리를
+직접 배포해 런타임 의존성이 없지만, 유료인 AI Assistant 패키지에 묶여 있다.
+
+버전을 `#v10.0.0` 으로 고정한 이유는 `#main` 으로 두면 팀원마다 다른 커밋을 받아
+재현되지 않는 문제가 생기기 때문이다.
+
+**팀 공유 방식이 두 층으로 나뉜다.** Unity 패키지는 `Packages/manifest.json` 에
+들어가 pull 만 받으면 설치되고, MCP 서버 등록은 `.mcp.json` 으로 공유된다. 후자가
+가능한 이유는 이 구현이 stdio 가 아니라 **HTTP(`127.0.0.1:8080`)** 를 쓰기
+때문이다. 절대 경로가 설정에 들어가지 않아 머신마다 달라지지 않는다.
+
+이 패키지는 서버를 켤 때마다 **클라이언트 설정 파일을 스스로 다시 쓴다**
+(`refreshed N client config(s)`). 그래서 개인 설정(`~/.claude.json`)에도 같은
+항목이 생기고, 지워도 다음 기동에 되살아난다. 값이 같아 충돌은 없다.
+
+그럼에도 `.mcp.json` 을 두는 이유는, 저장소만 봐도 이 프로젝트가 Unity MCP 를
+쓴다는 사실이 드러나기 때문이다. 패키지의 부수 효과에 의존하지 않는다.
+
+각자 설치해야 하는 것은 Python 3.10+ 와 `uv` 뿐이다. MCP 서버 본체가 Python 으로
+돌아간다.
+
+IMPORTANT: 브리지가 Unity 에디터 안에서 도는 구조라 **에디터가 떠 있어야 한다.**
+서버는 기본적으로 자동 기동하지 않으므로 `Window → MCP for Unity` 의 `Advanced`
+에서 `Auto-Start Server on Editor Load` 를 켜둔다. Claude 쪽에서 연결이 안 되면
+이것부터 확인한다.
+
+`8080` 을 쓰므로 로컬 웹서버 등 다른 용도로 그 포트를 잡지 않는다.
 
 ### 규칙과 문서의 역할 분리
 

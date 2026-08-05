@@ -65,8 +65,10 @@ IMPORTANT: **push 는 별도 지시를 받고 한다.** 커밋과 push 는 별�
 무거워지지 않는다.
 
 ```bash
-cd Mutual/Build && python -m http.server 8080
+cd Mutual/Build && python -m http.server 8000
 ```
+
+`8080` 은 Unity MCP 브리지가 쓰므로 피한다.
 
 배포는 **공유하거나 제출 상태를 확인할 때만** 한다.
 

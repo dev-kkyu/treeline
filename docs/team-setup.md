@@ -100,6 +100,58 @@ Project 창에서 **`Assets/Scenes/SampleScene.unity`** 를 더블클릭해 연�
 `Global Volume` 이 없거나 상단 씬 이름이 `Untitled` 면 잘못된 씬을 보고 있는
 것이다.
 
+## 8. Unity MCP 준비
+
+Claude 가 Unity 에디터의 씬과 컴포넌트를 직접 조작할 수 있게 하는 연동이다.
+Unity 를 스택으로 고른 핵심 근거이므로 붙여두는 편이 좋다.
+
+**Unity 패키지는 저장소로 공유된다.** `Packages/manifest.json` 에 들어 있어 pull
+받으면 자동으로 설치된다. **MCP 서버 설정도 `.mcp.json` 으로 공유된다.**
+
+각자 설치해야 하는 것은 두 가지다.
+
+- **Python 3.10 이상**
+- **`uv`** — MCP 서버가 Python 으로 돌아가고 `uv` 가 그것을 격리 환경에서 실행한다
+
+```bash
+pip install uv
+```
+
+공식 설치 스크립트(`irm https://astral.sh/uv/install.ps1 | iex`)도 있지만 이
+환경에서 실패한 사례가 있다. Python 이 이미 있으므로 `pip` 쪽이 확실하다.
+
+서버는 기본적으로 **자동으로 뜨지 않는다.** `Window → MCP for Unity` 의
+`Advanced` 에서 **`Auto-Start Server on Editor Load`** 를 켜두면 에디터를 열 때
+알아서 기동한다. 한 번만 설정하면 되므로 켜는 편이 좋다.
+
+켜지 않았다면 Unity 를 열 때마다 같은 창에서 `Start Server` 를 눌러야 한다.
+
+**첫 실행은 1분 넘게 걸릴 수 있다.** `uv` 가 Python 의존성을 받는다. 콘솔에
+`Starting local HTTP server…` 가 뜬 뒤 `Server ready` 가 나올 때까지 기다린다.
+안 켜진다고 성급히 판단하지 않는다.
+
+Claude Code 를 처음 실행하면 **`.mcp.json` 에 등록된 서버를 승인할지 묻는다.**
+저장소에 커밋된 설정이 임의로 프로세스에 접속하면 안 되므로 한 번은 사람이
+확인하는 구조다. 승인하면 이후로는 묻지 않는다.
+
+`/mcp` 로 `UnityMCP` 가 연결됐는지 확인한다.
+
+| 상태 | 뜻 |
+| --- | --- |
+| `Connected` | 정상 |
+| `Pending approval` | 아직 승인하지 않음 |
+| 연결 실패 | Unity 가 꺼져 있거나 서버가 안 떠 있음 |
+
+Claude 가 Unity 도구를 쓰려 할 때 아래 에러가 나면 **거의 항상 서버가 안 떠
+있는 것**이다. 방화벽이나 네트워크를 뒤질 필요 없다.
+
+```
+Unable to connect. Is the computer able to access the url?
+```
+
+IMPORTANT: **Unity 에디터가 떠 있어야 동작한다.** 브리지가 에디터 안에서 도는
+구조라, 에디터를 닫으면 연결이 끊긴다.
+
 ---
 
 ## 알아둘 것
@@ -145,8 +197,10 @@ Project 창에서 **`Assets/Scenes/SampleScene.unity`** 를 더블클릭해 연�
 매번 올릴 필요가 없다. 실제 배포와 거의 같은 조건이다.
 
 ```bash
-cd Mutual/Build && python -m http.server 8080
+cd Mutual/Build && python -m http.server 8000
 ```
+
+`8080` 은 Unity MCP 브리지가 쓰므로 피한다.
 
 **공유가 필요할 때 `/deploy`** 를 실행한다. 배포 주소는
 https://dev-kkyu.github.io/mutual-game/ 이고 갱신까지 1~2분 걸린다.
