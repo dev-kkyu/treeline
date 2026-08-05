@@ -22,8 +22,11 @@ desktop.ini
 # 문서 변환 등 도구 의존성
 node_modules/
 
-# Claude Code (개인 설정 — .claude/settings.json 은 팀 공용이라 커밋)
-.claude/settings.local.json
+# 개인 전용 파일
+# 파일명에 .local 을 넣으면 커밋되지 않는다. 개인 백로그, 임시 메모 등에 쓴다.
+# .claude/settings.local.json 과 CLAUDE.local.md 도 이 패턴에 걸린다.
+# (.claude/settings.json 과 CLAUDE.md 는 팀 공용이므로 커밋한다)
+*.local.*
 CLAUDE.local.md
 
 
