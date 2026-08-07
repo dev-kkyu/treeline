@@ -3,9 +3,9 @@
 폭설로 고립된 산 위 통신 중계소를 빠져나가는 1인칭 공포 게임. 기획은
 2026-08-08 에 확정했고 전체 내용은 `docs/game-design/treeline.md` 에 있다.
 
-> 저장소 이름(`mutual-game`)은 이전 제목 `MUTUAL: Signal at Blackwater` 에서
-> 왔다. 그 안은 확정 과정에서 버렸고 `docs/game-design/drafts/` 에 기록으로만
-> 남아 있다.
+> 이전 제목은 `MUTUAL: Signal at Blackwater` 였다. 그 안은 확정 과정에서
+> 버렸고 `docs/game-design/drafts/` 에 기록으로만 남아 있다. 저장소도
+> 2026-08-08 에 `mutual-game` 에서 `treeline` 으로 바꿨다.
 
 ## 프로젝트
 
@@ -29,9 +29,10 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 - IMPORTANT: Unity 빌드 출력 폴더는 반드시 `Build/` 아래로 지정한다. 출력 경로는
   빌드할 때 사람이 고르는 값이라 `.gitignore`로 이름을 예측해 막을 수 없고,
   다른 이름을 쓰면 WebGL 산출물 수백 MB가 그대로 커밋 대상이 된다.
-- Unity 프로젝트는 저장소 루트가 아니라 `Mutual/` 아래에 둔다. 루트는 `.claude/`,
-  `docs/`, `Mutual/` 세 폴더로 유지한다. 이 폴더명이 Unity Hub에 프로젝트 이름으로
-  표시된다. 빌드에 쓰이는 제품명은 별개이며 Player 설정에서 정한다.
+- Unity 프로젝트는 저장소 루트가 아니라 `Treeline/` 아래에 둔다. 루트는
+  `.claude/`, `docs/`, `Treeline/` 세 폴더로 유지한다. 이 폴더명이 Unity Hub에
+  프로젝트 이름으로 표시된다. 빌드에 쓰이는 제품명은 별개이며 Player 설정에서
+  정한다.
 - IMPORTANT: Unity 6.3 LTS (`6000.3.21f1`). 팀 전원이 이 버전을 쓴다. 상위
   버전으로 열면 프로젝트가 자동 업그레이드되어 되돌리기 어렵고,
   `ProjectSettings/ProjectVersion.txt`가 계속 충돌한다.

@@ -43,7 +43,7 @@ git config --show-scope user.name
 설정은 시작할 때 읽히므로 한 번 재시작한다. 화면 하단에 이런 줄이 보이면 정상이다.
 
 ```
-Projects/mutual-game | develop | Opus 5 | [▓▓▓░░░░░░░] 32% | usage: $0.42 | limit: 5h 18%
+Projects/treeline | develop | Opus 5 | [▓▓▓░░░░░░░] 32% | usage: $0.42 | limit: 5h 18%
 ```
 
 작업 경로 / 브랜치 / 모델 / 컨텍스트 사용률 / 세션 비용 / 5시간 사용량 한도 순이다.
@@ -69,8 +69,8 @@ Unity Hub 에서 이 버전을 설치하고, 모듈로 **WebGL Build Support** �
 체크한다. 나중에 추가할 수도 있지만 빌드하려는 시점에 없으면 다시 받느라
 시간을 버린다.
 
-프로젝트는 저장소 루트가 아니라 **`Mutual/`** 폴더다. Unity Hub 에서 열 때
-`mutual-game/Mutual` 을 지정한다.
+프로젝트는 저장소 루트가 아니라 **`Treeline/`** 폴더다. Unity Hub 에서 열 때
+`treeline/Treeline` 을 지정한다.
 
 ## 6. 빌드 타깃을 Web 으로 전환
 
@@ -202,7 +202,7 @@ IMPORTANT: **Unity 에디터가 떠 있어야 동작한다.** 브리지가 에�
 쓰지 않는다. 커밋 기록 자체가 제출물이라 사람이 읽는 문장이 우선이다.
 자세한 기준은 `CLAUDE.md` 의 Git 항목 참고.
 
-**빌드할 때 출력 폴더는 반드시 `Mutual/Build/` 로 지정한다.** 출력 경로는 빌드
+**빌드할 때 출력 폴더는 반드시 `Treeline/Build/` 로 지정한다.** 출력 경로는 빌드
 시점에 직접 고르는 값이라 `.gitignore` 가 이름을 예측해 막을 수 없다. 다른
 이름을 쓰면 WebGL 산출물 수백 MB 가 그대로 커밋 대상이 된다.
 
@@ -210,13 +210,13 @@ IMPORTANT: **Unity 에디터가 떠 있어야 동작한다.** 브리지가 에�
 매번 올릴 필요가 없다. 실제 배포와 거의 같은 조건이다.
 
 ```bash
-cd Mutual/Build && python -m http.server 8000
+cd Treeline/Build && python -m http.server 8000
 ```
 
 `8080` 은 Unity MCP 브리지가 쓰므로 피한다.
 
 **공유가 필요할 때 `/deploy`** 를 실행한다. 배포 주소는
-https://dev-kkyu.github.io/mutual-game/ 이고 갱신까지 1~2분 걸린다.
+https://dev-kkyu.github.io/treeline/ 이고 갱신까지 1~2분 걸린다.
 
 **Unity 가 에셋을 자동으로 고쳐놓는 경우가 있다.** URP 설정 에셋에서
 `k_AssetVersion` 이 올라가고 새 필드가 붙는 식이다. 패키지가 구버전 포맷을

@@ -24,11 +24,36 @@
 
 ---
 
+## 2026-08-08 · 저장소와 Unity 프로젝트 폴더를 `treeline` 으로 개명
+
+기획이 `TREELINE` 으로 확정되면서 `mutual-game` · `Mutual/` 이 옛 제목의
+잔재가 됐다. 둘 다 사람이 보는 이름이라 미루면 계속 어긋난다.
+
+**저장소 이름은 제출물의 일부다.** GitHub Pages 주소가
+`dev-kkyu.github.io/<저장소>/` 라서 심사자가 누를 링크에 그대로 들어간다.
+그래서 `treeline-game` 이 아니라 `treeline` 으로, 대문자 없이 갔다. Pages 경로는
+대소문자를 구분하므로 `TreeLine` 이면 소문자로 접근했을 때 404 가 난다.
+
+Unity 프로젝트 폴더도 `Treeline/` 으로 바꿨다. 아래 2026-08-05 항목에 적었듯이
+이 폴더명이 곧 Unity Hub 에 뜨는 프로젝트 이름이라, 그때의 판단 근거가 그대로
+개명의 이유가 됐다. 빌드 제품명(Player 설정 `productName`)은 타이틀 표기를
+따라 `TREELINE` 으로 뒀다. 폴더명과 제품명은 별개다.
+
+IMPORTANT: **팀원은 Unity Hub 에서 프로젝트를 목록에서 지우고 다시 추가해야
+한다.** Hub 는 절대 경로를 기억하므로 옛 경로가 그대로 남는다. 로컬 remote 도
+`git remote set-url origin git@github.com:dev-kkyu/treeline.git` 로 바꾼다.
+
+버린 안: `treeline-game`(개인 계정 네임스페이스라 접미사로 구분할 이유가 없고
+링크만 길어진다), `TreeLine`(Pages 경로 대소문자 문제), 폴더는 `Mutual/` 로
+두고 제품명만 바꾸기(Unity Hub 목록에 계속 옛 이름이 뜬다. 세 명이 맞춰야 하는
+작업이라 미룰수록 비싸진다)
+
 ## 2026-08-06 · WebGL 을 `gh-pages` 브랜치로 배포
 
 빈 씬으로 배포 경로를 먼저 뚫었다. 게임을 다 만든 뒤에 배포가 막히면 손쓸 시간이
-없기 때문이다. 실제로 `https://dev-kkyu.github.io/mutual-game/` 에서 로딩까지
-확인했다.
+없기 때문이다. 실제로 배포 주소에서 로딩까지 확인했다. (당시 주소는
+`dev-kkyu.github.io/mutual-game/` 였다. 2026-08-08 에 저장소를 `treeline` 으로
+바꿔 지금은 `https://dev-kkyu.github.io/treeline/` 다)
 
 세 가지 설정이 맞물려야 동작한다. 하나라도 빠지면 조용히 실패한다.
 
