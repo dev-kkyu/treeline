@@ -1,4 +1,4 @@
-# TREELINE
+# Treeline
 
 폭설로 고립된 산 위 통신 중계소를 빠져나가는 1인칭 공포 게임. 기획은
 2026-08-08 에 확정했고 전체 내용은 `docs/game-design/treeline.md` 에 있다.

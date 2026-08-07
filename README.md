@@ -1,4 +1,4 @@
-# TREELINE
+# Treeline
 폭설로 고립된 산 위 통신 중계소를 빠져나가는 1인칭 공포 게임. Team SBJ
 
 기획은 [`docs/game-design/treeline.md`](docs/game-design/treeline.md) 에 있다.
