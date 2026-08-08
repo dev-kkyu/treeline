@@ -66,8 +66,9 @@ A 안을 그대로 받았다. `Crawler` 의 `hearRange` · `hearSpeed` 를 지�
 
 곁다리로 둘 더 — **`ChaseMusic` 이 `Crawler[] hunters` 라 `Colossus` 를 못 받는다.**
 그래서 2장은 페이드와 더킹이 있고 6장은 생으로 켜고 끈다. 인터페이스로 열면 6장도
-같은 방식이 된다. 그리고 **`colossus-roar.wav`(2.36초)는 아직 아무 데도 안 걸려
-있다.** `Colossus.noticed` 에 `Play` 한 줄이면 되고 코드 수정은 없다.
+같은 방식이 된다. 그리고 **`colossus-roar.wav` 를 2.36 초에서 2.000 초로 잘라
+`Ch6` 의 `Colossus/Snd_Roar` 에 걸었다** (A). `roarSeconds` 가 2 라 남기면 이미
+달려오는데 포효가 이어진다. 원본을 덮어썼으니 다시 뽑을 때 길이를 2 초로 맞춘다.
 
 ### 2026-08-09 · NavMesh 에이전트 타입이 둘이 되었다 (A)
 
