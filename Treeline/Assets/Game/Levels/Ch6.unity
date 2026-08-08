@@ -1851,11 +1851,11 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: d63b6cf7a81aea64fae53e61960d1640, type: 3}
+  m_Resource: {fileID: 8300000, guid: 9f30bd210f395684dbf17fd7324c24ec, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.7
+  m_Volume: 0.5
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -3374,7 +3374,19 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 481736736}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: lost.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: lost.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 890045919}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: lost.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
@@ -3385,6 +3397,10 @@ PrefabInstance:
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
       objectReference: {fileID: 1524499734}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: lost.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Stop
+      objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
@@ -3400,6 +3416,10 @@ PrefabInstance:
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
       value: Shake
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: lost.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UnityEngine.AudioSource, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName

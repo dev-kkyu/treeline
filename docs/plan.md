@@ -239,7 +239,8 @@ IMPORTANT: **적 모델이 늦어도 2-2 는 진행한다.** 1단계에서 캡�
 | `Electrical` 5종 · `Structure` 문 3종 | 장치 · 문 **컴포넌트**에 | **지금** | C |
 | `Music/ch<번호>` · `title-theme` · `ending-descent` | 장이 로드될 때 진행이 튼다 | **지금** | C |
 | `Ambience` 8종 루프 | 씬에 `AudioSource` 로 놓는다 | 2-2 각자 장 | 장 소유자 |
-| `Music/power-restored` · `chase-stinger` | 그 사건이 벌어지는 자리에 큐로 | 2-2 · 3단계 | 그 장 소유자 |
+| `Music/power-restored` | 그 사건이 벌어지는 자리에 큐로 | 2-2 · 3단계 | 그 장 소유자 |
+| `Music/chase-dread-loop` | **루프다.** 발각에 켜고 놓치면 끈다 | ✅ 6장 | 그 장 소유자 |
 | `Structure` 나머지(지붕 눈 · 창 바람) | 씬에 연출로 | 2-2 각자 장 | 장 소유자 |
 
 IMPORTANT: **위 네 줄은 컴포넌트에 붙이므로 한 번 하면 세 장 전부에 적용된다.**
@@ -265,8 +266,8 @@ IMPORTANT: **위 네 줄은 컴포넌트에 붙이므로 한 번 하면 세 장 
 
 IMPORTANT: **발소리 구현이 한동안 두 벌이었다** (2026-08-09 정리). A 의
 `PlayerFootsteps` 를 남기고 `PlayerMotor` 안의 것을 걷어냈다. 표면 라이브러리 ·
-착지음 · 실려 갈 때 차단이 전자에만 있어서다. `AudioSource` 는 B 가 넣은
-`Footsteps` 자식(3D)을 쓴다.
+착지음 · 실려 갈 때 차단이 전자에만 있어서다. `AudioSource` 는 `Player` 루트에
+하나만 두고 3D 로 쓴다.
 
 IMPORTANT: **WebGL 은 사용자가 한 번 누르기 전에는 소리를 내지 않는다.** 브라우저
 정책이다. 타이틀 화면에서 버튼을 누르므로 실제 플레이에서는 자연히 풀리는데,

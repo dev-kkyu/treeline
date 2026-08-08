@@ -110,6 +110,10 @@ MonoBehaviour:
   recoveryDelaySeconds: 1.5
   fullRecoverySeconds: 3
   resumeThreshold: 0.2
+  crouchNoiseRadius: 4
+  walkNoiseRadius: 9
+  sprintNoiseRadius: 16
+  silentSpeed: 0.2
 --- !u!114 &1000012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -130,6 +134,9 @@ MonoBehaviour:
   moveSwayDegrees: 0.8
   swayFrequency: 1.6
   recoilRecovery: 8
+  shakeDegrees: 1.6
+  shakeSeconds: 0.7
+  shakeFrequency: 22
 --- !u!114 &1000013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214,10 +221,10 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 0
-  MinDistance: 1
-  MaxDistance: 500
+  MinDistance: 2
+  MaxDistance: 25
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -250,7 +257,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -330,6 +337,8 @@ MonoBehaviour:
   landVolume: 0.9
   pitchJitter: 0.06
   minAirTimeForLanding: 0.2
+  jumpVolume: 0.45
+  jumpPitchScale: 0.78
 --- !u!1 &1100000
 GameObject:
   m_ObjectHideFlags: 0

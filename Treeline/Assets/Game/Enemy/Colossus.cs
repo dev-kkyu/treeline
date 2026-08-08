@@ -70,6 +70,9 @@ namespace Treeline
         [Tooltip("못 보던 상태에서 알아챈 순간 한 번 불린다. 포효 소리 · 화면 흔들림 · 음악 큐.")]
         [SerializeField] private UnityEvent noticed;
 
+        [Tooltip("놓쳐서 배회로 돌아가는 순간 한 번. 추격 음악을 끄는 자리다.")]
+        [SerializeField] private UnityEvent lost;
+
         [Header("공격")]
         [Tooltip("팔이 무릎을 지나 바닥에 닿는다. 사거리가 길다.")]
         [SerializeField] private float attackRange = 3.2f;
@@ -124,6 +127,15 @@ namespace Treeline
 
         /// <summary>못 보던 상태에서 알아챈 순간 한 번. 코드에서 듣는 쪽은 이것을 쓴다.</summary>
         public event Action Noticed;
+
+        /// <summary>
+        /// 놓쳐서 배회로 돌아가는 순간 한 번. <see cref="Noticed"/> 와 짝이다.
+        /// </summary>
+        /// <remarks>
+        /// 추격 음악이 <b>루프</b>라 켜는 자리만 있으면 영영 안 꺼진다. 켜는 쪽과 끄는
+        /// 쪽을 같은 모양으로 둬야 붙이는 사람이 한쪽을 빠뜨리지 않는다.
+        /// </remarks>
+        public event Action Lost;
 
         /// <summary>밀려나 멈춰 있는 동안 참이다.</summary>
         public bool IsStaggered => Time.time < staggerUntil;
@@ -194,6 +206,9 @@ namespace Treeline
                     // 곳을 등지고 반대편으로 걸어가는 것이 보인다.
                     roamArrived = true;
                     roamResumeTime = Time.time;
+
+                    Lost?.Invoke();
+                    lost?.Invoke();
                 }
             }
 
@@ -266,6 +281,10 @@ namespace Treeline
                 return;
             }
 
+            // 돌 자리가 없어도 속도는 되돌린다. 안 그러면 한 번 쫓은 뒤로 추격 속도가
+            // 그대로 남아, 서 있기만 하는 개체가 빠른 채로 굳는다.
+            agent.speed = roamSpeed;
+
             if (roamPoints == null || roamPoints.Length == 0)
             {
                 if (agent.hasPath)
@@ -275,8 +294,6 @@ namespace Treeline
 
                 return;
             }
-
-            agent.speed = roamSpeed;
 
             if (agent.pathPending)
             {

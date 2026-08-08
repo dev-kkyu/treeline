@@ -181,18 +181,25 @@ IMPORTANT: **같은 장치에 클립과 이벤트를 둘 다 걸면 소리가 �
 | | `Heater/Snd_Start` 의 `Play` | `device-start` |
 | | `Heater/Snd_Hum` 의 `Play` | `heater-hum-loop` — 도는 동안 |
 | `Heater.activated` | `Heater/Snd_Complete` 의 `Play` | `ice-melt-crack` — 얼음이 깨진다 |
-| `Colossus.noticed` | `Cue_Chase` 의 `Play` | **비어 있다.** 아래 참고 |
+| `Colossus.noticed` | `Cue_Chase` 의 `Play` | `chase-dread-loop` — 추격이 이어지는 동안 |
 | | `Player` 의 `PlayerLook.Shake` | 화면이 짧게 떨린다 |
+| `Colossus.lost` | `Cue_Chase` 의 **`Stop`** | 놓치면 음악이 걷힌다 |
 | `CableCar.activated` | `BoardLever` 의 `Play` | `lever-pull` |
 | | `CableCar/Snd_Start` 의 `Play` | `generator-start` — 권양기가 돈다 |
 | | `CableCar/Snd_Run` 의 `Play` | `generator-rumble-loop` — 가는 동안 |
 
-IMPORTANT: **6 장 `Cue_Chase` 는 지금 클립이 비어 있다.** 원래 걸려 있던
-`chase-stinger` 를 2026-08-09 에 지웠기 때문이다. 기획에 안 맞는다고 판단해 버리고
-`chase-dread-loop` 으로 바꿨는데, 그것은 22 초 루프라 「발각되는 순간」 자리에는
-길이가 맞지 않는다. **발각 큐용 짧은 소리를 새로 만들어 다시 걸어야 한다.**
-6 장 기획이 「알아채면 멈춰 서서 돌아보고 포효한 뒤 온다. 그 1.2 초가 달아날
-시간」 이라고 못박은 자리라, 소리가 없으면 그 1.2 초가 사건으로 안 읽힌다.
+`Cue_Chase` 에 `chase-dread-loop` 을 걸었다 (2026-08-09). 원래 있던 `chase-stinger` 를
+사운드 담당이 기획에 안 맞는다고 버렸는데, 6 장은 다른 사람 씬이라 빈 채로 남겨둔
+것을 씬 소유자가 받아 채웠다.
+
+IMPORTANT: **그것은 스팅어가 아니라 22 초 루프다.** 켜는 자리만 두면 영영 안 꺼진다.
+그래서 `Colossus` 에 `lost` 이벤트를 더해 `noticed` 와 짝을 맞췄다 — 놓치면 `Stop` 이
+불려 음악이 걷힌다. **켜는 쪽과 끄는 쪽을 같은 모양으로 둔 것**은 붙이는 사람이
+한쪽을 빠뜨리지 않게 하려는 것이다.
+
+아직 없는 것은 **발각되는 순간에 치는 짧은 소리**다. 6 장은 알아채면 2 초 동안 멈춰
+서서 돌아보고 포효한 뒤 오는데, 그 2 초에 소리가 없으면 사건으로 안 읽힌다. 지금은
+화면 흔들림만 있다.
 
 **소리 하나에 오브젝트 하나**로 나눈다 (`Snd_<무엇>`). 한 오브젝트에 `AudioSource` 를
 여럿 붙이면 인스펙터에서 어느 이벤트가 어느 소리를 부르는지 읽히지 않는다. 레버 소리만
