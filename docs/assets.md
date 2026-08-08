@@ -18,6 +18,13 @@ IMPORTANT: 에셋을 받은 **그 자리에서** 기록한다. 나중에 몰아�
 | 이름 | 종류 | 출처 | 라이선스 | 커밋 | 사용처 | 추가일 |
 | --- | --- | --- | --- | --- | --- | --- |
 | Treeline 동결압 UI 키트 | UI PNG | 팀 자체 제작 — Codex 내장 이미지 생성 + 로컬 후처리 | 프로젝트 자체 제작 | O | HUD · 타이틀 · 설정 · 피격 효과 | 2026-08-08 |
+| IBM Plex Sans KR (Regular · SemiBold) | 폰트 TTF | https://github.com/IBM/plex — 받은 곳은 Google Fonts 저장소의 `ofl/ibmplexsanskr` | SIL Open Font License 1.1 (Reserved Font Name "Plex") | O | 게임 내 모든 한글 텍스트 | 2026-08-08 |
+
+IMPORTANT: OFL 은 **제품에 임베드하고 재배포하는 것을 명시적으로 허용**한다. 그래서
+원본 TTF 를 커밋한다. 조건은 두 가지다 — 라이선스 전문(`OFL.txt`)을 함께 두고,
+**폰트 자체를 단독 상품으로 팔지 않는다.** Reserved Font Name 조항이 있으므로
+글꼴을 고쳐 배포할 때는 이름에서 `Plex` 를 빼야 하지만, 우리는 고치지 않고 그대로
+쓰므로 해당하지 않는다.
 
 <!--
 행 예시 (형식 참고용, 실제 데이터 아님):
