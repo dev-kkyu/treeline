@@ -41,6 +41,27 @@ namespace Treeline
             }
         }
 
+        /// <summary>
+        /// 게임이 장 씬에서 바로 시작할 때 붙는다.
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: <b>첫 씬에는 <c>sceneLoaded</c> 가 오지 않는다.</b> 씬이 먼저
+        /// 로드되고 그 뒤에 <see cref="Instance"/> 가 생기기 때문이다. 이것이 없으면
+        /// 빌드의 첫 장에서 죽어도 재시작이 걸리지 않는다. 에디터에서 장 씬을 직접
+        /// 플레이할 때도 같다.
+        /// </remarks>
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void BootstrapInChapter()
+        {
+            if (!Chapters.IsChapter(SceneManager.GetActiveScene().name))
+            {
+                // 샌드박스 씬이다. 진행 시스템을 띄우지 않는다.
+                return;
+            }
+
+            Instance.EnterChapter();
+        }
+
         /// <summary>지금 진행 중인 장의 씬 이름.</summary>
         public string CurrentChapter => SceneManager.GetActiveScene().name;
 
@@ -158,6 +179,14 @@ namespace Treeline
                 return;
             }
 
+            EnterChapter();
+        }
+
+        /// <summary>
+        /// 장에 들어설 때 하는 일. 씬 로드로 들어오든 게임 시작으로 들어오든 같다.
+        /// </summary>
+        private void EnterChapter()
+        {
             PlacePlayer();
             WatchPlayerDeath();
         }

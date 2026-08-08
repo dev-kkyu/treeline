@@ -373,6 +373,11 @@ Progress ──옮긴다──▶ CharacterController  (스폰 · 체크포인�
 `GameFlow` 는 장이 로드될 때마다 그 씬의 `PlayerHealth` 를 찾아 `Died` 를 다시
 건다. 씬이 바뀌면 `PlayerHealth` 도 새로 생기기 때문이다.
 
+IMPORTANT: **첫 씬에는 `sceneLoaded` 가 오지 않는다.** 씬이 먼저 로드되고 그 뒤에
+`GameFlow` 가 생기기 때문이다. 그래서 `RuntimeInitializeOnLoadMethod` 로 시작
+시점에 한 번 더 붙인다. 이것이 없으면 **빌드의 첫 장에서 죽어도 재시작이 걸리지
+않는다.** 씬 전환으로 들어온 장에서는 멀쩡해서, 관통 테스트만으로는 안 잡힌다.
+
 한동안은 매 프레임 `IDamageable.IsAlive` 를 보는 방식이었다. A 의 구현을 기다리지
 않으려고 쓴 임시 방편이었고, `Died` 가 생기면서 걷어냈다. 그 폴링을 담고 있던
 `PlayerDeathWatcher` 와 씬마다 두던 `[Progress]` 오브젝트도 함께 사라졌다.
