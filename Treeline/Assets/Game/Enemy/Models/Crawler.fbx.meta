@@ -61,7 +61,14 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.5714286
+      - time: 0.3809524
+        functionName: AE_AttackTell
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.61904764
         functionName: AE_AttackHit
         data: 
         objectReferenceParameter: {instanceID: 0}
