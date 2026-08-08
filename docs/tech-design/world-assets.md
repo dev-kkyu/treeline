@@ -95,10 +95,17 @@ Meshy 기본값이 2048px 3 장이라 **적 한 마리가 10.67 MB** 로 월드 
 | 피벗 | 손에 들리는 것은 손잡이, 놓이는 것은 바닥 중앙 |
 | 콜라이더 | 박스. 메시 콜라이더는 쓰지 않는다 |
 
-### 우리가 못 고치는 것은 입구에서 막는다
+### 고치기 비싼 것은 입구에서 막는다
 
-임포트 후에 **형태 · 폴리곤 · UV 는 고칠 수 없다.** 이 PC 에 Blender 가 없고
-ProBuilder 변환은 막혀 있다. 그래서 프롬프트에 아래를 반드시 넣는다.
+**Unity 안에서는 형태 · 폴리곤 · UV 를 고칠 수 없다.** ProBuilder 변환이 막혀 있고
+MCP 로는 정점을 의미 있게 편집하지 못한다.
+
+IMPORTANT: 팀에는 **Blender 경로가 살아 있다.** `Crawler` 리깅과 2장 복도
+(`Ch2_CorridorSection.fbx`)가 그것으로 만들어졌다. 그러니 「절대 못 고친다」가
+아니라 **「고치려면 Blender 를 쓸 사람이 필요하다」** 가 맞다. 프롬프트로 막으면
+그 왕복이 없어진다.
+
+그래서 프롬프트에 아래를 반드시 넣는다.
 
 - `low-poly, game-ready, clean topology`
 - `no baked shadows, no baked ambient occlusion` — 알베도에 그림자가 구워지면
@@ -179,6 +186,10 @@ IMPORTANT: 이것은 **축 정렬된 상자에만 통한다.** 모서리를 깎�
 즉 **이미 놓인 큐브를 변환할 수 없다.** 새로 만드는 것만 된다. 그리고 베벨을 넣은
 뒤 UV 와 셰이딩을 세 번 고쳤는데도 평범한 스케일 큐브만큼 나오지 않았다. 한 단계마다
 손으로 다시 잡아야 하는 도구다.
+
+IMPORTANT: **2장은 이미 다른 길로 갔다.** `Ch2_CorridorSection.fbx` 처럼 Blender 로
+칸을 통째로 만들어 넣는 방식이고, 그쪽이 ProBuilder 보다 잘 돌아갔다. 형태를 깎아야
+할 일이 생기면 ProBuilder 가 아니라 **Blender 경로**를 먼저 본다.
 
 `create_shape` 는 `size` 를 배열 · 객체 둘 다 받지 못한다. `width` / `height` /
 `depth` 스칼라를 쓴다.
