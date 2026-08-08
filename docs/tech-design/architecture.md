@@ -127,6 +127,45 @@ if (surface.navMeshData != null && !AssetDatabase.Contains(surface.navMeshData))
 
 C 가 `Ch1` · `Ch2` · `Ch6` 을 구울 때도 같다.
 
+IMPORTANT: **`BuildNavMesh()` 는 새 객체를 만든다. 기존 에셋에 복사해 넣어야 한다.**
+`AssetDatabase.Contains` 가 거짓이면 아직 어느 파일에도 안 붙은 것이고, 그대로 두면
+**메모리에만 남았다가 씬을 다시 열 때 사라진다.** 겉으로는 구운 것처럼 보이지만
+디스크에는 옛 데이터가 그대로 있다. 2026-08-09 에 2장에서 이걸로 한 번 속았다 —
+복도를 큐브로 바꿔놓고 다시 구웠는데, 저장된 NavMesh 는 옛 FBX 바닥 높이를 따르고
+있었다.
+
+```csharp
+var saved = AssetDatabase.LoadAssetAtPath<NavMeshData>(path);
+if (surface.navMeshData != null && !AssetDatabase.Contains(surface.navMeshData) && saved != null)
+{
+    EditorUtility.CopySerialized(surface.navMeshData, saved);   // 같은 GUID 를 지킨다
+    surface.navMeshData = saved;
+    EditorUtility.SetDirty(saved);
+}
+```
+
+`CreateAsset` 이 아니라 `CopySerialized` 인 이유는 **GUID 를 지키기 위해서**다. 새로
+만들면 씬의 참조가 바뀌어 diff 가 크게 나고, 남이 받을 때 충돌한다.
+
+### 런타임에 막는 것은 굽기에서 뺀다
+
+IMPORTANT: **`NavMeshObstacle` 로 막을 물건은 구울 때 꺼야 한다.** 굽기가 렌더 메시를
+읽으므로(`useGeometry = RenderMeshes`) 그 물건의 **보이는 메시가 구멍을 파버린다.**
+그러면 런타임에 그것을 치워도 **구멍이 그대로 남아 길이 안 열린다.** carving 은 이미
+뚫린 구멍을 메우지 못한다.
+
+2026-08-09 에 2장 얼어붙은 문이 정확히 그랬다. 히터로 얼음을 녹여도 경로가 안 열려서
+**적이 따라 들어올 수 없었다** — 셔터로 도망칠 이유가 사라지는 자리다.
+
+```csharp
+door.SetActive(false);
+surface.BuildNavMesh();      // 문이 없는 상태로 굽는다
+door.SetActive(true);        // carving 이 런타임에 판다
+```
+
+`NavMeshModifier.ignoreFromBuild` 는 이 경우에 안 먹었다. **오브젝트를 끄는 편이
+확실하다.** 캐릭터를 빼고 굽는 것과 같은 이야기다.
+
 ### 몸이 큰 적은 에이전트 타입을 따로 쓴다
 
 NavMesh 는 **에이전트 타입 하나에 대해 하나씩 구워진다.** `NavMeshAgent.radius`

@@ -8,40 +8,52 @@
 
 **맵은 단조롭게 두고 그 위를 꾸민다.** 눈을 붙잡는 일은 여기 적힌 소품이 한다.
 
-## 정해진 것 — 벽은 바꾸지 않는다
+## 정해진 것 — 레벨은 큐브, 소품은 Meshy
 
-**벽 · 바닥 · 천장 · 계단 · 난간은 소품이 아니라 레벨이다.** 1 · 6 장과 똑같이
-**표면만 입힌다**(2-1b). 2장 복도 본체(`Ch2_CorridorSection.fbx`)도 여기 해당한다 —
-UV 가 제대로 있어서 `W_*` 텍스처를 그냥 입히면 되고 `SurfaceTiling` 도 필요 없다.
+**벽 · 바닥 · 천장 · 계단 · 난간은 소품이 아니라 레벨이다.** 세 장 모두 **스케일
+큐브로 짓고 표면만 입힌다**(2-1b). 그 외의 배치물은 전부 Meshy 로 교체한다.
 
 IMPORTANT: 벽을 Meshy 모델로 바꾸는 것은 R&D 가 배제했다. 생성물은 치수를 안 지켜 4m
 칸에 안 맞고, 이어 붙이면 이음매가 보이고, 메시 콜라이더가 되어 NavMesh 가 나빠지며,
 폴리곤이 감당이 안 된다.
 
-**그 외의 배치물은 전부 교체한다.** 1 · 2 · 6 장 공통이다.
+### 2장 복도를 큐브로 다시 지었다 (2026-08-09)
+
+2장 복도만 Blender FBX 였다. 처음에는 「UV 가 제대로 있으니 표면만 입히자」로 적었는데,
+**아무도 형태를 못 고친다**는 것이 결정적이었다 — 소스 스크립트가 저장소에 없었다.
+죽어 있던 `CorridorSection_Base` 가 치수까지 맞는 큐브 모듈이라 9 칸을 갈아끼웠다.
+
+| | 전 | 후 |
+| --- | --- | --- |
+| 콜라이더 | `MeshCollider` 1 개 | `BoxCollider` 14 개 |
+| **배관 · 조명** | **벽에 구워짐** | **개별 오브젝트 — 교체 가능** |
+| 바닥 윗면 | y 0.06 (방 · 문간과 6cm 턱) | y 0.00 균일 |
+
+**이 문서의 배관 · 조명 항목이 그래서 유효해졌다.** 구워져 있을 때는 복도에서 따로
+바꿀 수가 없었다.
+
+`Ch2_CorridorSection.fbx` 와 래퍼 `Ch2_Section.prefab`, 죽어 있던
+`CorridorSection_Bunks` · `_Lockers`, 쓸 곳이 없어진 머티리얼 여덟은 **지웠다.**
+FBX 는 git 이력에 남아 필요하면 되살릴 수 있다.
 
 ## 조사해서 확인한 것 (2026-08-09)
 
-**에셋스토어 에셋은 없다.** `ThirdParty/` 폴더가 없고, 2장 FBX 셋의 메타데이터가 전부
+**에셋스토어 에셋은 없다.** `ThirdParty/` 폴더가 없고, 2장 FBX 의 메타데이터가 전부
 `Blender (stable FBX IO) 5.2.0 LTS` 이며, `assets.md` 의 외부 에셋은 폰트 하나뿐이다.
 **라이선스 문제는 없다.**
 
-2장 구성은 이렇다. 처음에 「2장은 FBX 라 교체 대상이 아니다」로 적었는데 **FBX 는 복도
-본체 하나뿐**이고 나머지는 1 · 6 장과 같은 큐브였다.
+2장 소품은 **B 가 Blender FBX 로 만들어 둔 것**이 여덟이다. 전부 교체 대상이다 —
+레버 · 히터 · 배전함은 **다른 장에서도 쓰는 공용**이라, 2장 전용으로 두면 6장에 같은
+물건이 또 생긴다.
 
-| | 무엇 | 교체 |
-| --- | --- | --- |
-| 복도 본체 | `Ch2_CorridorSection.fbx` 메시 1 개를 반복 배치 | 표면만 |
-| 골방 · 창고 · 세면장 · 문간 | 큐브 102 개 | 벽은 표면만, 소품은 교체 |
-| 씬 직접 배치 | 큐브 26 개 | 전부 교체 |
-| 사물함 · 이층침대 | `Ch2_LockerBank.fbx` · `Ch2_Bunk.fbx` | 교체 (소품이다) |
-
-IMPORTANT: **복도 FBX 를 만든 Blender 소스가 저장소에 없다.** `ModelSources/` 에는
-`Crawler` 뿐이라 `Crawler` 는 다시 뽑을 수 있어도 복도는 못 뽑는다. 벽을 안 바꾸기로
-했으므로 지금은 문제가 아니지만, **소스를 받아 두는 편이 안전하다.**
-
-죽은 프리팹 셋도 찾았다 — `CorridorSection_Base` · `_Bunks` · `_Lockers` 는 `Ch2`
-에서 참조가 0 회다. FBX 로 갈아엎으며 남은 껍데기라 여기 세지 않는다.
+| 2장에 있는 FBX | 이 문서의 항목 |
+| --- | --- |
+| `Ch2_LockerBank` · `Ch2_Bunk` | 2번 사물함 · 3번 이층침대 |
+| `Ch2_ShutterLever` | **7번 벽 레버** (공용 — 1 · 6장과 같은 물건) |
+| `Ch2_Breaker` | **8번 배전함** (공용 — 4장 배전반으로 재등장) |
+| `Ch2_FrozenDoor` · `Ch2_DoorIce` | 9번 철제 문 (얼음은 제외 — VFX 로 간다) |
+| `Ch2_Heater` | **16번 히터 유닛** (공용 — 6장과 같은 크기) |
+| `Ch2_Shutter` | 17번 비상 셔터 |
 
 ---
 
@@ -122,7 +134,8 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
 - 치수: 0.90 × 1.80 × 0.50m (3연장 기준)
 - 축: 문이 `-Z` · 피벗: 바닥면 중앙
-- 바꿀 곳: `Ch2_LockerBank.fbx`, `HideRoom` 의 `Locker_Standing` · `Locker_Fallen`
+- 바꿀 곳: `Ch2` 의 `_Props/Locker_0`~`_7` · `Locker_L0`~`_L2` (11 개, `Ch2_LockerBank.fbx`),
+  `HideRoom` 의 `Locker_Standing` · `Locker_Fallen`
 - 부품 분리: **문 하나를 따로 뽑는다.** 열린 채로 둘 자리가 있다
 - 비고: 복도에 11 개가 늘어선다. **2장에서 화면에 가장 오래 있는 소품이다**
 
@@ -137,7 +150,8 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
 - 치수: 0.90 × 1.75 × 2.00m
 - 축: 머리맡 `-Z` · 피벗: 바닥면 중앙
-- 바꿀 곳: `Ch2_Bunk.fbx`, `HideRoom` 의 `Bunk_Frame` · `Bunk_Lower` · `Bunk_Upper`
+- 바꿀 곳: `Ch2` 의 `_Props/Bunk_0`~`_2` (`Ch2_Bunk.fbx`),
+  `HideRoom` 의 `Bunk_Frame` · `Bunk_Lower` · `Bunk_Upper`
 - 부품 분리: 불필요. 매트리스는 26 번으로 따로 얹는다
 
 ### 4. 조명 하우징 `LightHousing`
@@ -223,7 +237,8 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
 - 치수: 0.30 × 0.90 × 0.62m (`Ch2` 의 `Breaker` 실측)
 - 축: 문이 `-Z` · 피벗: 벽에 닿는 뒷면 중앙
-- 바꿀 곳: `Ch2` 의 `Breaker` · `BrkHandle` · `BrkLed`
+- 바꿀 곳: `Ch2` 의 `_Gameplay/Breaker` (`Ch2_Breaker.fbx`). **`Lever` 가 붙어 있는
+  오브젝트다** — 메시만 갈고 컴포넌트는 그대로 둔다
 - 부품 분리: **문을 따로 뽑는다**
 - 비고: 2장 히터 배전함이 이것이고, 4장 배전반으로 다시 나온다
 
@@ -239,10 +254,17 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
 - 치수: 문짝 2.40 × 2.30 × 0.18m (`Ch2` 실측) · 문틀 포함 폭 2.7m
 - 축: 앞 `-Z` · 피벗: **경첩 쪽 세로축**
-- 바꿀 곳: `Ch2` 의 `FrozenDoor` · `DoorLouver_0`~`_5`,
+- 바꿀 곳: `Ch2` 의 `_Gameplay/FrozenDoor/Model` (`Ch2_FrozenDoor.fbx`),
   `CorridorSection_Doorway` · `_DoorwayLeft` 의 `DoorJamb_*`
 - 부품 분리: **문짝 · 문틀 · 손잡이 셋.** 문짝만 돌아야 한다
-- 비고: **얼음은 모델에 넣지 않는다.** 서리 · 고드름은 VFX 와 반투명 셰이더로 간다
+- 비고: **얼음은 모델에 넣지 않는다.** `Ch2_DoorIce.fbx` 로 여섯 띠가 따로 있고
+  `IceMelt` 가 아래부터 녹인다. 그쪽은 건드리지 않는다
+
+  IMPORTANT: `FrozenDoor` 에는 `IceMelt` · `NavMeshObstacle(carving)` · `BoxCollider`
+  가 붙어 있다. **메시(`Model` 자식)만 갈고 나머지는 그대로 둔다.** 그리고 이 물건은
+  **NavMesh 를 구울 때 꺼야 한다** — 안 그러면 구멍이 영구히 남아 녹아도 길이 안
+  열린다. 근거는 [`architecture.md`](architecture.md) 의 「런타임에 막는 것은 굽기에서
+  뺀다」
 
 ### 10. 환기 벤트 그릴 `VentGrille`
 
@@ -507,8 +529,7 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
     Neutral desaturated palette only.
 
 - 치수: 0.80 × 0.14 × 1.90m · 축: 위 `+Y` · 피벗: 바닥면 중앙
-- 바꿀 곳: `HideRoom` 의 `Mattress` · `Mattress_Dragged`,
-  복도 칸의 `Mattress_L_*`
+- 바꿀 곳: `HideRoom` 의 `Mattress` · `Mattress_Dragged`
 - 부품 분리: 불필요
 
 ### 27. 세면대 `Basin`
