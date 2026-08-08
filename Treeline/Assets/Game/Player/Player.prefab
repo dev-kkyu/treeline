@@ -1457,10 +1457,15 @@ MonoBehaviour:
   damagePerPellet: 1
   range: 40
   shotsPerSecond: 2
+  magazineSize: 8
+  maxReserve: 24
   startingAmmo: 0
-  maxAmmo: 24
+  reloadSeconds: 1.8
   recoilUpDegrees: 1.6
   recoilSideDegrees: 0.6
+  reloadDipMeters: 0.1
+  reloadTiltDegrees: 30
+  reloadRollDegrees: 16
 --- !u!1 &3841973123911203915
 GameObject:
   m_ObjectHideFlags: 0
@@ -2424,10 +2429,15 @@ MonoBehaviour:
   damagePerPellet: 1
   range: 25
   shotsPerSecond: 0.9
+  magazineSize: 4
+  maxReserve: 12
   startingAmmo: 0
-  maxAmmo: 12
+  reloadSeconds: 2.6
   recoilUpDegrees: 3.4
   recoilSideDegrees: 1.2
+  reloadDipMeters: 0.1
+  reloadTiltDegrees: 30
+  reloadRollDegrees: 16
 --- !u!1 &6725344511790698311
 GameObject:
   m_ObjectHideFlags: 0

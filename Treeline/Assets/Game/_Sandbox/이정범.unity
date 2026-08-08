@@ -603,11 +603,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1592540805705413607, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
       propertyPath: startingAmmo
-      value: 12
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 4261399646895787605, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
       propertyPath: startingAmmo
-      value: 24
+      value: 32
       objectReference: {fileID: 0}
     - target: {fileID: 5316144467640077334, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
       propertyPath: startsUnarmed

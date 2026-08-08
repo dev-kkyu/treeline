@@ -325,7 +325,7 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | `PlayerLook` | 좌우는 몸체, 상하는 카메라. 포인터 잠금도 여기 |
 | `PlayerHealth` | 체력 3칸. `IDamageable` 구현 |
 | `WeaponSwitcher` | 어느 총을 드는가. 양손 운반 중 총 잠금 |
-| `PlayerWeapon` | 총 한 자루. `GameLayers.Shot` 레이캐스트, 탄약, 반동 |
+| `PlayerWeapon` | 총 한 자루. `GameLayers.Shot` 레이캐스트, 탄창 · 재장전, 반동 |
 | `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
 | `Flashlight` | 조명 토글과 배터리 소모 |
 | `PlayerHud` | 체력 3칸 · 탄약 · 조준선. 값을 폴링하지 않고 이벤트로 받는다 |
@@ -362,6 +362,14 @@ Player                  태그 Player, 레이어 Player(8)
 
 총 모델은 `PlayerWeapon` 이 자기 `OnEnable`/`OnDisable` 에서 켜고 끈다. 장착
 상태와 화면의 총이 어긋날 자리를 만들지 않으려는 것이다.
+
+**탄약은 탄창(`Loaded`)과 여분(`Reserve`)으로 나뉜다.** 획득물은 여분에 넣고,
+재장전이 여분에서 탄창으로 옮긴다. 재장전 중에는 쏘지 못하고, 무기를 바꾸거나
+무거운 것을 들면 `OnDisable` 에서 취소된다 — 다시 들면 처음부터다.
+
+재장전 동작은 애니메이션이 아니라 **총 모델 전체를 내렸다 올리는 것**이다. 뼈대가
+없어서 그렇게 했고, `sin` 곡선이라 시작과 끝이 정확히 원래 자세라 튀지 않는다.
+모델이 붙으면 여기를 애니메이터로 갈아끼운다.
 
 `PlayerHud` 는 `HealthChanged` · `AmmoChanged` · `Equipped` 를 구독한다. 무기를
 바꾸면 이전 무기의 구독을 끊는다 — 안 끊으면 안 든 총의 탄약이 화면에 남는다.
@@ -487,7 +495,7 @@ PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구�
 | 부르는 쪽 | 무엇 |
 | --- | --- |
 | 적 (B) | `PlayerHealth.TakeDamage` |
-| 획득물 (C) | `WeaponSwitcher.AddAmmo(종류, 발수)` · `Flashlight.AddBattery` |
+| 획득물 (C) | `WeaponSwitcher.AddAmmo(종류, 발수)` — **여분에 들어간다** · `Flashlight.AddBattery` |
 | 총 획득 (C) | `WeaponSwitcher.Equip(종류)` — 권총 3장, 산탄총 5장 |
 | 양손 운반 (C) | `WeaponSwitcher.SetCarrying(true/false)` |
 | 진행 (C) | `PlayerHealth.Died` 구독, 장 전환 시 `PlayerHealth.Restore` |

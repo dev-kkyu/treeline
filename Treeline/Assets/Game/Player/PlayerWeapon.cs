@@ -52,9 +52,17 @@ namespace Treeline
         [SerializeField] private float shotsPerSecond = 2f;
 
         [Header("탄약")]
+        [Tooltip("탄창 하나에 들어가는 발수.")]
+        [SerializeField] private int magazineSize = 8;
+
+        [Tooltip("여분 탄약 최대치. 탄창 안은 여기 포함되지 않는다.")]
+        [SerializeField] private int maxReserve = 24;
+
+        [Tooltip("시작할 때 가진 총 탄약. 여기서 탄창을 먼저 채운다.")]
         [SerializeField] private int startingAmmo;
 
-        [SerializeField] private int maxAmmo = 24;
+        [Tooltip("재장전에 걸리는 시간(초). 정비공이라 빠르지 않다.")]
+        [SerializeField] private float reloadSeconds = 1.8f;
 
         [Header("반동")]
         [Tooltip("한 발에 위로 튀는 각도.")]
@@ -63,15 +71,42 @@ namespace Treeline
         [Tooltip("한 발에 좌우로 틀어지는 각도. 방향은 매번 무작위다.")]
         [SerializeField] private float recoilSideDegrees = 0.6f;
 
+        [Header("재장전 동작")]
+        [Tooltip("재장전 중에 총이 내려가는 깊이(m).")]
+        [SerializeField] private float reloadDipMeters = 0.1f;
+
+        [Tooltip("재장전 중에 총구가 내려가는 각도.")]
+        [SerializeField] private float reloadTiltDegrees = 30f;
+
+        [Tooltip("재장전 중에 총이 안쪽으로 눕는 각도.")]
+        [SerializeField] private float reloadRollDegrees = 16f;
+
         private float nextShotTime;
+        private bool reloading;
+        private float reloadStartTime;
+        private float reloadEndTime;
+        private Vector3 viewModelBasePosition;
+        private Quaternion viewModelBaseRotation;
 
         public WeaponKind Kind => kind;
 
-        public int Ammo { get; private set; }
+        /// <summary>탄창에 든 발수. 0 이면 재장전해야 쏜다.</summary>
+        public int Loaded { get; private set; }
 
-        public int MaxAmmo => maxAmmo;
+        /// <summary>여분 탄약. 재장전할 때 여기서 탄창으로 옮긴다.</summary>
+        public int Reserve { get; private set; }
 
-        public event Action<int> AmmoChanged;
+        public int MagazineSize => magazineSize;
+
+        public int MaxReserve => maxReserve;
+
+        public bool IsReloading => reloading;
+
+        /// <summary>탄창이나 여분이 바뀌었다. 어느 쪽인지는 읽는 쪽이 본다.</summary>
+        public event Action AmmoChanged;
+
+        /// <summary>재장전을 시작하거나 끝냈다.</summary>
+        public event Action<bool> ReloadingChanged;
 
         /// <summary>실제로 한 발 나갔을 때. 소리 · 총구 섬광이 여기에 붙는다.</summary>
         public event Action Fired;
@@ -95,7 +130,17 @@ namespace Treeline
                 return;
             }
 
-            Ammo = Mathf.Clamp(startingAmmo, 0, maxAmmo);
+            if (viewModel != null)
+            {
+                viewModelBasePosition = viewModel.transform.localPosition;
+                viewModelBaseRotation = viewModel.transform.localRotation;
+            }
+
+            // 가진 탄약에서 탄창을 먼저 채우고 나머지를 여분으로 둔다.
+            int total = Mathf.Max(0, startingAmmo);
+            Loaded = Mathf.Min(magazineSize, total);
+            Reserve = Mathf.Clamp(total - Loaded, 0, maxReserve);
+
             SetViewModelVisible(false);
         }
 
@@ -108,15 +153,9 @@ namespace Treeline
 
         private void OnDisable()
         {
+            // 총을 바꾸거나 무거운 것을 들면 재장전이 끊긴다. 다시 들면 처음부터다.
+            CancelReload();
             SetViewModelVisible(false);
-        }
-
-        private void SetViewModelVisible(bool visible)
-        {
-            if (viewModel != null && viewModel.activeSelf != visible)
-            {
-                viewModel.SetActive(visible);
-            }
         }
 
         private void Update()
@@ -128,14 +167,32 @@ namespace Treeline
                 return;
             }
 
-            if (!input.AttackPressed || Ammo <= 0 || Time.time < nextShotTime)
+            if (reloading)
+            {
+                UpdateReloadPose();
+
+                if (Time.time >= reloadEndTime)
+                {
+                    FinishReload();
+                }
+
+                return;
+            }
+
+            if (input.ReloadPressed)
+            {
+                TryStartReload();
+                return;
+            }
+
+            if (!input.AttackPressed || Loaded <= 0 || Time.time < nextShotTime)
             {
                 return;
             }
 
             nextShotTime = Time.time + (shotsPerSecond > 0f ? 1f / shotsPerSecond : 0f);
-            Ammo--;
-            AmmoChanged?.Invoke(Ammo);
+            Loaded--;
+            AmmoChanged?.Invoke();
             Fired?.Invoke();
 
             Fire();
@@ -146,19 +203,100 @@ namespace Treeline
             }
         }
 
-        /// <summary>탄약을 줍는다. 넘치는 분은 버린다.</summary>
+        /// <summary>
+        /// 재장전을 시작한다. 탄창이 이미 가득하거나 여분이 없으면 아무 일도 없다.
+        /// </summary>
+        /// <returns>실제로 시작했으면 참.</returns>
+        public bool TryStartReload()
+        {
+            if (reloading || Loaded >= magazineSize || Reserve <= 0)
+            {
+                return false;
+            }
+
+            reloading = true;
+            reloadStartTime = Time.time;
+            reloadEndTime = Time.time + Mathf.Max(0.01f, reloadSeconds);
+            ReloadingChanged?.Invoke(true);
+            return true;
+        }
+
+        /// <summary>여분 탄약을 줍는다. 넘치는 분은 버린다.</summary>
         /// <returns>실제로 채운 발수.</returns>
         public int AddAmmo(int rounds)
         {
-            int before = Ammo;
-            Ammo = Mathf.Clamp(Ammo + Mathf.Max(0, rounds), 0, maxAmmo);
+            int before = Reserve;
+            Reserve = Mathf.Clamp(Reserve + Mathf.Max(0, rounds), 0, maxReserve);
 
-            if (Ammo != before)
+            if (Reserve != before)
             {
-                AmmoChanged?.Invoke(Ammo);
+                AmmoChanged?.Invoke();
             }
 
-            return Ammo - before;
+            return Reserve - before;
+        }
+
+        private void FinishReload()
+        {
+            int take = Mathf.Min(magazineSize - Loaded, Reserve);
+            Loaded += take;
+            Reserve -= take;
+
+            reloading = false;
+            ResetViewModelPose();
+            ReloadingChanged?.Invoke(false);
+            AmmoChanged?.Invoke();
+        }
+
+        private void CancelReload()
+        {
+            if (!reloading)
+            {
+                return;
+            }
+
+            reloading = false;
+            ResetViewModelPose();
+            ReloadingChanged?.Invoke(false);
+        }
+
+        /// <summary>총을 내렸다 올리는 동작. 뼈대가 없으니 총 전체를 움직인다.</summary>
+        private void UpdateReloadPose()
+        {
+            if (viewModel == null)
+            {
+                return;
+            }
+
+            float t = Mathf.InverseLerp(reloadStartTime, reloadEndTime, Time.time);
+
+            // 0 에서 시작해 가운데서 가장 크고 다시 0 으로 돌아온다. 끝났을 때
+            // 원래 자세와 정확히 맞아 튀지 않는다.
+            float amount = Mathf.Sin(t * Mathf.PI);
+
+            Transform tr = viewModel.transform;
+            tr.localPosition = viewModelBasePosition + Vector3.down * (reloadDipMeters * amount);
+            tr.localRotation = viewModelBaseRotation * Quaternion.Euler(
+                -reloadTiltDegrees * amount, 0f, reloadRollDegrees * amount);
+        }
+
+        private void ResetViewModelPose()
+        {
+            if (viewModel == null)
+            {
+                return;
+            }
+
+            viewModel.transform.localPosition = viewModelBasePosition;
+            viewModel.transform.localRotation = viewModelBaseRotation;
+        }
+
+        private void SetViewModelVisible(bool visible)
+        {
+            if (viewModel != null && viewModel.activeSelf != visible)
+            {
+                viewModel.SetActive(visible);
+            }
         }
 
         private void Fire()

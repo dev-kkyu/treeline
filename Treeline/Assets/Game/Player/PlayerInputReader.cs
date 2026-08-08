@@ -32,6 +32,7 @@ namespace Treeline
         private InputAction crouch;
         private InputAction weapon1;
         private InputAction weapon2;
+        private InputAction reload;
 
         /// <summary>이동 입력. x 는 좌우, y 는 앞뒤다. 이미 정규화돼 있지 않다.</summary>
         public Vector2 Move => move != null ? move.ReadValue<Vector2>() : Vector2.zero;
@@ -56,6 +57,8 @@ namespace Treeline
         public bool Weapon1Pressed => weapon1 != null && weapon1.WasPressedThisFrame();
 
         public bool Weapon2Pressed => weapon2 != null && weapon2.WasPressedThisFrame();
+
+        public bool ReloadPressed => reload != null && reload.WasPressedThisFrame();
 
         private void Awake()
         {
@@ -85,6 +88,7 @@ namespace Treeline
             crouch = Find("Crouch");
             weapon1 = Find("Weapon1");
             weapon2 = Find("Weapon2");
+            reload = Find("Reload");
         }
 
         private InputAction Find(string actionName)

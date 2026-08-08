@@ -110,6 +110,7 @@ namespace Treeline
             if (subscribed != null)
             {
                 subscribed.AmmoChanged += OnAmmoChanged;
+                subscribed.ReloadingChanged += OnReloadingChanged;
             }
 
             if (crosshair != null)
@@ -122,13 +123,15 @@ namespace Treeline
                 ammoText.enabled = subscribed != null;
             }
 
-            if (subscribed != null)
-            {
-                OnAmmoChanged(subscribed.Ammo);
-            }
+            OnAmmoChanged();
         }
 
-        private void OnAmmoChanged(int current)
+        private void OnReloadingChanged(bool reloading)
+        {
+            OnAmmoChanged();
+        }
+
+        private void OnAmmoChanged()
         {
             if (ammoText == null || subscribed == null)
             {
@@ -138,7 +141,10 @@ namespace Treeline
             // 화면 문구는 영문으로 쓴다. 기본 폰트(LegacyRuntime.ttf)에 한글 글리프가
             // 없어 에디터에서는 시스템 폰트로 대체되지만 WebGL 빌드에서 네모로 깨진다.
             string label = subscribed.Kind == WeaponKind.Shotgun ? "SHOTGUN" : "PISTOL";
-            ammoText.text = $"{label}  {current} / {subscribed.MaxAmmo}";
+
+            ammoText.text = subscribed.IsReloading
+                ? $"{label}  RELOADING"
+                : $"{label}  {subscribed.Loaded} / {subscribed.Reserve}";
         }
 
         private void Unsubscribe()
@@ -146,6 +152,7 @@ namespace Treeline
             if (subscribed != null)
             {
                 subscribed.AmmoChanged -= OnAmmoChanged;
+                subscribed.ReloadingChanged -= OnReloadingChanged;
                 subscribed = null;
             }
         }
