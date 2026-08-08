@@ -115,3 +115,8 @@ crashlytics-build.properties
 **/[Aa]ssets/ThirdParty.meta
 
 # docs/ 에서 생성되는 PDF는 제출물이므로 무시하지 않고 커밋한다.
+
+# MCP 로 찍은 스크린샷이 여기 쌓인다. 확인용이지 에셋이 아니므로 커밋하지 않는다.
+# IMPORTANT: 위 `!*.meta` 보다 뒤에 있어야 한다. 나중 규칙이 이긴다.
+**/[Aa]ssets/Screenshots/
+**/[Aa]ssets/Screenshots.meta
