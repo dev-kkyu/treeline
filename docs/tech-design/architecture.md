@@ -156,11 +156,23 @@ Unity 빌트인 `Player` 태그로 충분하다. 적은 `FindWithTag("Player")` 
 ### 씬 목록
 
 `EditorBuildSettings.asset` 도 셋이 다 건드린다. 씬을 추가하면 여기 등록해야
-한다. **지금은 비어 있다.** 1단계에서 `Levels/` 에 `Ch1` · `Ch2` · `Ch6` 이
-들어올 때 C 가 등록한다. 샌드박스 씬은 빌드에 넣지 않는다.
+한다. 샌드박스 씬은 빌드에 넣지 않는다.
+
+2026-08-08 에 아래 넷을 등록했다.
+
+| # | 씬 |
+| --- | --- |
+| 0 | `Game/Levels/Ch1.unity` |
+| 1 | `Game/Levels/Ch2.unity` |
+| 2 | `Game/Levels/Ch6.unity` |
+| 3 | `Game/Levels/Ending.unity` |
+
+`Ending` 은 마지막 장을 빠져나온 뒤 가는 곳이다. 없으면 `Ch6` 의 출구가 갈 데가
+없어 관통이 끝에서 끊긴다. 지금은 검은 화면뿐이고 UI 담당이 채운다.
 
 IMPORTANT: 씬은 **인덱스가 아니라 이름으로** 로드한다 (`LoadScene("Ch1")`).
-인덱스로 하면 목록 순서가 바뀔 때마다 엉뚱한 씬이 열린다.
+인덱스로 하면 목록 순서가 바뀔 때마다 엉뚱한 씬이 열린다. 위 번호는 등록 결과일
+뿐이고 코드는 이 번호를 쓰지 않는다.
 
 ## 폴더 구조
 
@@ -223,6 +235,24 @@ IMPORTANT: **A 는 `Player.prefab` 을 완성 전에 먼저 올린다.** 캡슐�
 1. `Assets/Game/Levels/Ch<번호>.unity` 를 만든다. **그 씬의 소유자는 만든 사람**이다
 2. 필요한 것은 다른 담당이 만든 **프리팹을 배치**한다. 로직을 씬에 직접 쓰지 않는다
 3. 장 진입 · 이탈은 `Progress/` 의 씬 전환을 쓴다
+4. `Chapters.Order` 에 넣고 빌드 씬 목록에도 등록한다. 둘 중 하나만 하면 조용히
+   어긋난다
+
+장 씬에 들어가는 것은 이렇다. `Ch1` · `Ch2` · `Ch6` 이 이 구성이다.
+
+| 오브젝트 | 무엇 |
+| --- | --- |
+| `SpawnPoint` | 장이 시작될 때 플레이어가 서는 자리. 방향까지 맞춘다 |
+| `ChapterExit` | 장의 끝. 트리거 콜라이더, 레이어 `Trigger` |
+| `[Progress]` | `PlayerDeathWatcher` 를 붙여 둔 빈 오브젝트 |
+| `Directional Light` | |
+| 바닥 · 벽 | 회색 박스 |
+| `TEMP_Camera` | **임시다.** A 의 `Player.prefab` 이 카메라를 갖고 오면 지운다 |
+
+IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.** MCP 로
+컴포넌트를 붙이면서 준 `size` 가 반영되지 않고 `(1,1,1)` 로 남는 일이 있었다.
+1m 큐브라 통로를 못 막고, 플레이어가 옆으로 지나가면 장이 안 넘어간다. 겉으로는
+멀쩡해 보여서 알아채기 어렵다.
 
 ### 새 적
 
