@@ -597,6 +597,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1285431113375781442, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
+      propertyPath: m_ClearFlags
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1592540805705413607, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
+      propertyPath: startingAmmo
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 4261399646895787605, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
+      propertyPath: startingAmmo
+      value: 24
+      objectReference: {fileID: 0}
     - target: {fileID: 5316144467640077334, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
       propertyPath: startsUnarmed
       value: 0

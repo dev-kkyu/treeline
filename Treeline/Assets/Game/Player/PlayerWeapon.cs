@@ -34,6 +34,9 @@ namespace Treeline
         [Tooltip("반동을 얹을 곳. 비어 있으면 반동이 없다.")]
         [SerializeField] private PlayerLook look;
 
+        [Tooltip("화면에 보이는 총 모델. 이 컴포넌트가 켜질 때만 보인다.")]
+        [SerializeField] private GameObject viewModel;
+
         [Header("탄도")]
         [Tooltip("한 발에 나가는 탄자 수. 권총 1, 산탄총 여럿.")]
         [SerializeField] private int pelletsPerShot = 1;
@@ -93,6 +96,27 @@ namespace Treeline
             }
 
             Ammo = Mathf.Clamp(startingAmmo, 0, maxAmmo);
+            SetViewModelVisible(false);
+        }
+
+        // 장착 여부와 모델 표시를 한 곳에 묶는다. WeaponSwitcher 가 이 컴포넌트를
+        // 켜고 끄는 것만으로 화면의 총도 같이 바뀐다.
+        private void OnEnable()
+        {
+            SetViewModelVisible(true);
+        }
+
+        private void OnDisable()
+        {
+            SetViewModelVisible(false);
+        }
+
+        private void SetViewModelVisible(bool visible)
+        {
+            if (viewModel != null && viewModel.activeSelf != visible)
+            {
+                viewModel.SetActive(visible);
+            }
         }
 
         private void Update()

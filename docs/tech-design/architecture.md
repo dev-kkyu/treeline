@@ -297,6 +297,20 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | `PlayerWeapon` | 총 한 자루. `GameLayers.Shot` 레이캐스트, 탄약, 반동 |
 | `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
 | `Flashlight` | 조명 토글과 배터리 소모 |
+| `PlayerHud` | 체력 3칸 · 탄약 · 조준선. 값을 폴링하지 않고 이벤트로 받는다 |
+
+프리팹 구조는 이렇다.
+
+```
+Player                  태그 Player, 레이어 Player(8)
+├── Body                회색 박스 캡슐
+├── Camera              본 카메라. Player 와 ViewModel 을 그리지 않는다
+│   ├── ViewModelCamera URP 오버레이. ViewModel(9) 만, 깊이를 지우고 겹쳐 그린다
+│   ├── Flashlight      Spot Light
+│   ├── Pistol          PlayerWeapon + Model
+│   └── Shotgun         PlayerWeapon + Model
+└── HUD                 Screen Space Overlay 캔버스
+```
 
 `PlayerWeapon` 만 루트가 아니라 `Camera` 밑에 **총마다 하나씩** 붙는다
 (`Camera/Pistol` · `Camera/Shotgun`). 권총과 산탄총은 클래스가 아니라 **값만
@@ -310,8 +324,22 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 반동은 무기가 직접 카메라를 돌리지 않고 `PlayerLook.AddRecoil` 로 값만 넘긴다.
 카메라 회전을 만지는 곳이 둘이 되면 매 프레임 서로 덮어쓴다.
 
+**1인칭 총 모델은 별도 카메라로 그린다.** `ViewModelCamera` 는 URP 오버레이라
+본 카메라 위에 깊이를 지우고 겹쳐 그린다. 총이 벽에 파고들지 않고, 시야각을 따로
+줄 수 있어(본 카메라 70도 / 뷰모델 50도) 총이 덜 왜곡된다. 그래서 본 카메라의
+컬링 마스크에서 `ViewModel`(9) 을 뺐다 — **둘 다 그리면 총이 두 번 그려진다.**
+
+총 모델은 `PlayerWeapon` 이 자기 `OnEnable`/`OnDisable` 에서 켜고 끈다. 장착
+상태와 화면의 총이 어긋날 자리를 만들지 않으려는 것이다.
+
+`PlayerHud` 는 `HealthChanged` · `AmmoChanged` · `Equipped` 를 구독한다. 무기를
+바꾸면 이전 무기의 구독을 끊는다 — 안 끊으면 안 든 총의 탄약이 화면에 남는다.
+초기값은 `OnEnable` 이 아니라 `Start` 에서 읽는다. `OnEnable` 은 `PlayerHealth.Awake`
+보다 먼저 돌 수 있어 체력을 0 으로 읽는다.
+
 `TestDamageTarget` 은 A 의 사격 검증용 표적 대역이고 **적이 아니다.** 적은 B 가
-`Enemy/` 에 만든다. `Crawler.prefab` 이 오면 지워도 된다.
+`Enemy/` 에 만든다. `Crawler.prefab` 이 왔으므로 사격 감각을 맞추는 용도로만 남기고,
+필요 없어지면 지운다.
 
 입력을 한 곳으로 모은 이유는 **사망 처리 때문**이다. `PlayerHealth` 가 죽을 때
 `PlayerInputReader` 하나만 끄면 액션 맵이 꺼지고, 나머지 컴포넌트는 전부 0 을
