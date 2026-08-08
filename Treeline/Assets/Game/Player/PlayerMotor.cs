@@ -56,24 +56,6 @@ namespace Treeline
         [Tooltip("앉고 서는 데 걸리는 시간(초).")]
         [SerializeField] private float crouchTransitionSeconds = 0.18f;
 
-        [Header("발소리")]
-        [Tooltip("비워 두면 발소리가 나지 않는다. 플레이어 몸에 붙인 3D AudioSource 다.")]
-        [SerializeField] private AudioSource footstepSource;
-
-        [Tooltip("표면별로 갈지 않는다. 장마다 기본 표면 하나를 정해 여기에 넣는다.")]
-        [SerializeField] private AudioClip[] footstepClips;
-
-        [Tooltip("한 발짝의 보폭(m). 걸은 거리가 이만큼 쌓일 때마다 한 번 난다.")]
-        [SerializeField] private float stepStride = 2.1f;
-
-        [SerializeField] private float stepVolume = 0.6f;
-
-        [Tooltip("웅크리면 작게. 이 장의 규칙이 소리로 드러나는 지점이다.")]
-        [SerializeField] private float crouchStepVolume = 0.22f;
-
-        private float stepDistance;
-        private int lastStepIndex = -1;
-
         [Header("스태미너")]
         [Tooltip("쉬지 않고 달릴 수 있는 시간(초).")]
         [SerializeField] private float sprintSeconds = 5f;
@@ -228,65 +210,7 @@ namespace Treeline
             Vector3 velocity = direction * speed;
             velocity.y += verticalVelocity;
             controller.Move(velocity * Time.deltaTime);
-
-            UpdateFootsteps(speed);
             UpdateNoise();
-        }
-
-        /// <summary>
-        /// 걸은 <b>거리</b>로 발소리를 낸다. 시간으로 재면 안 된다.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// 시간 간격으로 내면 웅크려 느리게 갈 때도 같은 박자로 울려 「조용히 간다」가
-        /// 성립하지 않는다. 거리로 재면 느리게 갈수록 저절로 뜸해진다.
-        /// </para>
-        /// <para>
-        /// 2 장은 소리로 위치를 들키는 장이라 이 간격이 곧 규칙이다. 웅크리면 보폭이
-        /// 길어지는 것처럼 처리해 발소리 수가 줄고, 달리면 반대가 된다.
-        /// </para>
-        /// </remarks>
-        private void UpdateFootsteps(float speed)
-        {
-            if (footstepSource == null || footstepClips == null || footstepClips.Length == 0)
-            {
-                return;
-            }
-
-            if (!controller.isGrounded)
-            {
-                // 공중에서는 쌓지 않는다. 착지하자마자 한 발이 터지는 것을 막는다.
-                stepDistance = stepStride * 0.5f;
-                return;
-            }
-
-            Vector3 flat = controller.velocity;
-            flat.y = 0f;
-            float moved = flat.magnitude * Time.deltaTime;
-            if (moved < 0.0001f)
-            {
-                return;
-            }
-
-            stepDistance += moved;
-            if (stepDistance < stepStride)
-            {
-                return;
-            }
-
-            stepDistance = 0f;
-
-            // 같은 소리가 연달아 나면 기계처럼 들린다. 직전 것은 피한다.
-            int index = UnityEngine.Random.Range(0, footstepClips.Length);
-            if (footstepClips.Length > 1 && index == lastStepIndex)
-            {
-                index = (index + 1) % footstepClips.Length;
-            }
-
-            lastStepIndex = index;
-            footstepSource.pitch = UnityEngine.Random.Range(0.94f, 1.06f);
-            footstepSource.volume = isCrouching ? crouchStepVolume : stepVolume;
-            footstepSource.PlayOneShot(footstepClips[index]);
         }
 
         /// <summary>지금 자세와 속도로 내는 소리의 크기를 정한다.</summary>
