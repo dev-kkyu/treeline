@@ -214,11 +214,22 @@ IMPORTANT: **같은 장치에 클립과 이벤트를 둘 다 걸면 소리가 �
 | | `Heater/Snd_Start` 의 `Play` | `device-start` |
 | | `Heater/Snd_Hum` 의 `Play` | `heater-hum-loop` — 도는 동안 |
 | `Heater.activated` | `Heater/Snd_Complete` 의 `Play` | `ice-melt-crack` — 얼음이 깨진다 |
-| `Colossus.noticed` | `Colossus/Snd_Roar` 의 `Play` | `colossus-roar` — 알아채는 순간 |
-| | `Player` 의 `PlayerLook.Shake` | 화면이 짧게 떨린다 |
+| `Colossus.roarSound` | `Colossus/Snd_Roar` 의 `Play` | `colossus-roar` — 포효 클립 21f, 턱이 열리는 지점 |
+| `Colossus.noticed` | `Player` 의 `PlayerLook.Shake` | 화면이 짧게 떨린다 |
+| `Colossus.grabSound` | `Colossus/Snd_Grab` 의 `Play` | `colossus-grab`(0.34초) — 잡기 클립 8f. **놓쳤을 때는 안 울린다** |
+| `Colossus.killSound` | `Colossus/Snd_Kill` 의 `Play` | `colossus-kill`(1.99초) — 90f. 화면이 닫히는 것과 같은 프레임 |
 | `CableCar.activated` | `BoardLever` 의 `Play` | `lever-pull` |
 | | `CableCar/Snd_Start` 의 `Play` | `generator-start` — 권양기가 돈다 |
 | | `CableCar/Snd_Run` 의 `Play` | `generator-rumble-loop` — 가는 동안 |
+
+IMPORTANT: **소리를 애니메이션 이벤트에 걸면 「놓쳤다」가 공짜로 표현된다.**
+`grabSound` 는 8f 재검사를 통과했을 때만 불리므로, 헛손질에는 아무 소리도 나지
+않는다. 사거리로 갈리는 분기를 소리 쪽에 다시 만들 필요가 없다.
+
+IMPORTANT: **`colossus-kill` 은 1.99 초인데 장이 1.5 초 뒤에 다시 시작한다.**
+`GameFlow.DeathToRestartSeconds` 가 1.5 라 뒤 0.5 초가 씬 재시작에 잘린다. 검은
+화면에서 끊기는 것이라 지금은 그럴듯하지만, 온전히 들리게 하려면 그 값을 2.2 로
+올려야 한다 — `GameFlow` 는 C 소유다.
 
 IMPORTANT: **추격 음악은 이 표에 없다.** `noticed` · `lost` 에 걸어 두었다가
 `ChaseMusic` 으로 옮겼다 (2026-08-09). 아래 「6 장 음악은 `ChaseMusic` 이 몬다」 참고.
