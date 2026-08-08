@@ -110,6 +110,21 @@ surface.layerMask = ~((1 << GameLayers.Player) | (1 << GameLayers.ViewModel)
                     | (1 << GameLayers.Enemy)  | (1 << GameLayers.Trigger));
 ```
 
+IMPORTANT: **구운 데이터를 씬에 묻으면 씬 파일 전체가 바이너리가 된다.** Asset
+Serialization 을 `Force Text` 로 두어도 그렇다. 커밋 기록이 제출물인데 씬 diff 가
+통째로 사라지고, 그 씬은 병합도 불가능해진다. 실제로 2026-08-08 에 한 번 밟았고
+씬을 이전 커밋에서 복원해야 했다.
+
+`BuildNavMesh()` 뒤에 데이터를 별도 에셋으로 뗀다.
+
+```csharp
+if (surface.navMeshData != null && !AssetDatabase.Contains(surface.navMeshData))
+    AssetDatabase.CreateAsset(surface.navMeshData, "<씬폴더>/NavMesh/<이름>.asset");
+```
+
+에디터 UI 에서 `Bake` 버튼으로 구우면 Unity 가 알아서 이렇게 한다. **스크립트로
+구울 때만 직접 해야 한다.**
+
 C 가 `Ch1` · `Ch2` · `Ch6` 을 구울 때도 같다.
 
 ### 레이캐스트 마스크

@@ -26,3 +26,19 @@ IMPORTANT: 씬 · GameObject · 컴포넌트 · 프리팹 · 머티리얼 · 빌
 - 파일로 직접 쓴 에셋은 Unity 가 모른다. `refresh_unity` 를 거쳐야 반영된다
 - 결과를 짐작하지 않고 되읽어 확인한다. `unity_reflect` 로 타입이 올라왔는지,
   `manage_scene get_hierarchy` 로 씬이 의도대로인지 본다
+
+## `execute_code` 의 함정
+
+- **`in` 매개변수를 못 부른다.** 컴파일러가 구버전이라 `TakeDamage(in DamageInfo)`
+  를 `ref` 로 보고 "missing `ref` modifier" 로 거절한다. 공용 계약인
+  `IDamageable` 이 정확히 이 모양이므로 반드시 걸린다. 리플렉션으로 우회한다.
+  ```csharp
+  typeof(Crawler).GetMethod("TakeDamage").Invoke(c, new object[] { info });
+  ```
+- **`AssetDatabase.DeleteAsset` 과 `EditorApplication.Exit*` 은 안전 검사에
+  막힌다.** 지울 것이 없다는 걸 먼저 확인했다면 `safety_checks: false` 로 넘기고,
+  플레이 모드 종료는 `EditorApplication.isPlaying = false` 를 쓴다.
+- **오래 걸리는 작업은 응답이 안 온다.** NavMesh 굽기나 대량 임포트가 그렇다.
+  실패로 보고 다시 실행하지 말고, 다음 호출에서 **상태를 읽어 확인**한다.
+- **플레이 모드는 에디터가 포커스를 잃으면 멈춘다.** 프레임이 안 도니 값이 그대로다.
+  `Application.runInBackground = true` 를 켜고 나서 표본을 뜬다.

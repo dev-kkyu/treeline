@@ -82,6 +82,10 @@
 *.a    binary
 *.pdb  binary
 
+# NavMesh 데이터는 확장자가 .asset 이지만 Force Text 여도 바이너리로 저장된다.
+# 위의 `*.asset text` 에 걸리면 줄바꿈 정규화가 내용을 깨뜨린다.
+**/NavMesh/*.asset binary
+
 *.unitypackage binary
 *.wlt  binary
 *.zip  binary

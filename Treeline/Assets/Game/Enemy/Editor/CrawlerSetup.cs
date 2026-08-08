@@ -102,6 +102,7 @@ namespace Treeline.EnemyEditor
                                     | (1 << GameLayers.Enemy)
                                     | (1 << GameLayers.Trigger));
                 surface.BuildNavMesh();
+                PersistNavMesh(surface);
             }
 
             // A 의 Player.prefab 이 오기 전까지 쓸 대역. 태그만 맞으면 Crawler 가 쫓는다.
@@ -129,6 +130,33 @@ namespace Treeline.EnemyEditor
 
             EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
             Debug.Log("샌드박스 준비 끝. Play 로 확인하고 마음에 들면 Ctrl+S.");
+        }
+
+        /// <summary>
+        /// 구운 <see cref="NavMeshData"/> 를 별도 에셋으로 떼어낸다.
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: 이걸 안 하면 NavMesh 데이터가 씬 안에 묻히고, **씬 파일 전체가
+        /// 바이너리로 저장된다.** Force Text 로 설정해 두어도 그렇다. 커밋 기록이
+        /// 제출물인 프로젝트에서 씬 diff 가 통째로 사라지고, 팀원과 병합할 수도 없어진다.
+        /// </remarks>
+        private static void PersistNavMesh(NavMeshSurface surface)
+        {
+            if (surface.navMeshData == null || AssetDatabase.Contains(surface.navMeshData))
+            {
+                return;
+            }
+
+            string sceneDir = Path.GetDirectoryName(EditorSceneManager.GetActiveScene().path).Replace("\\", "/");
+            string dir = sceneDir + "/NavMesh";
+            if (!AssetDatabase.IsValidFolder(dir))
+            {
+                AssetDatabase.CreateFolder(sceneDir, "NavMesh");
+            }
+
+            string name = Path.GetFileNameWithoutExtension(EditorSceneManager.GetActiveScene().path);
+            AssetDatabase.CreateAsset(surface.navMeshData, $"{dir}/Sandbox-{name}.asset");
+            AssetDatabase.SaveAssets();
         }
     }
 }
