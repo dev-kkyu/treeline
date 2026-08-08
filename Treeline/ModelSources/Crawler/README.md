@@ -13,6 +13,12 @@
 | `build_rig.py` | 메시에서 본을 세우고 스키닝한다 |
 | `animate.py` | 액션 6개를 만들고 컨트롤 리그를 deform bone 으로 굽는다 |
 | `export.py` | 텍스처를 풀고 `Crawler.fbx` 를 내보낸다 |
+| `export_glb.py` · `Crawler.glb` | 클립 6종이 들어간 뷰어용 GLB. Unity 는 쓰지 않는다 |
+
+`Crawler.glb` 는 Unity 를 켜지 않고 애니메이션을 확인하려고 둔 것이다. 텍스처가
+안에 박혀 있어 glTF 뷰어에 끌어다 놓으면 바로 재생된다. `Assets/` 밖인 이유는
+Unity 가 `.glb` 를 **두 번째 모델로 임포트해** 같은 생물이 두 벌이 되기
+때문이다.
 
 만든 규격은 [`docs/enemy-sheets/mockups/codex/crawler/animation/`](../../../docs/enemy-sheets/mockups/codex/crawler/animation/)
 의 명세를 따른다. 명세와 다르게 만든 부분과 그 이유는
@@ -34,6 +40,9 @@ BLENDER="/c/Program Files/Blender Foundation/Blender 5.2/blender.exe"
 
 # 3. FBX + 텍스처를 Assets/ 로 내보내기
 "$BLENDER" -b Crawler_Rig.blend --python export.py
+
+# 4. (선택) 뷰어용 GLB. 3단계가 텍스처를 파일로 풀어둔 뒤에 돌려야 한다
+"$BLENDER" -b Crawler_Rig.blend --python export_glb.py
 ```
 
 스크립트 상단의 경로 상수를 자기 환경에 맞게 고친다. 2단계는 프레임마다 메시를
