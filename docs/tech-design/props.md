@@ -1,4 +1,4 @@
-> 상태: 목록 확정 대기 · 최종 수정 2026-08-09
+> 상태: 목록 확정 · 부품 분리 방법 반영 · 최종 수정 2026-08-09
 
 # 소품 목록과 Meshy 프롬프트
 
@@ -83,6 +83,35 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
 ---
 
+## 부품이 나뉘어야 하는 것은 통짜로 뽑고 쪼갠다
+
+Meshy 는 프롬프트에 뭐라고 쓰든 **메시 하나 · 머티리얼 하나 · 텍스처 아틀라스 하나**로
+내보낸다. `as separate objects` 같은 말은 안 먹는다.
+
+**부품별로 따로 생성하지 않는다.** 손잡이만 따로 뽑으면 몸체와 페인트 톤 · 러스트 양 ·
+마모 위치가 안 맞고, 생성물마다 2048 텍스처 3장이 딸려 와 물건 하나가 20MB 가 된다.
+통짜로 한 번 뽑아 **임포트에서 쪼개면 UV 가 그대로라 두 조각이 같은 아틀라스를 쓴다** —
+색이 어긋날 수가 없고 텍스처도 한 벌이다.
+
+쪼개는 방식은 둘이고, 어느 쪽이 되는지는 뽑혀 온 모양이 정한다.
+
+| 방식 | 조건 | 하는 일 |
+| --- | --- | --- |
+| **덩어리 분리** | 부품 사이에 틈이 있어 메시가 안 붙어 있다 | 삼각형 연결 성분을 찾아 나눈다. 깨끗하다 |
+| **평면 절단** | 경첩 · 허브에서 붙어 있다 | 자를 높이를 정해 삼각형을 양쪽으로 배분한다. 단면은 안 막는다 |
+
+평면 절단의 뚫린 단면이 안 보이는 이유는 **자르는 자리가 경첩 안쪽 · 허브 안쪽**이기
+때문이다. 그 자리가 밖에서 보이는 부품이면 애초에 나눌 수 없다.
+
+둘 다 Unity 안에서 처리한다. Blender 를 안 거친다.
+
+IMPORTANT: 그래서 **덩어리 분리가 되도록 프롬프트에서 틈을 만들어 달라고 못 박는다.**
+아래 항목들의 영문 블록에 그 문장이 이미 들어가 있다. 빼면 붙은 채로 나와 절단으로
+떨어진다. 절단으로 갈 셋은 대신 **자르기 좋은 자세**를 못 박았다. 경첩으로 열리는 문은
+어느 쪽이 될지 뽑아 봐야 안다 — 분리를 먼저 시도하고 붙어 있으면 자른다.
+
+---
+
 ## 순서 — 화면에 오래 있는 것부터
 
 | 순위 | 무엇 | 개수 |
@@ -127,7 +156,8 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
     Bank of three tall steel personnel lockers standing side by side, each
     with a vented slot panel near the top, a recessed handle with a hasp, a
-    piano hinge down one side, a shared plinth at the bottom. Worn matte
+    piano hinge down one side, a shared plinth at the bottom. The leftmost
+    door stands wide open on its hinges, a clear gap all around it. Worn matte
     grey-green paint over steel, bare metal at the edges, light rust at seams.
     Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
     occlusion. No branding, no text, no decals. Neutral desaturated palette only.
@@ -136,7 +166,8 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 - 축: 문이 `-Z` · 피벗: 바닥면 중앙
 - 바꿀 곳: `Ch2` 의 `_Props/Locker_0`~`_7` · `Locker_L0`~`_L2` (11 개, `Ch2_LockerBank.fbx`),
   `HideRoom` 의 `Locker_Standing` · `Locker_Fallen`
-- 부품 분리: **문 하나를 따로 뽑는다.** 열린 채로 둘 자리가 있다
+- 부품 분리: **열린 문 한 짝을 나눈다.** 덩어리 분리를 먼저 보고, 경첩에서 붙어 있으면
+  거기를 자른다
 - 비고: 복도에 11 개가 늘어선다. **2장에서 화면에 가장 오래 있는 소품이다**
 
 ### 3. 이층침대 `Bunk`
@@ -158,15 +189,16 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
     Industrial fluorescent light fixture housing, long rectangular steel body
     with a wire cage guard over the front, two end caps, mounting brackets on
-    top. The tube inside is dark and unlit. Worn matte grey-green paint over
-    steel, bare metal at the edges, light rust at seams. Low-poly, game-ready,
-    clean topology. No baked shadows, no baked ambient occlusion. No branding,
-    no text, no decals. Neutral desaturated palette only.
+    top. The tube inside is dark and unlit, sitting in the housing with a
+    visible air gap all around it, not fused to the reflector. Worn matte
+    grey-green paint over steel, bare metal at the edges, light rust at seams.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
 
 - 치수: 길이 1.2m · 폭 0.16m · 높이 0.12m
 - 축: 길이 `+X` · 피벗: 천장에 닿는 윗면 중앙
 - 바꿀 곳: 복도 · 방 프리팹 전부의 `LightHousing` · `LightTube`
-- 부품 분리: **튜브를 따로 뽑는다.** 깜빡임을 머티리얼로 조절해야 한다
+- 부품 분리: **튜브를 나눈다** (덩어리 분리). 깜빡임을 머티리얼로 조절해야 한다
 - 비고: 모든 칸에 하나씩 들어간다. **꺼진 채로 있는 것이 기본**이고 켜지는 것은 4장이다
 
 ### 5. 배관 다발 `PipeRun` — 직선 · 엘보
@@ -214,32 +246,37 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
     Heavy industrial wall-mounted lever switch, cast steel base plate bolted
     to the wall, a thick pivoting handle with a rounded grip end, a curved
-    slotted guide plate behind the handle, small hinge boss. Worn matte
-    grey-green paint over steel, bare metal worn shiny on the grip. Low-poly,
-    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
-    No branding, no text, no decals. Neutral desaturated palette only.
+    slotted guide plate behind the handle, small hinge boss. The handle stands
+    straight up, well clear of the guide plate. Worn matte grey-green paint
+    over steel, bare metal worn shiny on the grip. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding, no
+    text, no decals. Neutral desaturated palette only.
 
 - 치수: 판 0.35 × 0.50m · 손잡이 길이 0.55m
 - 축: 앞 `-Z`, 손잡이가 `+Y` 로 선다 · 피벗: **손잡이 회전축**
 - 바꿀 곳: `Ch1/SearchlightSwitch`, `Ch2/ShutterLever`, `Ch6/HeaterLever` · `BoardLever`
-- 부품 분리: **손잡이를 따로 뽑는다.** `Lever` 가 55° 눕히므로 나뉘어야 한다
+- 부품 분리: **손잡이를 나눈다.** 평면 절단 — 경첩 보스에서 자른다. `Lever` 가 55°
+  눕히므로 나뉘어야 한다
+- 비고: **손잡이가 선 자세로 나와야 한다.** 눕은 채로 뽑히면 `Lever` 가 거기서 또 눕혀
+  두 번 눕는다
 - 비고: 넷의 씬 크기가 제각각이다(`0.35×1.6×0.25` ~ `0.24×0.6×0.45`). **하나를 만들어
   스케일로 맞춘다** — 같은 물건이 반복되는 편이 세계에 일관성을 준다
 
 ### 8. 벽면 배전함 `JunctionBox`
 
     Wall-mounted industrial electrical junction box, rectangular steel
-    enclosure with a hinged front door, two heavy latches, a small round
-    indicator lamp, conduit stubs entering from the bottom. Worn matte
-    grey-green paint over steel, bare metal at the edges, light rust at seams.
-    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
-    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
+    enclosure with a hinged front door standing half open, two heavy latches,
+    a small round indicator lamp, conduit stubs entering from the bottom. Worn
+    matte grey-green paint over steel, bare metal at the edges, light rust at
+    seams. Low-poly, game-ready, clean topology. No baked shadows, no baked
+    ambient occlusion. No branding, no text, no decals. Neutral desaturated
+    palette only.
 
 - 치수: 0.30 × 0.90 × 0.62m (`Ch2` 의 `Breaker` 실측)
 - 축: 문이 `-Z` · 피벗: 벽에 닿는 뒷면 중앙
 - 바꿀 곳: `Ch2` 의 `_Gameplay/Breaker` (`Ch2_Breaker.fbx`). **`Lever` 가 붙어 있는
   오브젝트다** — 메시만 갈고 컴포넌트는 그대로 둔다
-- 부품 분리: **문을 따로 뽑는다**
+- 부품 분리: **문을 나눈다.** 덩어리 분리를 먼저 보고, 붙어 있으면 경첩에서 자른다
 - 비고: 2장 히터 배전함이 이것이고, 4장 배전반으로 다시 나온다
 
 ### 9. 철제 문 · 문틀 `SteelDoor`
@@ -247,16 +284,19 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
     Heavy industrial steel door in its frame, flush slab with a row of narrow
     horizontal louvre slits near the top, a lever handle with a round
     escutcheon, three barrel hinges down one side, a raised threshold plate at
-    the bottom, the frame slightly proud of the wall. Worn matte grey-green
-    paint over steel, bare metal at the edges, light rust at the hinges.
-    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
-    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
+    the bottom, the frame slightly proud of the wall. The door slab hangs
+    slightly ajar in its frame with a clear gap along all four edges. Worn
+    matte grey-green paint over steel, bare metal at the edges, light rust at
+    the hinges. Low-poly, game-ready, clean topology. No baked shadows, no
+    baked ambient occlusion. No branding, no text, no decals. Neutral
+    desaturated palette only.
 
 - 치수: 문짝 2.40 × 2.30 × 0.18m (`Ch2` 실측) · 문틀 포함 폭 2.7m
 - 축: 앞 `-Z` · 피벗: **경첩 쪽 세로축**
 - 바꿀 곳: `Ch2` 의 `_Gameplay/FrozenDoor/Model` (`Ch2_FrozenDoor.fbx`),
   `CorridorSection_Doorway` · `_DoorwayLeft` 의 `DoorJamb_*`
-- 부품 분리: **문짝 · 문틀 · 손잡이 셋.** 문짝만 돌아야 한다
+- 부품 분리: **문짝 · 문틀 둘** (덩어리 분리). 문짝만 돌아야 한다. **손잡이는 문짝에
+  붙여 둔다** — 따로 돌리는 연출이 계획에 없어 절단을 한 번 아낀다
 - 비고: **얼음은 모델에 넣지 않는다.** `Ch2_DoorIce.fbx` 로 여섯 띠가 따로 있고
   `IceMelt` 가 아래부터 녹인다. 그쪽은 건드리지 않는다
 
@@ -352,15 +392,16 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
     Large industrial searchlight on a short mast, cylindrical drum housing
     with a wide glass lens at the front, a ribbed cooling collar, side yoke
     mount allowing tilt, a cable gland at the rear, mounted on a square base
-    plate. Worn matte grey-green paint over steel, bare metal at the edges,
-    light rust at seams. Low-poly, game-ready, clean topology. No baked
-    shadows, no baked ambient occlusion. No branding, no text, no decals.
-    Neutral desaturated palette only.
+    plate. The lamp head is aimed straight forward and level. Worn matte
+    grey-green paint over steel, bare metal at the edges, light rust at seams.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
 
 - 치수: 마스트 0.40 × 1.40 × 0.40m · 헤드 1.00 × 0.80 × 1.00m (`Ch1` 실측)
 - 축: 빛이 `+Z` · 피벗: 마스트 바닥면 중앙
 - 바꿀 곳: `Ch1` 의 `SearchlightMast` · `SearchlightHead`
-- 부품 분리: **헤드를 따로 뽑는다.** 돌아가는 연출이 붙을 수 있다
+- 부품 분리: **헤드를 나눈다.** 평면 절단 — 요크 축에서 자른다. 돌아가는 연출이 붙을 수
+  있다
 - 비고: 5장에서 같은 물건이 생존 수단이 된다
 
 ### 16. 히터 유닛 `HeaterUnit`
@@ -384,31 +425,33 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
     Industrial roll-down emergency shutter, horizontal slat curtain with a
     reinforced bottom rail, vertical guide channels at both sides, a roller
-    housing box across the top. Worn matte grey-green paint over steel, bare
-    metal at the edges, light rust running down the slats. Low-poly,
-    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
-    No branding, no text, no decals. Neutral desaturated palette only.
+    housing box across the top. The slat curtain hangs free inside the side
+    guides without touching them, the roller housing a separate box above.
+    Worn matte grey-green paint over steel, bare metal at the edges, light
+    rust running down the slats. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
 
 - 치수: 2.70 × 2.80 × 0.14m (`Ch2` 실측)
 - 축: 앞 `-Z`, 내려오는 방향 `-Y` · 피벗: **커튼 윗변**
 - 바꿀 곳: `Ch2` 의 `Shutter`
-- 부품 분리: **커튼 · 가이드 · 롤러함 셋.** 커튼만 내려와야 한다
+- 부품 분리: **커튼 · 가이드 · 롤러함 셋** (덩어리 분리). 커튼만 내려와야 한다
 - 비고: 2장에서 살아남는 수단. 3장 이후 같은 물건이 무기가 된다
 
 ### 18. 삭도 곤돌라 `CableCar`
 
     Small aerial tramway gondola cabin for two people, riveted steel shell
     with rounded corners, a large window on each side, a sliding door on one
-    side, a curved hanger arm on the roof ending in a grip clamp for the haul
-    rope. Worn matte grey-green paint over steel, bare metal at the edges,
-    light rust at seams. Low-poly, game-ready, clean topology. No baked
-    shadows, no baked ambient occlusion. No branding, no text, no decals.
-    Neutral desaturated palette only.
+    side standing half open with a clear gap between door and body, a curved
+    hanger arm on the roof ending in a grip clamp for the haul rope. Worn matte
+    grey-green paint over steel, bare metal at the edges, light rust at seams.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
 
 - 치수: 1.60 × 2.00 × 2.40m (`Ch6` 의 `Body` 실측)
 - 축: 진행 방향 `+Z` · 피벗: **행어 그립 중심** (케이블에 매달린다)
 - 바꿀 곳: `Ch6` 의 `Body` · `Car` · `CableCar`
-- 부품 분리: **문을 따로 뽑는다**
+- 부품 분리: **문을 나눈다** (덩어리 분리). 미닫이라 경첩이 없어 깨끗하게 떨어진다
 - 비고: 올라타면 화면이 뒤집힌다. **안이 보이므로 내부도 필요하다**
 
 ### 19. 관제 콘솔 `ControlConsole`
@@ -449,7 +492,8 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 
     Industrial gate valve with a spoked hand wheel, five spokes and a raised
     hub, rising stem above the bonnet, flanged valve body below, bolted
-    joints. Worn matte grey-green paint over steel, bare metal worn shiny on
+    joints. The hand wheel sits high on the stem, its spokes well clear of the
+    valve body. Worn matte grey-green paint over steel, bare metal worn shiny on
     the wheel rim, light rust at seams. Low-poly, game-ready, clean topology.
     No baked shadows, no baked ambient occlusion. No branding, no text,
     no decals. Neutral desaturated palette only.
@@ -457,7 +501,8 @@ IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비�
 - 치수: 휠 지름 0.36m · 전체 높이 0.45m
 - 축: 휠 축이 `+Z` · 피벗: 배관에 닿는 밑면
 - 바꿀 곳: 없음 — 배관에 붙는 장식으로 새로 놓는다
-- 부품 분리: **휠을 따로 뽑는다.** 3 · 4장에서 돌리는 연출이 붙는다
+- 부품 분리: **휠을 나눈다.** 평면 절단 — 스템 중간에서 자른다. 3 · 4장에서 돌리는
+  연출이 붙는다
 
 ---
 
