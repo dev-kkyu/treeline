@@ -308,23 +308,19 @@ MonoBehaviour:
   library:
   - surface: 0
     clips:
-    - {fileID: 8300000, guid: 70be54dfc609e384b88f750445120ec3, type: 3}
     - {fileID: 8300000, guid: fcc2b0a30a3e20846ba885d8ab62a081, type: 3}
     - {fileID: 8300000, guid: 6760b3cd17c6e1b47aeb9314a55a4d68, type: 3}
   - surface: 1
     clips:
     - {fileID: 8300000, guid: 1f188742685c0f64381061478b6bf6ca, type: 3}
-    - {fileID: 8300000, guid: 0810e9e6d20029c40a360ad3c81458ce, type: 3}
     - {fileID: 8300000, guid: ab66ea75bb387bc4ca6754cd42265172, type: 3}
   - surface: 2
     clips:
     - {fileID: 8300000, guid: 369a5b0ea0c9e1e4d94d0d3fd4683b78, type: 3}
-    - {fileID: 8300000, guid: 143ef6d3c74a5ed4196ce15e7a939fd6, type: 3}
     - {fileID: 8300000, guid: 984d8a7d4fbaecd41a3bb43a082ea057, type: 3}
   - surface: 3
     clips:
     - {fileID: 8300000, guid: 77a78c43f71eedf449aaf55fedeb5168, type: 3}
-    - {fileID: 8300000, guid: e450111e9d423c541aac404b7d8151ae, type: 3}
     - {fileID: 8300000, guid: d4ec7f4ffc5ae374b97f1f6760f1938e, type: 3}
   walkStride: 0.85
   sprintStride: 1.15
