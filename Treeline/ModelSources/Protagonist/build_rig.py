@@ -350,4 +350,6 @@ def main():
     print("SAVED", OUT_BLEND)
 
 
-main()
+# build_arms.py imports the bone tables from here, so nothing may run on import
+if __name__ == "__main__":
+    main()
