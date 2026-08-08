@@ -1,14 +1,23 @@
-"""Find a shotgun idle stance that is both reachable and on screen.
+"""Find weapon stances that hold like the reference photographs.
 
     blender Protagonist_Arms.blend -b --python find_stance.py
 
-07-shotgun.md's stance was derived from reach alone - the left hand has to get
-to a pump 0.46 m ahead of the grip on a 0.595 m arm - and it put the gun almost
-entirely below the frame. Reach is necessary, not sufficient. This sweeps grip
-position, aim and roll, keeps only the candidates both hands can hold with a
-wrist inside 35 degrees, and among those takes the one that shows the most gun.
+The first version scored reach only and put the shotgun 19% on screen. The
+second added visibility and got it into frame, but still far away, tipped over,
+with the forearms filling the shot - nothing like a viewmodel. Reach is a gate,
+not a goal.
 
-Prints a stance; animate_arms.py carries the numbers.
+What a held weapon has to satisfy, from the references:
+
+  size      the gun reads as the subject, not as something the hands are near
+  place     it sits where the eye expects it - low centre for a pistol, across
+            the lower frame for a long gun
+  level     the top of the weapon faces up. A gun rolled over to show its port
+            is a reload beat, not an idle
+  along     the barrel runs away from the camera, so the sights line up
+
+All four are measurable, so none of them is authored. Reach and wrist gate a
+candidate; those four score it.
 """
 import bpy
 import math
@@ -20,13 +29,30 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hand_poses as HP
 
 FOV_Y, ASPECT = math.radians(80), 16.0 / 9.0
-WRIST_LIMIT = 35.0
+WRIST_GATE = 32.0        # slack under the 35 the clips will eat into
+MISS_GATE = 0.002
 
 arm = bpy.data.objects["Arms_Armature"]
-shotgun = bpy.data.objects["W_Shotgun"]
-pump = bpy.data.objects["W_Pump"]
-
 POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
+
+# coverage is the share of the frame the weapon's silhouette should fill;
+# centre is where it sits in normalised screen space, x right and z up, -1..1.
+WEAPONS = {
+    "pistol": dict(
+        meshes=("W_Pistol", "W_Slide"), grips=("PistolGrip", "PistolSupport"),
+        coverage=0.16, centre=(0.02, -0.22),
+        loc=((-0.02, 0.02, 0.06, 0.10), (-0.30, -0.26, -0.22, -0.18),
+             (-0.16, -0.12, -0.08, -0.04)),
+        muzzle=((-0.10, 0.0, 0.10), (-0.16, -0.08, 0.0, 0.08)),
+        rolls=(-8, 0, 8)),
+    "shotgun": dict(
+        meshes=("W_Shotgun", "W_Pump"), grips=("ShotgunGrip", "PumpHold"),
+        coverage=0.30, centre=(-0.10, -0.34),
+        loc=((0.06, 0.10, 0.14, 0.18), (-0.26, -0.20, -0.14),
+             (-0.26, -0.20, -0.14)),
+        muzzle=((-0.45, -0.30, -0.15), (-0.30, -0.18, -0.06, 0.04)),
+        rolls=(0, 12, 24)),
+}
 
 
 def rest_head(n):
@@ -69,7 +95,9 @@ def aim_basis(muzzle, up):
 REST_BASIS = aim_basis(Vector((0, -1, 0)), Vector((0, 0, 1)))
 
 
-def set_weapon(loc, muzzle, up):
+def set_weapon(loc, muzzle, roll):
+    up = Matrix.Rotation(math.radians(roll), 3,
+                         Vector(muzzle).normalized()) @ Vector((0, 0, 1))
     wrot("WeaponRoot", aim_basis(muzzle, up) @ REST_BASIS.inverted())
     wloc("WeaponRoot", Vector(loc) - rest_head("WeaponRoot"))
     bpy.context.view_layer.update()
@@ -106,32 +134,6 @@ def place(side, grip_w, fwd, pal, twist):
     return want
 
 
-PUMP_GRIP = None
-
-
-def grip(pose, twist_span=25.0, grip_override=None):
-    side, bone, g, fwd, pal, twist, off = HP.FRAMES[pose]
-    if grip_override is not None:
-        g = grip_override
-    D = delta(bone)
-    R = D.to_3x3()
-    gw = D @ (rest_head(bone) + Vector(g))
-    pw = R @ Vector(pal)
-    target = gw - pw.normalized() * off
-
-    def score(t):
-        want = place(side, target, R @ Vector(fwd), pw, t)
-        return wrist_bend(side) + 2000.0 * (arm.pose.bones["Hand." + side].head
-                                            - want).length
-    best = min([twist + i for i in range(int(-twist_span), int(twist_span) + 1, 5)],
-               key=score)
-    want = place(side, target, R @ Vector(fwd), pw, best)
-    # against the WRIST target place() returns, not the grip point. The web sits
-    # about 56 mm out from the wrist, and comparing the wrist to the web reported
-    # a constant ~53 mm miss at every stance - which read as "unreachable".
-    return (arm.pose.bones["Hand." + side].head - want).length, wrist_bend(side)
-
-
 def wrist_bend(side):
     def d(n):
         pb = arm.pose.bones[n + "." + side]
@@ -139,95 +141,116 @@ def wrist_bend(side):
     return math.degrees(d("LowerArm").angle(d("Hand")))
 
 
-def on_screen(ob):
-    """Fraction of the object in front of the camera and inside the frame."""
+def set_fingers(side, pose):
+    for d in HP.DIGITS:
+        a = HP.angles(pose, d)
+        for i in (1, 2, 3):
+            pb = arm.pose.bones["%s%d.%s" % (d, i, side)]
+            pb.rotation_mode = 'XYZ'
+            pb.rotation_euler = (math.radians(a[i - 1]), 0, 0)
+
+
+def grip(pose):
+    side, bone, g, fwd, pal, twist, off = HP.FRAMES[pose]
+    D = delta(bone)
+    R = D.to_3x3()
+    target = D @ (rest_head(bone) + Vector(g)) - (R @ Vector(pal)).normalized() * off
+
+    def score(t):
+        want = place(side, target, R @ Vector(fwd), R @ Vector(pal), t)
+        return wrist_bend(side) + 2000.0 * (arm.pose.bones["Hand." + side].head
+                                            - want).length
+    best = min(range(int(twist) - 25, int(twist) + 26, 5), key=score)
+    want = place(side, target, R @ Vector(fwd), R @ Vector(pal), best)
+    # the fingers matter for anything that gets looked at: without them the
+    # renders showed two open palms and no grip at all
+    set_fingers(side, pose)
+    bpy.context.view_layer.update()
+    # measured against the wrist target place() returns, not the grip point: the
+    # web sits 56 mm out from the wrist and comparing the two reported a
+    # constant 53 mm miss at every stance, which read as unreachable
+    return (arm.pose.bones["Hand." + side].head - want).length, wrist_bend(side)
+
+
+TY = math.tan(FOV_Y * 0.5)
+TX = TY * ASPECT
+
+
+def screen(meshes):
+    """Share of the weapon in frame, where it sits, and how much frame it fills."""
     dg = bpy.context.evaluated_depsgraph_get()
-    ev = ob.evaluated_get(dg)
-    me = ev.to_mesh()
-    ty = math.tan(FOV_Y * 0.5)
-    tx = ty * ASPECT
-    inside = 0
-    tot = len(me.vertices)
-    for v in me.vertices:
-        p = v.co
-        if p.y >= -0.03:
-            continue
-        d = -p.y
-        if abs(p.x) <= tx * d and abs(p.z) <= ty * d:
-            inside += 1
-    ev.to_mesh_clear()
-    return inside / float(tot)
+    xs, zs, inside, tot = [], [], 0, 0
+    for name in meshes:
+        ev = bpy.data.objects[name].evaluated_get(dg)
+        me = ev.to_mesh()
+        for v in me.vertices:
+            tot += 1
+            p = v.co
+            if p.y >= -0.03:
+                continue
+            d = -p.y
+            sx, sz = p.x / (TX * d), p.z / (TY * d)
+            if abs(sx) <= 1 and abs(sz) <= 1:
+                inside += 1
+                xs.append(sx)
+                zs.append(sz)
+        ev.to_mesh_clear()
+    if not xs:
+        return 0.0, 0.0, 0.0, 0.0
+    span = (max(xs) - min(xs)) * (max(zs) - min(zs)) * 0.25
+    return (inside / float(tot), sum(xs) / len(xs), sum(zs) / len(zs),
+            min(span, 1.0))
 
 
-def try_stance(loc, muzzle, roll):
-    up = Matrix.Rotation(math.radians(roll), 3, Vector(muzzle).normalized()) @ \
-        Vector((0, 0, 1))
+def evaluate(cfg, loc, muzzle, roll):
     reset()
     for s in ("R", "L"):
         wloc("CTRL_ElbowPole." + s, POLE[s] - rest_head("CTRL_ElbowPole." + s))
-    set_weapon(loc, muzzle, up)
-    missR, wR = grip("ShotgunGrip")
-    missL, wL = grip("PumpHold", grip_override=PUMP_GRIP)
-    vis = on_screen(shotgun)
-    pvis = on_screen(pump)
-    ok = missR < 0.002 and missL < 0.002 and wR <= WRIST_LIMIT and wL <= WRIST_LIMIT
-    return ok, vis, pvis, max(wR, wL), max(missR, missL), missR, missL, wR, wL
+    set_weapon(loc, muzzle, roll)
+    misses, wrists = [], []
+    for g in cfg["grips"]:
+        m, w = grip(g)
+        misses.append(m)
+        wrists.append(w)
+    vis, sx, sz, span = screen(cfg["meshes"])
+    return max(misses), max(wrists), vis, sx, sz, span
 
 
-def main():
-    global PUMP_GRIP
-    for back in (0.0, 0.05, 0.09, 0.113):
-        PUMP_GRIP = (0, -0.460 + back, 0.012)
-        ok, vis, pvis, w, miss = try_stance(Vector((0.16, -0.06, -0.36)),
-                                            Vector((-0.55, -0.80, -0.24)), 0)[:5]
-        print("PUMPBACK %.3f  miss %6.2f mm  wrist %5.1f  vis %2.0f%%"
-              % (back, miss * 1000, w, vis * 100))
-    PUMP_GRIP = (0, -0.347, 0.012)
-    ok, vis, pvis, w, miss = try_stance(Vector((0.16, -0.06, -0.36)),
-                                        Vector((-0.55, -0.80, -0.24)), 0)[:5]
-    print("REF07 ok=%s vis %.0f%% pump %.0f%% wrist %.1f miss %.2f mm"
-          % (ok, vis * 100, pvis * 100, w, miss * 1000))
-    best = None
-    bestR = bestL = 1e9
-    bestSum = (1e9, 0, 0, 0, 0, None, None, 0)
-    tried = ok_n = 0
-    for gx in (0.06, 0.12, 0.18):
-        for gy in (-0.30, -0.22, -0.14):
-            for gz in (-0.34, -0.26, -0.18):
-                for mx in (-0.70, -0.50, -0.30):
-                    for mz in (-0.40, -0.22, -0.05):
-                        m = Vector((mx, -1.0, mz))
-                        for roll in (25, 45):
-                            tried += 1
-                            ok, vis, pvis, w, miss, mR, mL, wR, wL = try_stance(
-                                Vector((gx, gy, gz)), m, roll)
-                            bestR = min(bestR, mR); bestL = min(bestL, mL)
-                            if mR + mL < bestSum[0]:
-                                bestSum = (mR + mL, mR, mL, wR, wL,
-                                           (gx, gy, gz), tuple(m), roll)
-                            if miss > 0.002:
+def search(name, cfg):
+    best, gated = None, 0
+    for gx in cfg["loc"][0]:
+        for gy in cfg["loc"][1]:
+            for gz in cfg["loc"][2]:
+                for mx in cfg["muzzle"][0]:
+                    for mz in cfg["muzzle"][1]:
+                        for roll in cfg["rolls"]:
+                            m = Vector((mx, -1.0, mz))
+                            miss, w, vis, sx, sz, span = evaluate(
+                                cfg, Vector((gx, gy, gz)), m, roll)
+                            if miss > MISS_GATE or w > WRIST_GATE or vis < 0.6:
                                 continue
-                            ok_n += 1
-                            # prefer slack, not merely passing: a stance that
-                            # sits at 34.7 of 35 has nowhere to go once the
-                            # clip rolls the gun, and the reload went over on
-                            # the third frame.
-                            s = vis + 0.5 * pvis - 0.03 * max(0.0, w - 22.0)
+                            gated += 1
+                            cx, cz = cfg["centre"]
+                            s = -(3.0 * abs(span - cfg["coverage"])
+                                  + 1.2 * abs(sx - cx) + 1.2 * abs(sz - cz)
+                                  + 0.02 * abs(roll)
+                                  + 0.02 * max(0.0, w - 20.0)
+                                  - 0.4 * vis)
                             if best is None or s > best[0]:
-                                best = (s, (gx, gy, gz), tuple(m), roll, vis,
-                                        pvis, w, miss)
-    print("TRIED %d, reachable %d" % (tried, ok_n))
-    print("BESTMISS  right alone %.1f mm   left alone %.1f mm" % (bestR * 1000, bestL * 1000))
-    print("BESTBOTH  R %.1f mm  L %.1f mm  wrists %.1f / %.1f  loc %s muzzle %s roll %s"
-          % (bestSum[1] * 1000, bestSum[2] * 1000, bestSum[3], bestSum[4],
-             bestSum[5], bestSum[6], bestSum[7]))
+                                best = (s, (gx, gy, gz), (mx, -1.0, mz), roll,
+                                        vis, sx, sz, span, w, miss)
+    print("SEARCH %-8s passed the gate %d" % (name, gated))
     if best is None:
-        print("NONE reachable")
+        print("       nothing passed")
         return
-    s, loc, m, roll, vis, pvis, w, miss = best
-    print("BEST  loc %s  muzzle %s  roll %d" % (loc, tuple(round(c, 3) for c in m), roll))
-    print("      shotgun on screen %.0f%%  pump %.0f%%  worst wrist %.1f  miss %.2f mm"
-          % (vis * 100, pvis * 100, w, miss * 1000))
+    s, loc, mu, roll, vis, sx, sz, span, w, miss = best
+    print("BEST   %-8s loc %s  muzzle %s  roll %d"
+          % (name, tuple(round(c, 3) for c in loc),
+             tuple(round(c, 2) for c in mu), roll))
+    print("       in frame %.0f%%  fills %.0f%%  centre (%+.2f %+.2f)  "
+          "wrist %.1f  miss %.2f mm"
+          % (vis * 100, span * 100, sx, sz, w, miss * 1000))
 
 
-main()
+for _name, _cfg in WEAPONS.items():
+    search(_name, _cfg)

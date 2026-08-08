@@ -41,17 +41,18 @@ NEAR_CLIP = 0.03        # 00-rigging.md
 # Idle stances. The pistol sits where the grips were solved; the shotgun where
 # 07-shotgun.md puts it, because this character's arms cannot reach the pump
 # from anywhere else.
-PISTOL_IDLE = dict(loc=Vector((0.10, -0.35, -0.12)),
-                   muzzle=Vector((0.0, -0.9925, -0.1219)),   # 7 deg below level
+# Brought in to 0.22 m and levelled. At 0.35 m with the muzzle 7 degrees down
+# the pistol filled 1% of the frame and sat behind the fists - the reference
+# photograph has the gun as the subject, level, with the hand under it.
+PISTOL_IDLE = dict(loc=Vector((0.02, -0.22, -0.10)),
+                   muzzle=Vector((0.06, -1.00, 0.05)),
                    roll=0.0)
-# found by find_stance.py: of 486 candidates 274 are holdable two-handed, and
-# this one shows the most gun with the most wrist to spare - 83% of the shotgun
-# and all of the pump inside an 80 degree frame at 19.7 degrees of wrist.
-# Scoring on visibility alone first picked a stance sitting at 34.7 of the 35
-# limit, which had nowhere to go the moment the clip rolled the gun.
-SHOTGUN_IDLE = dict(loc=Vector((0.12, -0.22, -0.18)),
-                    muzzle=Vector((-0.50, -1.00, -0.40)),
-                    roll=25.0)
+# Levelled and brought in for the same reason. The reference holds a pump gun
+# flat across the body, not tipped over - the roll belongs to the reload beat
+# that exposes the port, not to the idle.
+SHOTGUN_IDLE = dict(loc=Vector((0.14, -0.10, -0.14)),
+                    muzzle=Vector((-0.45, -1.00, -0.06)),
+                    roll=0.0)
 
 POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
 
@@ -417,6 +418,39 @@ def pistol_idle():
     grip("PistolSupport")
 
 
+def _rack_hand(u):
+    """Left hand pinching the rear of the slide, riding it back.
+
+    The slide bone carries the grip, so the hand travels with it for free - the
+    same trick the magazine uses. Fingers are Point rather than a wrap: a slide
+    is pinched between thumb and forefinger, not held.
+    """
+    D = delta("Slide")
+    R = D.to_3x3()
+    axis = (R @ Vector((0, -1, 0))).normalized()      # the slide runs this way
+    rear = D @ (rest_head("Slide") + Vector((0, 0.004, 0.004)))
+
+    def frame(theta):
+        Rt = Matrix.Rotation(math.radians(theta), 3, axis)
+        pal = Rt @ (R @ Vector((0, 0, 1)))            # which side the hand is on
+        fwd = axis.cross(pal).normalized()
+        return rear - pal.normalized() * 0.030, fwd, pal
+
+    def score(theta):
+        t, fwd, pal = frame(theta)
+        want = _apply_hand("L", t, fwd, _ortho(pal, fwd), 0.0)
+        return wrist_bend("L") + 2000.0 * (arm.pose.bones["Hand.L"].head
+                                           - want).length
+
+    best = min(range(-180, 181, 10), key=score)
+    best = min([best + i * 2 for i in range(-5, 6)], key=score)
+    t, fwd, pal = frame(best)
+    set_hand("L", t, fwd, pal)
+    # Point puts one finger straight up over the gun. There is no pinch in the
+    # library yet, and a relaxed hand reads closer to one than a pointing one.
+    set_fingers("L", "Hand_Relax")
+
+
 def build_pistol_reload():
     """54 frames. 06-pistol.md: 8 release, 16 out, 30 new one approaching,
     39 MagazineIn, 48 slide, 54 ReloadComplete.
@@ -441,16 +475,20 @@ def build_pistol_reload():
     pistol_idle()
     key(1)
 
-    # 4 - presented: rolled inboard so the well faces the left hand, lifted 6 cm.
-    # The slide finishes running back here.
-    gun(4, lift=0.06, roll=-30, inboard=0.05)
-    set_part("Slide", (0, 0.008, 0))
-    set_part("Magazine", (0, 0, 0))
-    grip("PistolGrip")
-    grip("PistolSupport")
-    key(4)
+    # 2..6 - the left hand comes off the support grip, takes the rear of the
+    # slide and runs it back. The slide used to travel on its own over these
+    # frames, which reads as the gun cycling itself.
+    for f in range(2, 7):
+        u = (f - 2) / 4.0
+        gun(f, lift=0.06 * u, roll=-30 * u, inboard=0.05 * u)
+        set_part("Slide", (0, 0.008 * u, 0))
+        set_part("Magazine", (0, 0, 0))
+        grip("PistolGrip")
+        # the serrations are at the back of the slide, above and behind the web
+        _rack_hand(u)
+        key(f)
 
-    # 8 - magazine catch. Left hand comes off the gun.
+    # 8 - magazine catch. Left hand leaves the slide and comes off the gun.
     free_hand("L", Vector((-0.02, -0.30, -0.20)), Vector((0, -0.7, -0.7)),
               Vector((1, 0, 0)), "Open")
     key(8)
@@ -529,7 +567,7 @@ def shotgun_idle():
     set_part("Shell", (0, 0, 0))
     poles()
     grip("ShotgunGrip")
-    grip("PumpHold")
+    grip_around("PumpHold")
 
 
 def build_shotgun_reload():
@@ -592,8 +630,7 @@ def build_shotgun_reload():
     place_part("Shell", OFFSCREEN)
     gun(roll=3, lift=0.02, inboard=0.015)
     grip("ShotgunGrip")
-    free_hand("L", Vector((-0.12, -0.42, -0.34)), Vector((1, -0.2, 0)),
-              Vector((0, 0, 1)), "Hand_Relax")
+    grip_around("PumpHold")
     key(68)
 
     # 78 - idle again. ReloadComplete.
@@ -605,6 +642,61 @@ def build_shotgun_reload():
     return act
 
 
+def build_shotgun_firepump():
+    """30 frames. 07-shotgun.md: 1 Fire, 3 recoil, 10 pump unlock, 15 back,
+    16 Eject, 23 forward and loaded, 30 Idle.
+
+    The left hand rides the pump by being given the same offset the pump gets.
+    PumpHold's frame hangs off WeaponRoot rather than off Pump, so the hand does
+    not follow it for free the way the magazine hand does - passing the travel
+    as a drift is the cheap way and keeps the pose library untouched.
+    """
+    _last_quat.clear()
+    act = new_action("Arms_ShotgunFirePump")
+    S = SHOTGUN_IDLE
+    TRAVEL = 0.070          # 09-weapons.md
+
+    def gun(roll=0.0, lift=0.0, pitch=0.0, inboard=0.0):
+        m = S["muzzle"].copy()
+        m.z += pitch
+        set_weapon(S["loc"] + Vector((-inboard, 0, lift)), m, S["roll"] + roll)
+
+    def hands(pump_u):
+        off = Vector((0, TRAVEL * pump_u, 0))
+        set_part("Pump", off)
+        grip("ShotgunGrip")
+        # same offset in the weapon's frame, so the hand stays on the sleeve.
+        # Around the barrel axis, not about the palm: the pump is a cylinder and
+        # that is where its free angle lives.
+        grip_around("PumpHold", drift=delta("WeaponRoot").to_3x3() @ off)
+
+    reset_pose()
+    shotgun_idle()
+    key(1)
+
+    # 3 - recoil. 07-shotgun.md gives the camera 3.4 deg and asks the arms for
+    # 45% of it, since PlayerLook is already kicking the view.
+    gun(pitch=0.11, lift=0.010, inboard=-0.012)
+    hands(0.0)
+    key(3)
+
+    for f, (pitch, lift, u) in ((6, (0.05, 0.005, 0.0)),
+                                (10, (0.0, 0.0, 0.0)),
+                                (15, (0.0, 0.0, 1.0)),
+                                (18, (0.0, 0.0, 1.0)),
+                                (23, (0.0, 0.0, 0.0)),
+                                (26, (0.0, 0.0, 0.0))):
+        gun(pitch=pitch, lift=lift)
+        hands(u)
+        key(f)
+
+    reset_pose()
+    shotgun_idle()
+    key(30)
+    act.frame_start, act.frame_end = 1, 30
+    return act
+
+
 # Frames Unity has to fire on. 06/07 name these; the numbers are theirs.
 EVENTS = {
     "Arms_PistolReload": [(8, "MagRelease"), (16, "MagOut"), (39, "MagazineIn"),
@@ -612,6 +704,7 @@ EVENTS = {
     "Arms_ShotgunReload": [(18, "ShellIn"), (32, "ShellIn"), (46, "ShellIn"),
                            (60, "ShellIn"), (68, "TubesClosed"),
                            (78, "ReloadComplete")],
+    "Arms_ShotgunFirePump": [(1, "Fire"), (16, "Eject"), (23, "PumpClosed")],
 }
 
 
@@ -723,6 +816,7 @@ def main():
 
     pistol = build_pistol_reload()
     shotgun = build_shotgun_reload()
+    pump = build_shotgun_firepump()
 
     setup_render()
     PISTOL_SHOW = {"Arms_Mesh", "W_Pistol", "W_Slide", "W_PistolMag"}
@@ -730,7 +824,8 @@ def main():
 
     print("=" * 72)
     for act, show, ends in ((pistol, PISTOL_SHOW, (1, 54)),
-                            (shotgun, SHOTGUN_SHOW, (1, 78))):
+                            (shotgun, SHOTGUN_SHOW, (1, 78)),
+                            (pump, SHOTGUN_SHOW, (1, 30))):
         gap, where = pose_gap(act, *ends)
         print("LOOP  %-20s f%d vs f%d  %.3f mm (%s)"
               % (act.name, ends[0], ends[1], gap * 1000, where))
@@ -750,11 +845,15 @@ def main():
     print("SHELL " + "  ".join(
         "f%d z%+.3f" % (f, p.z) for f, p in
         part_track(shotgun, "Shell", (1, 8, 18, 22, 32, 60, 68, 78))))
+    print("PUMP  " + "  ".join(
+        "f%d %s" % (f, tuple(round(c, 3) for c in p)) for f, p in
+        part_track(pump, "Pump", (1, 10, 15, 18, 23, 30))))
 
     strip(pistol, (1, 4, 10, 16, 26, 36, 39, 45, 48, 54), PISTOL_SHOW)
     strip(shotgun, (1, 12, 18, 25, 32, 46, 60, 68, 78), SHOTGUN_SHOW)
+    strip(pump, (1, 3, 10, 15, 18, 23, 30), SHOTGUN_SHOW)
 
-    for act in (pistol, shotgun):
+    for act in (pistol, shotgun, pump):
         arm.animation_data.action = act
         bpy.ops.pose.select_all(action='SELECT')
         bpy.ops.nla.bake(frame_start=int(act.frame_start),
