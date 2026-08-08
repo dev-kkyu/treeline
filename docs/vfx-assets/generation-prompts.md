@@ -1,4 +1,7 @@
-# Treeline 파티클 VFX 생성 프롬프트
+# Treeline 파티클 VFX 생성 프롬프트 — V1 보관 기록
+
+> 아래 내용은 폐기된 V1 생성 기록이다. 현재 사용 중인 V2 프롬프트와 레퍼런스는
+> [`v2/README.md`](v2/README.md)를 기준으로 한다.
 
 도구: Codex 내장 이미지 생성. 세 결과 모두 `#00ff00` 크로마 배경으로 생성한 뒤
 `remove_chroma_key.py --auto-key border --soft-matte --despill`로 알파 PNG를 만들었다.
