@@ -3505,18 +3505,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 1100001, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -15
-      objectReference: {fileID: 0}
-    - target: {fileID: 1100001, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1100001, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 20
-      objectReference: {fileID: 0}
     - target: {fileID: 1200002, guid: 0c3e9a71f5b64d28ae107c6b93d4f815, type: 3}
       propertyPath: m_ClearFlags
       value: 2
@@ -3740,7 +3728,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.16666667
+  m_VoxelSize: 0.8
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: bf69f7e2bc50b5a4888174388c591801, type: 2}
   m_BuildHeightMesh: 0

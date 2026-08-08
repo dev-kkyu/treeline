@@ -64,3 +64,28 @@ git fetch origin -q && git diff --stat HEAD..origin/develop -- <프로젝트>/As
 - **메인 스레드를 붙잡고 기다리면 `Update` 가 안 돈다.** `Stopwatch` 로 스핀하면
   오디오(별도 스레드)는 진행하지만 게임 로직은 한 프레임도 안 간다. 게임 상태를
   기다릴 때는 스핀하지 말고 호출을 나눈다.
+
+## 연출은 값이 아니라 그림으로 본다
+
+숫자가 다 맞아도 화면은 틀릴 수 있다. 6장 시점 전환은 시선각 · 롤 · 뷰포트 좌표가
+전부 의도대로였는데, 프레임을 뽑아 보니 **카메라가 적의 두개골 안에 있어** 도는
+1 초를 검은 구가 가리고 있었다.
+
+- **`manage_camera screenshot` 은 에디터를 일시정지 상태로 남긴다.** 연속으로 두 장
+  찍으면 같은 프레임이 나온다. 사이마다 `EditorApplication.isPaused = false` 를 넣는다
+- 프레임을 여러 장 뜰 때는 호출마다 찍지 말고 **게임 안에서 스스로 찍게 한다.**
+  `EditorApplication.update` 에 콜백을 걸고 `Time.time` 으로 시각표를 따라가며
+  `ScreenCapture.CaptureScreenshot` 을 부르면, 정상 속도로 한 번에 다 나온다
+  ```csharp
+  var samples = new float[] { 0.2f, 0.8f, 1.6f };  int idx = 0;  float t0 = Time.time;
+  UnityEditor.EditorApplication.CallbackFunction cb = null;
+  cb = delegate {
+      if (!EditorApplication.isPlaying || idx >= samples.Length) { EditorApplication.update -= cb; return; }
+      if (Time.time - t0 >= samples[idx]) { ScreenCapture.CaptureScreenshot(dir + "\\" + idx + ".png"); idx++; }
+  };
+  UnityEditor.EditorApplication.update += cb;
+  ```
+- 저장 위치는 **스크래치패드로 잡는다.** `Assets/` 아래에 떨구면 `.meta` 까지 생겨
+  커밋 대상이 된다
+- 여러 장을 한 번에 보려면 `Texture2D.GetPixelBilinear` 로 격자에 이어 붙여
+  한 장으로 만든다. 왕복이 8 번에서 1 번이 된다
