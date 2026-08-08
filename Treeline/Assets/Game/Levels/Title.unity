@@ -1937,6 +1937,7 @@ MonoBehaviour:
   roarClip: {fileID: 8300000, guid: 60ee52c95981c3e47be658c2fee5cb96, type: 3}
   roarDelay: 1.2
   animator: {fileID: 529355428}
+  animatorSpeed: 0.5
 --- !u!1 &449577508
 GameObject:
   m_ObjectHideFlags: 0

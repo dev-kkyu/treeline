@@ -22,6 +22,13 @@ namespace Treeline
     /// <c>colossus-roar</c> 를 얹는다. 앞의 것은 기획이 「1 장 창밖 — 실물 없이
     /// 실루엣만」 용으로 만들어 둔 클립이라 여기 그대로 맞는다.
     /// </para>
+    /// <para>
+    /// IMPORTANT: <see cref="Animator.speed"/> 는 <b>직렬화되지 않는다.</b>
+    /// 인스펙터에 칸이 없고 씬에도 저장되지 않아, 에디터에서 넣어 두면 다음에
+    /// 씬을 열 때 1 로 돌아간다. 그래서 <see cref="animatorSpeed"/> 로 들고 있다가
+    /// <c>Awake</c> 에서 넣는다. 처음에 「같은 값을 두 군데 두지 않겠다」고 씬의
+    /// Animator 에만 넣었다가 파일에 아무것도 안 남는 것을 보고 알았다.
+    /// </para>
     /// </remarks>
     [DisallowMultipleComponent]
     public sealed class TitleApparition : MonoBehaviour
@@ -57,6 +64,9 @@ namespace Treeline
         [Tooltip("드러날 때 Roar 트리거를 보낸다. 비워도 된다.")]
         [SerializeField] private Animator animator;
 
+        [Tooltip("재생 속도. 큰 것은 느려야 크게 보인다. 1 이면 원래 속도.")]
+        [SerializeField, Range(0.1f, 1.5f)] private float animatorSpeed = 0.5f;
+
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int RoarId = Animator.StringToHash("Roar");
 
@@ -82,6 +92,15 @@ namespace Treeline
                 {
                     distantLoop.Play();
                 }
+            }
+
+            if (animator != null)
+            {
+                // 대기 동작이 원래 2.4 초에 한 바퀴다. 37m 밖 11m 짜리 덩치가 그
+                // 주기로 움직이면 무겁게 안 보인다 — 큰 것은 느려야 크다. 절반으로
+                // 두면 4.8 초가 되고, 덤으로 포효 동작(1.17 초)이 2.33 초가 되어
+                // 2.00 초짜리 colossus-roar 와 얼추 맞는다.
+                animator.speed = animatorSpeed;
             }
 
             // 첫 등장이 화면을 켜자마자 오면 연출이 아니라 알림이 된다.
