@@ -55,6 +55,8 @@ namespace Treeline.LevelEditorTools
             Save(Section("CorridorSection_Base", Variant.Base));
             Save(Section("CorridorSection_Lockers", Variant.Lockers));
             Save(Section("CorridorSection_Bunks", Variant.Bunks));
+            Save(Section("CorridorSection_Doorway", Variant.Doorway));
+            Save(HideRoom());
 
             AssetDatabase.Refresh();
             Debug.Log($"복도 모듈 3종을 {Dir} 에 만들었다.");
@@ -64,7 +66,8 @@ namespace Treeline.LevelEditorTools
         {
             Base,
             Lockers,
-            Bunks
+            Bunks,
+            Doorway
         }
 
         private static GameObject Section(string name, Variant v)
@@ -78,12 +81,30 @@ namespace Treeline.LevelEditorTools
             Box(root, "Floor", new Vector3(0f, -Thick * 0.5f, 0f), new Vector3(Width, Thick, Length), CorridorMaterials.Floor);
             Box(root, "Ceiling", new Vector3(0f, Height + Thick * 0.5f, 0f), new Vector3(Width, Thick, Length), CorridorMaterials.Ceiling);
             Box(root, "Wall_L", new Vector3(-hw - Thick * 0.5f, Height * 0.5f, 0f), new Vector3(Thick, Height, Length), CorridorMaterials.Wall);
-            Box(root, "Wall_R", new Vector3(hw + Thick * 0.5f, Height * 0.5f, 0f), new Vector3(Thick, Height, Length), CorridorMaterials.Wall);
+            if (v == Variant.Doorway)
+            {
+                // 오른쪽 벽에 문틀만큼 구멍을 낸다. 벽을 앞뒤로 쪼개고 위에 인방을 얹는다
+                float openW = 1.5f;
+                float openH = 2.1f;
+                float side = (Length - openW) * 0.5f;
+                Box(root, "Wall_R_Front", new Vector3(hw + Thick * 0.5f, Height * 0.5f, -(Length - side) * 0.5f), new Vector3(Thick, Height, side), CorridorMaterials.Wall);
+                Box(root, "Wall_R_Back", new Vector3(hw + Thick * 0.5f, Height * 0.5f, (Length - side) * 0.5f), new Vector3(Thick, Height, side), CorridorMaterials.Wall);
+                Box(root, "Wall_R_Header", new Vector3(hw + Thick * 0.5f, (Height + openH) * 0.5f, 0f), new Vector3(Thick, Height - openH, openW), CorridorMaterials.Wall);
+                Box(root, "DoorJamb_A", new Vector3(hw + 0.02f, openH * 0.5f, -openW * 0.5f), new Vector3(0.10f, openH, 0.10f), CorridorMaterials.Trim);
+                Box(root, "DoorJamb_B", new Vector3(hw + 0.02f, openH * 0.5f, openW * 0.5f), new Vector3(0.10f, openH, 0.10f), CorridorMaterials.Trim);
+            }
+            else
+            {
+                Box(root, "Wall_R", new Vector3(hw + Thick * 0.5f, Height * 0.5f, 0f), new Vector3(Thick, Height, Length), CorridorMaterials.Wall);
+            }
 
             // ── 걸레받이. 바닥과 벽이 만나는 선을 어둡게 끊는다.
             // 이 선 하나로 바닥이 벽에서 떨어져 보이고 복도에 깊이가 생긴다
             Box(root, "Skirting_L", new Vector3(-hw + 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, Length), CorridorMaterials.Trim);
-            Box(root, "Skirting_R", new Vector3(hw - 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, Length), CorridorMaterials.Trim);
+            if (v != Variant.Doorway)
+            {
+                Box(root, "Skirting_R", new Vector3(hw - 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, Length), CorridorMaterials.Trim);
+            }
 
             // ── 패널 이음새. 칸 경계에 세로 홈을 넣어 4m 리듬이 읽히게 한다.
             // 반복이 눈에 띄는 것을 막는 게 아니라, 반복을 **의도된 것으로** 보이게 한다
@@ -134,6 +155,79 @@ namespace Treeline.LevelEditorTools
                     // 끌린 매트리스는 레벨에서 여유 있는 칸에 한 번만 놓는다.
                     break;
             }
+
+            return root;
+        }
+
+
+        /// <summary>
+        /// 복도 옆에 붙는 숙소 골방. <b>막다른 방이다.</b>
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 히터가 도는 22초 동안 <b>숨을 곳</b>이다. 기획에 「숨는다. 히터가 웅웅거리는
+        /// 동안 복도를 돌아다니는 소리를 듣는다」고 적혀 있는데, 뻥 뚫린 복도에서는
+        /// 그냥 서서 기다리는 시간이 된다. 몸을 낮춰 가릴 것이 있어야 그 22초가
+        /// 긴장이 된다.
+        /// </para>
+        /// <para>
+        /// IMPORTANT: <b>지나가는 길로 만들지 않는다.</b> 출구가 둘이 되면 기획의
+        /// 「도망칠 길이 하나여야 한다」가 깨지고, 미로에서 길 찾다 죽는 장이 된다.
+        /// 들어온 문으로만 나간다.
+        /// </para>
+        /// <para>
+        /// 원점은 복도 쪽 문지방 한가운데다. 문틀 칸의 <c>(hw, 0, 0)</c> 에 맞춰 놓으면
+        /// 방이 복도 오른쪽으로 뻗는다.
+        /// </para>
+        /// </remarks>
+        private static GameObject HideRoom()
+        {
+            GameObject root = new GameObject("HideRoom");
+
+            const float W = 4.2f;   // 복도에서 뻗어나가는 깊이 (x)
+            const float D = 5.0f;   // 복도와 나란한 폭 (z)
+            const float H = 2.8f;
+
+            float cx = W * 0.5f;    // 방 중심
+
+            Box(root, "Floor", new Vector3(cx, -Thick * 0.5f, 0f), new Vector3(W, Thick, D), CorridorMaterials.Floor);
+            Box(root, "Ceiling", new Vector3(cx, H + Thick * 0.5f, 0f), new Vector3(W, Thick, D), CorridorMaterials.Ceiling);
+            Box(root, "Wall_Far", new Vector3(W + Thick * 0.5f, H * 0.5f, 0f), new Vector3(Thick, H, D), CorridorMaterials.Wall);
+            Box(root, "Wall_A", new Vector3(cx, H * 0.5f, -(D + Thick) * 0.5f), new Vector3(W, H, Thick), CorridorMaterials.Wall);
+            Box(root, "Wall_B", new Vector3(cx, H * 0.5f, (D + Thick) * 0.5f), new Vector3(W, H, Thick), CorridorMaterials.Wall);
+
+            // 복도 쪽 벽 — 문틀 양옆만 남긴다
+            float openW = 1.5f;
+            float side = (D - openW) * 0.5f;
+            Box(root, "Wall_Near_A", new Vector3(0f, H * 0.5f, -(D - side) * 0.5f), new Vector3(Thick, H, side), CorridorMaterials.Wall);
+            Box(root, "Wall_Near_B", new Vector3(0f, H * 0.5f, (D - side) * 0.5f), new Vector3(Thick, H, side), CorridorMaterials.Wall);
+
+            Box(root, "Skirting_Far", new Vector3(W - 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, D), CorridorMaterials.Trim);
+            Box(root, "Skirting_A", new Vector3(cx, 0.10f, -D * 0.5f + 0.045f), new Vector3(W, 0.20f, 0.09f), CorridorMaterials.Trim);
+            Box(root, "Skirting_B", new Vector3(cx, 0.10f, D * 0.5f - 0.045f), new Vector3(W, 0.20f, 0.09f), CorridorMaterials.Trim);
+
+            // 꺼진 형광등 하나 — 방에도 이정표를 준다
+            Box(root, "LightHousing", new Vector3(cx, H - 0.06f, 0f), new Vector3(1.30f, 0.08f, 0.30f), CorridorMaterials.Housing);
+            Box(root, "LightTube", new Vector3(cx, H - 0.12f, 0f), new Vector3(1.20f, 0.05f, 0.20f), CorridorMaterials.Tube);
+
+            // ── 가릴 것들. 문에서 안 보이는 안쪽 구석이 숨는 자리다
+            Box(root, "Bunk_Frame", new Vector3(W - 0.05f, 0.9f, -1.2f), new Vector3(0.08f, 1.8f, 2.0f), CorridorMaterials.Metal);
+            Box(root, "Bunk_Lower", new Vector3(W - 0.45f, 0.42f, -1.2f), new Vector3(0.80f, 0.10f, 2.0f), CorridorMaterials.Metal);
+            Box(root, "Bunk_Upper", new Vector3(W - 0.45f, 1.32f, -1.2f), new Vector3(0.80f, 0.10f, 2.0f), CorridorMaterials.Metal);
+            Box(root, "Mattress", new Vector3(W - 0.45f, 0.51f, -1.2f), new Vector3(0.74f, 0.14f, 1.90f), CorridorMaterials.Fabric);
+
+            // 넘어진 사물함 — 문에서 사선으로 보이지 않는 자리를 만든다
+            Box(root, "Locker_Fallen", new Vector3(2.4f, 0.21f, 1.7f), new Vector3(1.70f, 0.42f, 0.78f), CorridorMaterials.Metal);
+            Box(root, "Locker_Standing", new Vector3(W - 0.25f, 0.9f, 1.9f), new Vector3(0.42f, 1.8f, 0.78f), CorridorMaterials.Metal);
+
+            // 책상과 의자 — 사람이 살던 방으로 읽히게 한다
+            Box(root, "Desk", new Vector3(1.1f, 0.72f, -D * 0.5f + 0.45f), new Vector3(1.60f, 0.06f, 0.70f), CorridorMaterials.Metal);
+            Box(root, "DeskLeg_A", new Vector3(0.38f, 0.36f, -D * 0.5f + 0.45f), new Vector3(0.06f, 0.72f, 0.62f), CorridorMaterials.Trim);
+            Box(root, "DeskLeg_B", new Vector3(1.82f, 0.36f, -D * 0.5f + 0.45f), new Vector3(0.06f, 0.72f, 0.62f), CorridorMaterials.Trim);
+            Box(root, "Chair_Toppled", new Vector3(1.9f, 0.22f, -0.4f), new Vector3(0.50f, 0.44f, 0.50f), CorridorMaterials.Trim);
+
+            // 끌린 매트리스 — 1장의 「끌린 자국」과 이어진다. 복도가 아니라 여기에 둔다
+            Box(root, "Mattress_Dragged", new Vector3(1.5f, 0.08f, 0.9f), new Vector3(1.50f, 0.16f, 0.80f), CorridorMaterials.Fabric);
 
             return root;
         }
