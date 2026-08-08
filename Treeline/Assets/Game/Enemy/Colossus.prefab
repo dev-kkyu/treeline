@@ -343,8 +343,8 @@ NavMeshAgent:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4207602304619995350}
   m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 1.3
+  m_AgentTypeID: -1372625422
+  m_Radius: 2.4
   m_Speed: 1.2
   m_Acceleration: 4
   avoidancePriority: 50
@@ -382,6 +382,9 @@ MonoBehaviour:
   roarSeconds: 2
   roarTurnSpeed: 220
   noticed:
+    m_PersistentCalls:
+      m_Calls: []
+  lost:
     m_PersistentCalls:
       m_Calls: []
   attackRange: 3.2
