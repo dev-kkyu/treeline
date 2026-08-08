@@ -29,8 +29,50 @@ OUT_DIR = "Treeline/Assets/Game/Audio/Music"
 # 모든 프롬프트에 붙는 꼬리표. 목소리와 드럼이 끼면 공포 톤이 깨진다
 INSTRUMENTAL = "fully instrumental, no vocals, no singing, no lyrics"
 
+# 시작 화면 후보 공통. 빈 공간을 지키는 것이 이 곡의 전부라 명시한다
+TITLE_TAIL = (
+    "Sparse and patient with a lot of empty space between events, never "
+    "dense, never cinematic swell. Constant overall level, no fade in, no "
+    "fade out. Fully instrumental, no vocals, no drums, no beat, no "
+    "orchestral trailer sound, no synthwave, no sci-fi."
+)
+
 # (이름, 프롬프트, 초)
 TRACKS = [
+    # --- 시작 화면 후보 셋 (2026-08-09). 고르면 하나만 남기고 title-theme 이 된다.
+    #
+    # 레벨 시안의 원칙을 소리로 옮긴 것이다 —
+    #   「음산함은 전체 노출만 낮추는 방식으로 만들지 않았다. 진행 장치의 작은
+    #    광원은 남기고, 그 빛이 닿지 않는 공간을 크게 두었다.」
+    # 즉 다 지워서 어둡게 만들지 않고, 작고 연약한 것 하나를 남기고 둘레를 비운다.
+    # 셋의 차이는 「남기는 작은 것」이 무엇이냐다.
+    #
+    # 미술 방향의 제약도 넣었다. 현대 국적 불명 산악 중계소이고 미래 SF ·
+    # 사이버펑크 · 군사물이 아니다. 안 막으면 신스웨이브로 샌다.
+    #
+    # 실측(음량 정규화 후):
+    #   지금 title-theme  저역 81.1%  무게중심 131 Hz  소리구간 84%
+    #   A                저역 83.1%  무게중심  82 Hz  소리구간 83%  ← 실패. 신호음이
+    #                    안 들어왔다(고역 0.0%). 기존 것과 거의 같다
+    #   B                저역 24.8%  무게중심 309 Hz  소리구간 77%
+    #   C                저역 27.3%  무게중심 393 Hz  소리구간 64%  ← 원칙에 가장 가깝다
+    ("title-A",
+     "A cold empty mountain radio relay station at night. A very quiet room "
+     "tone of concrete and distant machinery underneath, and above it one thin "
+     "repeating signal tone, like a beacon still transmitting to nobody, "
+     "slightly detuned and lonely. Vast dark space around a single small "
+     "sound. " + TITLE_TAIL, 48),
+    ("title-B",
+     "A cold abandoned facility high above the treeline. Long low wind-like "
+     "drone with almost nothing in it, and a few fragile detuned piano notes "
+     "left hanging in the air, far apart, unresolved. The feeling of a place "
+     "someone left in a hurry. " + TITLE_TAIL, 48),
+    ("title-C",
+     "Standing above the treeline in thin freezing air. High airy sustained "
+     "tone with a very deep quiet weight far below it and a wide gap of "
+     "silence between them, slowly sinking downward as if pulled toward the "
+     "valley. Cold, vast, no comfort. " + TITLE_TAIL, 48),
+
     ("title-theme",
      "Slow ominous orchestral drone for a horror game title screen. Low "
      "sustained strings, distant metallic resonance, a few sparse piano "
