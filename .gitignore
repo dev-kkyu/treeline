@@ -116,6 +116,12 @@ crashlytics-build.properties
 
 # docs/ 에서 생성되는 PDF는 제출물이므로 무시하지 않고 커밋한다.
 
+# Meshy 가 내려주는 원본 zip. 소품 30종이 565 MB 라 저장소에 넣지 않는다.
+# 임포트해 정리한 FBX 와 512 텍스처만 Assets/Game/Props/ 에 커밋한다.
+# IMPORTANT: Assets/ 아래에 두지 않는다. Unity 가 zip 마다 .meta 를 만들고
+# Library 가 그만큼 부푼다.
+**/ModelSources/meshygen/
+
 # MCP 로 찍은 스크린샷이 여기 쌓인다. 확인용이지 에셋이 아니므로 커밋하지 않는다.
 # IMPORTANT: 위 `!*.meta` 보다 뒤에 있어야 한다. 나중 규칙이 이긴다.
 **/[Aa]ssets/Screenshots/
