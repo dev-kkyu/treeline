@@ -13,7 +13,7 @@
 git pull --rebase --autostash
 ```
 
-### 2026-08-09 · 청각이 두 벌이다 — 셋이 정할 것 (A 가 알림)
+### 2026-08-09 · 청각이 두 벌이었다 — **정해졌다. A 안 그대로** (B)
 
 **`Crawler` 와 `Colossus` 가 서로 다른 규칙으로 소리를 듣는다.** 지금 터지지는
 않지만, **발소리가 두 벌이었던 것과 같은 모양**이다 — 파일이 달라서 git 이 조용히
@@ -41,6 +41,28 @@ IMPORTANT: [`tech-design/architecture.md`](tech-design/architecture.md) 는
 
 **정하는 것은 B 다.** `Crawler.cs` 는 B 소유이고, 위는 A 가 6장을 붙이다 발견한
 것을 옮긴 것뿐이다. 정해지면 진 쪽을 지우고 `architecture.md` 를 같이 고친다.
+
+#### 결론 — 크기는 `NoiseRadius`, 반응은 적마다 (2026-08-09, B)
+
+A 안을 그대로 받았다. `Crawler` 의 `hearRange` · `hearSpeed` 를 지우고
+`PlayerMotor.NoiseRadius * hearingScale` 을 읽는다. 반응은 `Investigate` 그대로다.
+
+**받은 이유는 A 가 버그를 하나 찾아 줬기 때문이다.** 걷기가 2.8 m/s 인데
+`hearSpeed` 가 2.6 이라 **걷기만 해도 들렸고**, 그러면 웅크림 4 · 걷기 9 ·
+달리기 16m 로 갈라둔 것이 2장에서 무의미해진다. 「뛰면 위험하다」가 성립하지
+않는 상태였다.
+
+내가 굳이 다시 만든 이유는 「플레이어 속도를 밖에 내주는 계약이 없다」고 봤기
+때문인데, **그게 틀렸다.** 계약은 *속도*가 아니라 *소음 반경*으로 이미 있었고
+내가 엉뚱한 것을 찾았다. `architecture.md` 도 같이 고쳤다.
+
+곁다리 둘 중 하나도 처리했다 — **`ChaseMusic` 을 `IHunter` 인터페이스로 열었다.**
+`Crawler` 와 `Colossus` 가 둘 다 구현하므로, 6장 `_Audio` 에 `ChaseMusic` 을 놓고
+`Mus_Ch6` · `Mus_Chase` 를 꽂으면 2장과 같은 페이드 · 더킹이 붙는다.
+**`Cue_Chase` 를 생으로 켜고 끄던 것은 그때 지운다.** 6장 씬은 내 것이 아니라
+건드리지 않았다.
+
+**`colossus-roar.wav` 는 여전히 안 걸려 있다.** 6장 씬 작업이라 남겨 둔다.
 
 곁다리로 둘 더 — **`ChaseMusic` 이 `Crawler[] hunters` 라 `Colossus` 를 못 받는다.**
 그래서 2장은 페이드와 더킹이 있고 6장은 생으로 켜고 끈다. 인터페이스로 열면 6장도

@@ -17,11 +17,15 @@ namespace Treeline
     /// (<c>docs/tech-design/audio.md</c> 「음악을 크게 깔면 오히려 덜 무서워진다」).
     /// </para>
     /// <para>
-    /// 적의 이벤트를 구독하지 않고 <see cref="Crawler.IsChasing"/> 을 읽는다.
+    /// 적의 이벤트를 구독하지 않고 <see cref="IHunter.IsHunting"/> 을 읽는다.
     /// 적은 죽으면 <c>Destroy</c> 되므로 구독은 해지 시점을 관리해야 하는데,
     /// 읽는 쪽이 매 프레임 보면 그 문제가 아예 없다. 목록만 이따금 새로 찾는다.
-    /// 6 장은 <c>Colossus.noticed</c> · <c>lost</c> UnityEvent 로 같은 일을 하는데,
-    /// 그쪽은 적이 죽지 않아 구독이 안전하다.
+    /// </para>
+    /// <para>
+    /// 처음에는 <c>Crawler[]</c> 를 들고 있었다. 그래서 6 장 <see cref="Colossus"/> 는
+    /// 이 연출을 못 받고 <c>noticed</c> · <c>lost</c> UnityEvent 로 생으로 켜고 꺼야
+    /// 했다 — 페이드도 더킹도 없이. <see cref="IHunter"/> 로 열어 두면 6 장도 이
+    /// 컴포넌트를 놓기만 하면 같아진다.
     /// </para>
     /// </remarks>
     [DisallowMultipleComponent]
@@ -44,7 +48,9 @@ namespace Treeline
         [Tooltip("적 목록을 다시 찾는 간격(초). 죽거나 새로 생기는 것을 따라간다.")]
         [SerializeField] private float rescanInterval = 2f;
 
-        private Crawler[] hunters = new Crawler[0];
+        private readonly System.Collections.Generic.List<IHunter> hunters =
+            new System.Collections.Generic.List<IHunter>();
+
         private float nextScan;
         private float chaseVolume;
         private float chapterVolume;
@@ -69,13 +75,14 @@ namespace Treeline
             if (Time.time >= nextScan)
             {
                 nextScan = Time.time + rescanInterval;
-                hunters = FindObjectsByType<Crawler>(FindObjectsSortMode.None);
+                Rescan();
             }
 
             bool chasing = false;
-            for (int i = 0; i < hunters.Length; i++)
+            for (int i = 0; i < hunters.Count; i++)
             {
-                if (hunters[i] != null && hunters[i].IsAlive && hunters[i].IsChasing)
+                // 죽어서 Destroy 된 것은 null 로 남는다. 다음 재탐색에서 걸러진다.
+                if (hunters[i] != null && hunters[i].IsHunting)
                 {
                     chasing = true;
                     break;
@@ -83,6 +90,28 @@ namespace Treeline
             }
 
             Drive(chasing);
+        }
+
+        /// <summary>
+        /// 씬의 <see cref="IHunter"/> 를 모은다.
+        /// </summary>
+        /// <remarks>
+        /// 인터페이스는 <c>FindObjectsByType</c> 로 바로 찾을 수 없어
+        /// <see cref="MonoBehaviour"/> 를 훑는다. 매 프레임 하면 비싸지만
+        /// 몇 초에 한 번이라 괜찮다. LINQ 를 안 쓴 것은 그때마다 가비지를
+        /// 만들지 않으려는 것뿐이다.
+        /// </remarks>
+        private void Rescan()
+        {
+            hunters.Clear();
+            MonoBehaviour[] all = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] is IHunter hunter)
+                {
+                    hunters.Add(hunter);
+                }
+            }
         }
 
         private void Drive(bool chasing)

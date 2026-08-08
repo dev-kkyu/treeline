@@ -26,7 +26,7 @@ namespace Treeline
     /// </para>
     /// </remarks>
     [RequireComponent(typeof(NavMeshAgent))]
-    public sealed class Colossus : MonoBehaviour, IDamageable
+    public sealed class Colossus : MonoBehaviour, IDamageable, IHunter
     {
         [Header("감지")]
         [Tooltip("느린 대신 멀리서부터 알아본다.")]
@@ -124,6 +124,9 @@ namespace Treeline
 
         /// <summary>추격 중인지. 연출과 사운드가 붙을 자리다.</summary>
         public bool IsChasing { get; private set; }
+
+        /// <summary>그것은 죽지 않으므로 추격 여부가 곧 사냥 여부다. <see cref="IHunter"/> 참고.</summary>
+        public bool IsHunting => IsChasing;
 
         /// <summary>못 보던 상태에서 알아챈 순간 한 번. 코드에서 듣는 쪽은 이것을 쓴다.</summary>
         public event Action Noticed;

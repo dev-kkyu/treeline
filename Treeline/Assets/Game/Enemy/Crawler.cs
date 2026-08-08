@@ -51,7 +51,7 @@ namespace Treeline
     /// </para>
     /// </remarks>
     [RequireComponent(typeof(NavMeshAgent))]
-    public sealed class Crawler : MonoBehaviour, IDamageable
+    public sealed class Crawler : MonoBehaviour, IDamageable, IHunter
     {
         [Header("체력")]
         [Tooltip("권총 한두 발. 기획의 「약하다」를 이 값으로 표현한다.")]
@@ -74,11 +74,8 @@ namespace Treeline
         [SerializeField] private float loseInterest = 4f;
 
         [Header("듣기 — 안 보여도 뛰면 들킨다")]
-        [Tooltip("이 거리 안에서 나는 소리를 듣는다. 벽은 막지 않는다 — 듣는 것이므로.")]
-        [SerializeField] private float hearRange = 13f;
-
-        [Tooltip("이 속도보다 빠르게 움직이면 들린다. 걷기는 이 아래, 달리기는 위여야 한다.")]
-        [SerializeField] private float hearSpeed = 2.6f;
+        [Tooltip("플레이어의 소음 반경에 곱한다. 1 이면 그대로, 낮추면 둔한 적이 된다.")]
+        [SerializeField] private float hearingScale = 1f;
 
         [Tooltip("한 번 듣고 나서 다시 들을 때까지. 이게 없으면 계속 재조준한다.")]
         [SerializeField] private float hearCooldown = 2.5f;
@@ -145,13 +142,13 @@ namespace Treeline
         private float nextAttackTime;
         private bool attackHitConsumed = true;
 
+        private PlayerMotor playerMotor;
+
         private Vector3 home;
         private Vector3 goal;
         private float waitUntil;
         private float nextHearTime;
         private int searchesLeft;
-        private Vector3 previousPlayerPosition;
-        private float playerSpeed;
 
         public bool IsAlive => health > 0;
 
@@ -160,6 +157,9 @@ namespace Treeline
 
         /// <summary>추격 중인지. 연출·사운드가 붙을 자리라 밖에서 읽을 수 있게 둔다.</summary>
         public bool IsChasing { get; private set; }
+
+        /// <summary>죽어 가는 중에는 사냥이 아니다. <see cref="IHunter"/> 참고.</summary>
+        public bool IsHunting => IsAlive && IsChasing;
 
         /// <summary>지금 실제로 나아가는 속도(수평). 소리가 어느 루프를 걸지 이걸로 고른다.</summary>
         public float PlanarSpeed
@@ -244,8 +244,6 @@ namespace Treeline
 
         private void Think()
         {
-            TrackPlayerSpeed();
-
             if (Time.time >= nextSightCheck)
             {
                 nextSightCheck = Time.time + sightInterval;
@@ -262,27 +260,40 @@ namespace Treeline
         }
 
         /// <summary>
-        /// 플레이어의 실제 이동 속도. 소리를 낼 만큼 빠른지 판단하는 데 쓴다.
+        /// 소리로 알아챈다. <b>시야와 달리 벽을 통과한다.</b>
         /// </summary>
         /// <remarks>
-        /// A 의 컴포넌트에서 읽지 않고 위치 차이로 잰다. 플레이어의 속도를 밖에
-        /// 내주는 계약이 아직 없고, 그것 하나 때문에 남의 스크립트를 고치면
-        /// 담당 경계가 흐려진다. 위치는 누구나 볼 수 있다.
+        /// <para>
+        /// 얼마나 큰 소리를 내는지는 <b>움직이는 쪽이 정한다</b>
+        /// (<see cref="PlayerMotor.NoiseRadius"/> — 웅크림 4 · 걷기 9 · 달리기 16m).
+        /// 여기서는 그 거리 안에 있는지만 본다. <see cref="Colossus"/> 와 같은
+        /// 함수 모양인 것이 의도다 — 스텔스 수치가 한 곳에만 있어야 밸런스를
+        /// 고칠 때 한 군데만 고친다.
+        /// </para>
+        /// <para>
+        /// IMPORTANT: 처음에는 여기서 플레이어 속도를 위치 차이로 재고
+        /// <c>hearSpeed</c> 2.6 과 비교했다. <b>걷기가 2.8 이라 걷기만 해도
+        /// 들렸고</b>, 그러면 「뛰면 위험하다」 가 성립하지 않는다. 소음 반경을
+        /// 읽는 쪽으로 바꾼 이유가 그것이다. 2026-08-09 에 A 가 6 장을 붙이다
+        /// 발견해 알려 주었다.
+        /// </para>
         /// </remarks>
-        private void TrackPlayerSpeed()
+        private bool CanHearPlayer()
         {
-            if (player == null || Time.deltaTime <= 0f)
+            if (playerMotor == null || hearingScale <= 0f)
             {
-                return;
+                return false;
             }
 
-            Vector3 delta = player.position - previousPlayerPosition;
-            delta.y = 0f;
-            previousPlayerPosition = player.position;
+            float radius = playerMotor.NoiseRadius * hearingScale;
+            if (radius <= 0f)
+            {
+                return false;
+            }
 
-            // 텔레포트나 씬 시작 첫 프레임에 튀지 않게 완만하게 따라간다.
-            float instant = Mathf.Min(delta.magnitude / Time.deltaTime, 20f);
-            playerSpeed = Mathf.Lerp(playerSpeed, instant, 8f * Time.deltaTime);
+            Vector3 toPlayer = player.position - transform.position;
+            toPlayer.y = 0f;
+            return toPlayer.sqrMagnitude <= radius * radius;
         }
 
         /// <summary>보고 듣는다. 상태 전환은 전부 여기서만 일어난다.</summary>
@@ -309,10 +320,7 @@ namespace Treeline
                 return;
             }
 
-            // 듣기는 벽을 통과한다. 발소리는 시야와 상관없이 들리는 것이 자연스럽고,
-            // 무엇보다 「뛰면 위험하다」 를 가르치는 유일한 규칙이다.
-            float distance = Vector3.Distance(transform.position, player.position);
-            if (distance <= hearRange && playerSpeed >= hearSpeed)
+            if (CanHearPlayer())
             {
                 nextHearTime = Time.time + hearCooldown;
                 goal = player.position;
@@ -686,9 +694,9 @@ namespace Treeline
             player = found.transform;
             playerDamageable = found.GetComponentInParent<IDamageable>();
 
-            // 첫 프레임에 위치 차이가 통째로 속도로 잡히면 스폰하자마자 들킨다.
-            previousPlayerPosition = player.position;
-            playerSpeed = 0f;
+            // 소음 반경을 내주는 쪽. 없으면 듣지 못하고 시야로만 판단한다 —
+            // 모델도 플레이어도 없이 세운 씬이 그대로 돌아가야 하기 때문이다.
+            playerMotor = found.GetComponentInParent<PlayerMotor>();
             return true;
         }
 
