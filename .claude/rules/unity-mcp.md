@@ -8,6 +8,20 @@ IMPORTANT: 씬 · GameObject · 컴포넌트 · 프리팹 · 머티리얼 · 빌
 사람에게 넘기는 것은 에디터 밖의 일뿐이다 — Unity Hub, 에셋스토어 임포트,
 라이선스, 계정.
 
+## 순서 — Unity 를 먼저 켠다
+
+**Unity 를 완전히 띄운 뒤에 Claude 를 연다.** MCP 는 세션이 시작하는 순간에만
+붙으므로, 에디터가 로딩 중일 때 세션을 열면 도구가 없는 채로 시작한다. 그러면
+`exit` 후 다시 여는 수밖에 없다.
+
+IMPORTANT: **`git pull` 이나 rebase 로 씬 파일이 바뀌면 열려 있는 에디터가 멈출 수
+있다.** 받아올 것이 씬을 건드리는지 먼저 보고, 건드리면 에디터에서 씬을 저장한 뒤
+받는다.
+
+```bash
+git fetch origin -q && git diff --stat HEAD..origin/develop -- <프로젝트>/Assets/
+```
+
 ## 도구가 안 보이면
 
 `mcp__UnityMCP__*` 가 없다고 수동 작업으로 우회하지 않는다. 에디터를 켜고 세션을
