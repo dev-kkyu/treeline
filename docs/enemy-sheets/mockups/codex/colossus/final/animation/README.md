@@ -73,24 +73,52 @@ Crawler 에서 세운 것과 같은 원칙이다.
 | ---: | --- | ---: | :---: | --- | --- |
 | 1 | `Colossus_Idle_Weight` | 72f / 2.40s | O | 배회 정지 · 미발견 | 체중이 네 지점 사이를 아주 느리게 옮겨간다 |
 | 2 | `Colossus_Walk_Knuckle` | 54f / 1.80s | O | 배회 이동 · 수색 | 손등 보행. **항상 3점 이상 접지** |
-| 3 | `Colossus_Attack_Push` | 34f / 1.13s | X | 붙잡기 실패 | 14f 예고, 20f 헛손질. **피해 없음** |
+| 3 | `Colossus_Grab_Miss` | 34f / 1.13s | X | 붙잡기 실패 | 팔을 벌려 손바닥을 마주 세우고 오므린다. **빈손, 피해 없음** |
 | 4 | `Colossus_Stagger` | 48f / 1.60s | X | 밀림 | 뒤로 밀리고 멈춘다. 총이 만드는 유일한 효과 |
-| 5 | `Colossus_Grip_Cable` | 42f / 1.40s | X | 엔딩 연출 | 손 3지가 케이블을 감싸고 하중이 팔로 옮겨간다 |
+| 5 | `Colossus_Grip_Cable` | 42f / 1.40s | X | 엔딩 연출 | 한 다발짜리 케이블을 두 손으로 감싸고 하중이 팔로 옮겨간다 |
 | 6 | `Colossus_Buried` | 60f / 2.00s | X | 묻힘 | 눈에 잠긴 채 멈춘다. **죽는 것이 아니다** |
 | 7 | `Colossus_Roar` | 36f / 1.20s | X | 발견 | 굳음 → 돌아봄 → 몸 앞쪽이 일어섬 → 턱 45° |
 | 8 | `Colossus_Threat` | 45f / 1.50s | X | 추격 중 위협 | **Additive 상체.** 걸음을 끊지 않는다 |
 | 9 | `Colossus_Turn_L` · `_R` | 각 48f / 1.60s | X | 제자리 회전 | 90°. 에이전트 55°/s 와 맞물린다 |
 | 10 | `Colossus_Run` | 36f / 1.20s | O | 추격(시야 안) | 대각선 짝. **2.60 m/s — 플레이어보다 느리다** |
 | 11 | `Colossus_Hit_React` | 18f / 0.60s | X | 임계 미만 피격 | **Additive 상체.** 살갗만 움찔한다 |
-| 12 | `Colossus_Grab_Execute` | 132f / 4.40s | X | 처형 | 양손으로 잡아 입으로 가져간다. **잡히면 즉사** |
+| 12 | `Colossus_Grab_Execute` | 132f / 4.40s | X | 처형 | 손바닥을 마주 세워 깍지 끼고 **0.25초 만에** 입으로 채간다. 잡히면 즉사 |
+| 13 | `Colossus_Cable_Climb` | 48f / 1.60s | O | 엔딩 연출 | 케이블을 손 번갈아 잡으며 따라온다 |
+| 14 | `Colossus_Cable_Fall` | 54f / 1.80s | X | 엔딩 연출 | 케이블을 놓치고 떨어진다. **죽는 것이 아니다** |
 
 상세 제작서는 [`01-idle-weight.md`](01-idle-weight.md),
-[`02-walk-knuckle.md`](02-walk-knuckle.md), [`03-attack-push.md`](03-attack-push.md),
+[`02-walk-knuckle.md`](02-walk-knuckle.md), [`03-grab-miss.md`](03-grab-miss.md),
 [`04-stagger.md`](04-stagger.md), [`05-grip-cable.md`](05-grip-cable.md),
 [`06-buried.md`](06-buried.md), [`07-roar.md`](07-roar.md),
 [`08-threat.md`](08-threat.md), [`09-turn.md`](09-turn.md), [`10-run.md`](10-run.md),
-[`11-hit-react.md`](11-hit-react.md), [`12-grab-execute.md`](12-grab-execute.md)
+[`11-hit-react.md`](11-hit-react.md), [`12-grab-execute.md`](12-grab-execute.md),
+[`13-cable-climb.md`](13-cable-climb.md), [`14-cable-fall.md`](14-cable-fall.md)
 에 있다.
+
+### 13~14 와 이름 변경은 2026-08-09 에 추가됐다
+
+- **`Grab_Miss` → `Grab_Miss`.** 기획 변경으로 밀기가 아니라 붙잡기 실패가
+  됐는데 이름만 남아 있었다. 동작도 「전방 밀기」에서 **「팔을 벌려 손바닥을
+  마주 세우고 오므리는 집게」**로 바꿨다.
+- **`Cable_Climb` · `Cable_Fall` 추가.** 기획의 「케이블을 붙잡고 따라
+  올라온다」는 붙잡는 것까지만 클립이 있었다. 따라오는 구간과, 그것을 떼어내는
+  방법이 비어 있었다.
+
+### 전체적으로 관절을 어긋나게 만들었다
+
+IMPORTANT: 초판 클립들은 해부학적으로 정직해서 「큰 짐승」으로 보였다. 모든
+클립에 아래 셋을 공통으로 넣어 **어긋난 것**으로 바꿨다.
+
+- **손목 비틀림.** 공중에 있는 동안 손발이 90~100° 돌아간다. 접지하는 순간
+  0 으로 돌아온다 — 돌아간 채 짚으면 손등이 바닥을 파고들고 손목 관절이
+  0.23 m 끌려간다.
+- **척추 쥐어짜기(wring).** 아래 척추와 위 척추가 서로 반대로 돌아간다.
+  합이 0 에 가까워 방향 전환으로 읽히지 않고 몸통이 스스로를 비트는 것으로만
+  보인다.
+- **쌍봉 분리(split).** 좌우 봉이 서로 반대로 움직인다. 등이 한 덩어리로
+  보이지 않게 한다.
+- **머리 roll.** `HeadBase` pitch 는 ±10° 로 묶여 있지만 roll 은 ±18° 까지
+  쓴다. 기울어진 머리가 정면인 머리보다 훨씬 불쾌하다.
 
 ### 7~12 는 초판 이후에 추가됐다
 
@@ -113,7 +141,7 @@ Crawler 에서 세운 것과 같은 원칙이다.
 
 ### 기획이 바꾼 것 (2026-08-09 · `03b3e90`)
 
-- **붙잡히면 즉사한다.** 체력이 깎이지 않는다. 그래서 `Attack_Push` 는 피해를
+- **붙잡히면 즉사한다.** 체력이 깎이지 않는다. 그래서 `Grab_Miss` 는 피해를
   주는 공격이 아니라 **붙잡기에 실패한 헛손질**이 됐고, `Grab_Execute` 는 조건
   없이 잡히기만 하면 나간다. 초판이 미해결로 올렸던 「`IDamageable` 에 체력을
   노출해야 한다」가 **필요 없어졌다.**
@@ -124,7 +152,7 @@ Crawler 에서 세운 것과 같은 원칙이다.
 
 ### 시트와 달라진 것
 
-- **`Push` 를 `Attack_Push` 로 확정했다.** 시트는 이 클립을 「20f 에 양팔·머리
+- **`Push` 를 `Grab_Miss` 로 확정했다.** 시트는 이 클립을 「20f 에 양팔·머리
   쐐기로 전방 밀기」로만 적고 공격 클립을 따로 두지 않았다. 이름을 바꾸고,
   기획 변경에 따라 **피해가 없는 헛손질**로 역할을 확정했다.
 - **`Stagger` 를 30f 에서 48f 로 늘렸다.** 코드의 `staggerSeconds` 가 1.6초다.
@@ -156,8 +184,8 @@ Crawler 에서 실제로 머리가 25° 씩 튀었다. 근거는
    있으면 다음으로 가지 않는다.**
 4. `Run` 과 `Turn_R` 을 만든다. 같은 접지 규칙을 쓰는 클립들이라 여기서 문제가
    나오면 2번으로 돌아간다. `Turn_L` 은 미러링한다.
-5. `Grab_Execute` 의 1~8f 를 만들고, 그 8프레임을 `Attack_Push` 와 공유한다.
-   두 클립이 갈리는 지점이 여기다. `Attack_Push` 의 나머지를 먼저 채운다.
+5. `Grab_Execute` 의 1~8f 를 만들고, 그 8프레임을 `Grab_Miss` 와 공유한다.
+   두 클립이 갈리는 지점이 여기다. `Grab_Miss` 의 나머지를 먼저 채운다.
 6. `Roar` 를 만든다. **몸 앞쪽을 세우는 방법**이 여기서 확정되고
    `Grab_Execute` 가 그것을 그대로 쓴다.
 7. Additive 두 개(`Threat` · `Hit_React`)를 만든다. 1f 가 Rest 와 정확히 같아야

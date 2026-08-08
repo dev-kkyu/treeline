@@ -65,6 +65,8 @@ IMPORTANT: OFL 은 **제품에 임베드하고 재배포하는 것을 명시적�
 | Treeline 적 소리 28종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | Crawler · Clinger · Colossus. enemy-sheets 의 클립 명세와 이벤트 프레임에 맞춰 생성 | 2026-08-08 |
 | Crawler | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 · 2048 텍스처 3장) | 미확인 | 적 「기는 것」 | 2026-08-08 |
 | Crawler 리그 · 애니메이션 6종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Crawler/`) | 프로젝트 자체 제작 | 적 「기는 것」 | 2026-08-08 |
+| Colossus | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 8,634 tris · 2048 텍스처 3장) | 미확인 | 적 「죽지 않는 것」 | 2026-08-08 |
+| Colossus 리그 · 애니메이션 15종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Colossus/`) | 프로젝트 자체 제작 | 적 「죽지 않는 것」 | 2026-08-09 |
 | 월드 표면 텍스처 7종 (albedo · normal · mask 각 3장) | 텍스처 PNG | Claude Code 가 작성한 절차적 생성 스크립트 (`docs/world-textures/gen_textures.py`) | 프로젝트 자체 제작 | 벽 · 바닥 · 철판 · 그레이팅 · 눈 · 둥지 | 2026-08-09 |
 | 손전등 · 권총 메시 | 3D 모델 | Claude Code 가 Unity MCP 로 프리미티브를 조합하고 `Mesh.CombineMeshes` 로 병합 | 프로젝트 자체 제작 | R&D 검증용. 대안 경로로 보존 | 2026-08-09 |
 | 2장 복도 칸 모듈 | 3D 모델 (FBX) | Claude Code 가 작성한 Blender 파이썬 스크립트 | 프로젝트 자체 제작 | 2장 숙소동 복도 한 칸 (벽 · 바닥 · 천장 · 배관 · 조명기구) | 2026-08-09 |

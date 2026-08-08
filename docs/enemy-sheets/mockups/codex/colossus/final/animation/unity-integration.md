@@ -24,7 +24,7 @@
 | --- | --- | --- |
 | `Speed` | Float | `agent.velocity.magnitude`. Idle ↔ Walk ↔ Run |
 | `IsChasing` | Bool | 추격 표현 |
-| `Attack` | Trigger | `Attack_Push` one-shot |
+| `Attack` | Trigger | `Grab_Miss` one-shot |
 | `Grab` | Trigger | `Grab_Execute` — **잡히면 즉사** |
 | `Roar` | Trigger | 발견 순간 |
 | `Threat` | Trigger | 추격 중 주기적 위협 (Upper 레이어) |
@@ -34,11 +34,34 @@
 | `Turn` | Trigger | 제자리 회전 시작 |
 | `Buried` | Bool | 최우선. 되돌아오지 않는다 |
 | `GripCable` | Trigger | 엔딩 연출 전용 |
+| `CableClimb` | Trigger | 엔딩 연출 전용. 케이블을 따라 다가온다 |
+| `CableFall` | Trigger | 엔딩 연출 전용. 케이블을 놓친다 |
 
 Locomotion 은 1D Blend Tree 로 `Idle_Weight 0`, `Walk_Knuckle 1.15`,
 `Run 2.60` 을 둔다. Speed 는 damping 0.15~0.20초를 쓴다. **Crawler 보다 길게
 둔다** — 이 적은 가속이 2.20 m/s² 로 느려서 짧은 damping 이면 단계 사이가
 덜컥거린다.
+
+### 두 로코모션 클립에 재생 배속을 건다
+
+IMPORTANT: Blend Tree 의 문턱값은 **에이전트 속도**지만, 클립이 실제로 담고
+있는 지면 속도는 그보다 느리다. 문턱값에서 배속 1.0 으로 재생하면 발이
+미끄러진다.
+
+| 클립 | 클립이 담은 지면 속도 | 에이전트 속도 | **Motion Speed** |
+| --- | ---: | ---: | ---: |
+| `Walk_Knuckle` | 0.89 m/s | 1.15 m/s | **1.29** |
+| `Run` | 2.48 m/s | 2.60 m/s | **1.05** |
+
+`Walk_Knuckle` 이 명세의 1.11 m/s 에 못 미치는 것은 보폭을 1.55 m 에서
+1.25 m 로 줄였기 때문이고, 그 보폭은 팔의 전방 도달 한계 0.55 m 가 정했다.
+근거는 [`tech-design/decisions.md`](../../../../../tech-design/decisions.md).
+
+### 엔딩 연출의 순서
+
+`Grip_Cable`(42f) → `Cable_Climb`(loop) → `Cable_Fall`(54f) 또는
+`Buried`(60f). 셋 다 `Colossus.cs` 가 모르는 상태이며 **엔딩을 진행하는 쪽이
+트리거를 직접 보낸다.** 재생 중에는 `NavMeshAgent` 를 꺼 둔다.
 
 IMPORTANT: **`Death` 파라미터도 상태도 만들지 않는다.** `IsAlive` 는 항상 참이다.
 `Grab_Execute` 는 플레이어가 죽는 연출이지 이것이 죽는 것이 아니다.
@@ -80,7 +103,7 @@ Buried --exit--> (없음)
 (`Turn_L −1`, `Turn_R +1`). 중간값을 쓰지 않으므로 threshold 는 −1 과 +1 둘뿐이다.
 
 전이 시간이 Crawler(0.03~0.04초)보다 길다. 4.5 m 짜리가 0.03초 만에 자세를
-바꾸면 질량이 사라진다. **예외는 `Grab_Execute` 의 0.05초** — `Attack_Push` 와
+바꾸면 질량이 사라진다. **예외는 `Grab_Execute` 의 0.05초** — `Grab_Miss` 와
 1~8f 가 같아야 하므로 짧게 끊는다.
 
 ## 코드에서 반드시 보완할 지점
@@ -108,13 +131,13 @@ Buried --exit--> (없음)
     돌린다 — 클립은 90° 를 채우는 것이 목적이 아니라 그동안 발이 미끄러지지
     않게 하는 것이 목적이다.
 11. **추격 중 위협.** `IsChasing` 이 참이고 거리가 공격 사거리(3.2 m) 밖이면
-    최소 6초 간격으로 `Threat` 를 보낸다. `Attack_Push` · `Stagger` ·
+    최소 6초 간격으로 `Threat` 를 보낸다. `Grab_Miss` · `Stagger` ·
     `Grab_Execute` 중에는 보내지 않는다.
 12. **공격은 붙잡기 하나뿐이다.** `Attack()` 은 사거리 안이면 `Grab` 을 보내고
     피해를 적용하지 않는다. 체력을 확인하지 않는다 — 잡히면 즉사이므로 볼 이유가
     없다. `attackDamage = 2` 는 더 이상 쓰이지 않는다.
     8f 의 `AE_GrabLock()` 에서 사거리를 다시 검사해, 벗어났으면
-    `Attack_Push`(피해 없음)로 넘긴다.
+    `Grab_Miss`(피해 없음)로 넘긴다.
 
 ## 처형 시퀀스 — `Grab_Execute` 전용 계약
 
@@ -123,7 +146,7 @@ Buried --exit--> (없음)
 | 시점 | 무엇 |
 | --- | --- |
 | `Grab` 트리거 | `agent.isStopped = true`. 이후 이동 없음 |
-| `AE_GrabLock()` (8f) | **사거리를 다시 검사한다.** 안이면 입력 차단 · `CharacterController` 끄기 · `GrabAnchor` 에 부착하고 카메라 제어를 **0.3초에 걸쳐** 넘긴다. 밖이면 `Attack_Push` 로 넘긴다 |
+| `AE_GrabLock()` (8f) | **사거리를 다시 검사한다.** 안이면 입력 차단 · `CharacterController` 끄기 · `GrabAnchor` 에 부착하고 카메라 제어를 **0.3초에 걸쳐** 넘긴다. 밖이면 `Grab_Miss` 로 넘긴다 |
 | 40~64f | 입이 화면 중앙에 오는 구간. 카메라 각속도 90°/s 이하 |
 | `AE_GrabKill()` (90f) | **여기서 즉사시킨다.** 체력을 깎는 것이 아니라 `PlayerHealth` 를 0 으로 만든다. `Died` 가 여기서 발생하고 화면 암전도 여기다 |
 | 132f 종료 | 플레이어 분리, `CharacterController` 복구, `agent.isStopped = false` |

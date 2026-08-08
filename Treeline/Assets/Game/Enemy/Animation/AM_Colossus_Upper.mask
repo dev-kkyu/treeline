@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AM_Colossus_Upper
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: Colossus_Armature
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_HeadBase
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_HeadBase/DEF_HeadTip
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_HeadBase/DEF_Jaw
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_Hump.L
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_Hump.L/DEF_HumpTip.L
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_Hump.R
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_Hump.R/DEF_HumpTip.R
+    m_Weight: 1
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.L/DEF_ForeArm.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.L/DEF_ForeArm.L/DEF_Wrist.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.L/DEF_ForeArm.L/DEF_Wrist.L/DEF_Digits.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.R
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.R/DEF_ForeArm.R
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.R/DEF_ForeArm.R/DEF_Wrist.R
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Spine01/DEF_Spine02/DEF_Spine03/DEF_Chest/DEF_UpperArm.R/DEF_ForeArm.R/DEF_Wrist.R/DEF_Digits.R
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.L/DEF_Shin.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.L/DEF_Shin.L/DEF_Foot.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.L/DEF_Shin.L/DEF_Foot.L/DEF_Toes.L
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.R
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.R/DEF_Shin.R
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.R/DEF_Shin.R/DEF_Foot.R
+    m_Weight: 0
+  - m_Path: Colossus_Armature/Colossus_Root/Colossus_Motion/DEF_Pelvis/DEF_Thigh.R/DEF_Shin.R/DEF_Foot.R/DEF_Toes.R
+    m_Weight: 0
+  - m_Path: Colossus_Mesh
+    m_Weight: 0

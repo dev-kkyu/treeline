@@ -48,7 +48,7 @@ IMPORTANT: 이 클립은 **`Walk_Knuckle` · `Run` 위에 덧씌워진다.** 별
 
 - `IsChasing` 이 참이고 플레이어와의 거리가 **공격 사거리(3.2 m) 밖**일 때.
 - 최소 간격 6초. 너무 잦으면 위협이 배경음이 된다.
-- `Attack_Push` · `Stagger` · `Grab_Execute` 중에는 나가지 않는다.
+- `Grab_Miss` · `Stagger` · `Grab_Execute` 중에는 나가지 않는다.
 
 ## 「위협 애니메이션들」에 대해
 
