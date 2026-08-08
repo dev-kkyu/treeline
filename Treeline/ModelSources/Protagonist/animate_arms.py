@@ -768,6 +768,15 @@ def main():
         for c in list(pb.constraints):
             pb.constraints.remove(c)
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    # leave the file openable: the strips above hide whichever weapon they are
+    # not shooting, and saving straight after them ships a blend where half the
+    # meshes never render.
+    for ob in bpy.data.objects:
+        if ob.type == 'MESH':
+            ob.hide_render = False
+    arm.animation_data.action = pistol
+    sc.frame_start, sc.frame_end, sc.frame_current = 1, 54, 1
     bpy.ops.wm.save_as_mainfile(filepath=OUT_BLEND)
     print("SAVED", OUT_BLEND)
     print("=" * 72)
