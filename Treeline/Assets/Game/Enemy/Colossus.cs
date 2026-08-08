@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
@@ -60,9 +61,28 @@ namespace Treeline
         [Tooltip("쫓을 때의 속도. 걷기(2.8)보다 빠르고 달리기(4.6)보다 느리다 — 뛰어야 벗어난다.")]
         [SerializeField] private float chaseSpeed = 3.4f;
 
+        [Header("애니메이션")]
+        [Tooltip("AC_Colossus. 비우면 모델 없이 돌던 회색 박스 동작 그대로다.")]
+        [SerializeField] private Animator animator;
+
+        [Tooltip("붙잡은 플레이어를 매달 자리. DEF_Digits.R 의 자식인 빈 트랜스폼.")]
+        [SerializeField] private Transform grabAnchor;
+
+        [Tooltip("입. 붙잡힌 동안 플레이어 카메라가 이쪽을 본다. DEF_HeadTip.")]
+        [SerializeField] private Transform mouthTarget;
+
+        [Tooltip("카메라를 뺏는 데 쓰는 시간. 즉시 끊으면 화면이 고장난 줄 안다.")]
+        [SerializeField] private float grabHandoverSeconds = 0.3f;
+
+        [Tooltip("붙잡힌 동안 카메라가 도는 최대 속도(도/초). 넘기면 멀미가 난다.")]
+        [SerializeField] private float grabTurnSpeed = 90f;
+
+        [Tooltip("8f 재검사에서 봐주는 여유(m). 0 이면 딱 사거리로 자른다.")]
+        [SerializeField] private float grabLockSlack = 0.6f;
+
         [Header("발각 — 돌아보고 포효한 뒤에 온다")]
-        [Tooltip("알아채고 이만큼 멈춰 서서 플레이어를 본다. 0 이면 바로 쫓는다.")]
-        [SerializeField] private float roarSeconds = 2f;
+        [Tooltip("알아채고 이만큼 멈춰 서서 플레이어를 본다. Colossus_Roar 클립 길이(1.17초)에 맞춘 값이다.")]
+        [SerializeField] private float roarSeconds = 1.2f;
 
         [Tooltip("포효하는 동안 플레이어 쪽으로 도는 빠르기(도/초).")]
         [SerializeField] private float roarTurnSpeed = 220f;
@@ -72,6 +92,12 @@ namespace Treeline
 
         [Tooltip("놓쳐서 배회로 돌아가는 순간 한 번. 추격 음악을 끄는 자리다.")]
         [SerializeField] private UnityEvent lost;
+
+        [Tooltip("포효 클립 21f. 알아챈 순간이 아니라 턱이 열리는 순간에 소리를 낸다.")]
+        [SerializeField] private UnityEvent roarSound;
+
+        [Tooltip("위협 클립 25f. 아직 소리가 없다.")]
+        [SerializeField] private UnityEvent threatSound;
 
         [Header("공격")]
         [Tooltip("팔이 무릎을 지나 바닥에 닿는다. 사거리가 길다.")]
@@ -112,6 +138,23 @@ namespace Treeline
         private int damageSinceStagger;
         private float staggerUntil = float.NegativeInfinity;
 
+        // 애니메이터 파라미터는 이름을 매 프레임 해싱하지 않는다.
+        private static readonly int SpeedHash = Animator.StringToHash("Speed");
+        private static readonly int ChasingHash = Animator.StringToHash("IsChasing");
+        private static readonly int BuriedHash = Animator.StringToHash("IsBuried");
+        private static readonly int RoarHash = Animator.StringToHash("Roar");
+        private static readonly int GrabHash = Animator.StringToHash("Grab");
+        private static readonly int MissHash = Animator.StringToHash("Miss");
+        private static readonly int StaggerHash = Animator.StringToHash("Stagger");
+        private static readonly int HitReactHash = Animator.StringToHash("HitReact");
+
+        /// <summary>상태 이름 해시다. 위 트리거 해시와 값이 같아도 쓰는 곳이 다르다.</summary>
+        private static readonly int RoarStateHash = Animator.StringToHash("Roar");
+
+        private GameObject grabbed;
+        private Transform grabbedEye;
+        private Coroutine grabRoutine;
+
         /// <summary>
         /// **항상 참이다.** 총으로 죽일 수 없다는 것이 이 적의 정체다.
         /// </summary>
@@ -143,8 +186,31 @@ namespace Treeline
         /// <summary>밀려나 멈춰 있는 동안 참이다.</summary>
         public bool IsStaggered => Time.time < staggerUntil;
 
-        /// <summary>알아채고 돌아보며 포효하는 동안 참이다. 이 동안은 움직이지 않는다.</summary>
-        public bool IsRoaring => Time.time < roarUntil;
+        /// <summary>
+        /// 알아채고 돌아보며 포효하는 동안 참이다. 이 동안은 움직이지 않는다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="roarSeconds"/> 로만 재면 안 된다. 트리거를 보내고 <c>Roar</c> 상태로
+        /// <b>전이하는 데 걸리는 시간</b>이 앞에 붙어서, 시간이 다 차는 순간 클립이 아직
+        /// 남아 있다. 실측 0.33 초 뒤에 시작해 1.50 초에 끝났다 — 1.2 초로 끊으면
+        /// 포효 끝자락에서 걸어나간다. 그래서 <b>클립이 살아 있는 동안은 계속 붙잡는다.</b>
+        /// 애니메이터가 없으면 예전처럼 시간만 본다.
+        /// </remarks>
+        public bool IsRoaring => Time.time < roarUntil || InRoarState();
+
+        private bool InRoarState()
+        {
+            if (animator == null)
+            {
+                return false;
+            }
+
+            AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+            return state.shortNameHash == RoarStateHash && state.normalizedTime < 1f;
+        }
+
+        /// <summary>플레이어를 붙들고 있는 동안 참이다. 클립이 끝을 정하므로 코드가 끼어들지 않는다.</summary>
+        public bool IsGrabbing => grabbed != null;
 
         /// <summary>
         /// 눈에 묻혀 멈춘 상태. 6장에서 밖에서 켜준다. 죽는 것이 아니라 갇히는 것이다.
@@ -154,6 +220,11 @@ namespace Treeline
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+
+            if (animator == null)
+            {
+                animator = GetComponentInChildren<Animator>();
+            }
 
             if (gameObject.layer != GameLayers.Enemy)
             {
@@ -173,7 +244,16 @@ namespace Treeline
 
         private void Update()
         {
+            DriveAnimator();
+
             if (IsBuried)
+            {
+                return;
+            }
+
+            // 붙잡은 동안은 클립이 전부를 몬다. 여기서 경로나 회전을 건드리면
+            // 입 앞으로 채가는 8프레임이 어긋난다.
+            if (IsGrabbing)
             {
                 return;
             }
@@ -198,6 +278,11 @@ namespace Treeline
                     {
                         IsChasing = true;
                         roarUntil = Time.time + roarSeconds;
+                        if (animator != null)
+                        {
+                            animator.SetTrigger(RoarHash);
+                        }
+
                         Noticed?.Invoke();
                         noticed?.Invoke();
                     }
@@ -382,9 +467,13 @@ namespace Treeline
         /// 붙잡는다. **체력을 깎는 것이 아니라 죽인다.**
         /// </summary>
         /// <remarks>
-        /// 양손으로 붙들어 목을 따는 처형이라 한 번 닿으면 끝이다 (2026-08-08 팀 합의).
-        /// 「죽지 않는 것이 있다」와 짝이 되는 규칙 — 이쪽은 죽일 수 없고 저쪽은
-        /// 한 번에 죽인다. 연출은 모델이 들어와야 붙는다.
+        /// 양손으로 붙들어 입으로 가져가는 처형이라 한 번 닿으면 끝이다 (2026-08-08 팀 합의).
+        /// 「죽지 않는 것이 있다」와 짝이 되는 규칙 — 이쪽은 죽일 수 없고 저쪽은 한 번에 죽인다.
+        /// <para>
+        /// **여기서는 피해를 주지 않는다.** 트리거만 보내고 실제 죽음은 클립 90f 의
+        /// <see cref="AE_GrabKill"/> 이 준다. 8f 에서 한 번 더 재기 때문에
+        /// <b>마지막 순간에 빠져나가는 것이 가능하고, 그것이 이 적을 상대하는 유일한 기술</b>이다.
+        /// </para>
         /// </remarks>
         private void Attack()
         {
@@ -403,9 +492,235 @@ namespace Treeline
                 transform.rotation = Quaternion.LookRotation(facing, Vector3.up);
             }
 
+            if (animator != null)
+            {
+                animator.SetTrigger(GrabHash);
+                return;
+            }
+
+            // 모델이 없던 시절의 경로. 회색 박스 씬과 1 단계 검증이 그대로 유효해야 한다.
+            KillPlayer();
+        }
+
+        /// <summary>
+        /// 클립 8f — **여기서 잡을지 놓칠지가 갈린다.**
+        /// </summary>
+        /// <remarks>
+        /// 1~8f 를 <c>Grab_Miss</c> 와 같은 자세로 공유하므로, 플레이어는 그 0.27 초
+        /// 동안 결과를 모른다. 사거리를 <b>다시</b> 재서 벗어났으면 헛손질로 넘긴다.
+        /// </remarks>
+        public void AE_GrabLock()
+        {
+            if (player == null || playerDamageable == null || !playerDamageable.IsAlive
+                || Vector3.Distance(transform.position, player.position) > attackRange + grabLockSlack)
+            {
+                if (animator != null)
+                {
+                    animator.SetTrigger(MissHash);
+                }
+
+                return;
+            }
+
+            CapturePlayer();
+        }
+
+        /// <summary>클립 90f — 턱이 닫힌다. **여기서 죽는다.**</summary>
+        public void AE_GrabKill()
+        {
+            // 화면을 먼저 닫는다. 104f 의 흔드는 동작은 검은 화면 뒤의 일이다.
+            if (grabbed != null)
+            {
+                PlayerHud hud = grabbed.GetComponentInChildren<PlayerHud>(true);
+                if (hud != null)
+                {
+                    hud.Blackout(0.12f);
+                }
+            }
+
+            KillPlayer();
+        }
+
+        /// <summary>클립 21f — 포효 소리를 내는 자리. 인스펙터에서 <c>AudioSource.Play</c> 를 건다.</summary>
+        public void AE_ColossusRoar()
+        {
+            roarSound?.Invoke();
+        }
+
+        /// <summary>클립 25f — 위협 소리를 내는 자리. 아직 클립이 없다.</summary>
+        public void AE_ColossusThreat()
+        {
+            threatSound?.Invoke();
+        }
+
+        private void KillPlayer()
+        {
+            if (playerDamageable == null || !playerDamageable.IsAlive)
+            {
+                return;
+            }
+
             Vector3 point = transform.position + Vector3.up * eyeHeight;
             Vector3 direction = (player.position - transform.position).normalized;
             playerDamageable.TakeDamage(new DamageInfo(attackDamage, point, direction, gameObject));
+        }
+
+        /// <summary>플레이어에게서 조작을 뺏어 손에 매단다.</summary>
+        private void CapturePlayer()
+        {
+            if (grabAnchor == null || grabbed != null)
+            {
+                return;
+            }
+
+            grabbed = player.gameObject;
+
+            // 걷기 · 시선 · 중력을 전부 끈다. 하나라도 남으면 클립과 싸운다 —
+            // 특히 PlayerLook 은 매 프레임 회전을 덮어써서 카메라가 안 넘어간다.
+            SetPlayerControl(false);
+
+            grabbedEye = grabbed.GetComponentInChildren<Camera>() != null
+                ? grabbed.GetComponentInChildren<Camera>().transform
+                : grabbed.transform;
+
+            // 월드 위치를 유지한 채 붙인다. 순간이동으로 손에 박아 넣으면 한 프레임에
+            // 화면이 튀어 「잡혔다」가 아니라 「끊겼다」로 읽힌다. 대신 아래에서 끌어당긴다.
+            grabbed.transform.SetParent(grabAnchor, worldPositionStays: true);
+
+            PlayerHud hud = grabbed.GetComponentInChildren<PlayerHud>(true);
+            if (hud != null)
+            {
+                hud.HideForCutscene();
+            }
+
+            grabRoutine = StartCoroutine(HoldPlayer());
+        }
+
+        /// <summary>
+        /// 붙잡힌 동안 카메라를 입 쪽으로 넘기고 계속 그쪽을 보게 둔다.
+        /// </summary>
+        /// <remarks>
+        /// 즉시 고정하지 않는 것이 핵심이다. <see cref="grabHandoverSeconds"/> 동안
+        /// 넘기고 그 뒤로는 각속도를 <see cref="grabTurnSpeed"/> 로 묶는다. 이 제한이
+        /// 없으면 <b>화면이 고장난 것처럼 보이고 멀미가 난다.</b>
+        /// </remarks>
+        private IEnumerator HoldPlayer()
+        {
+            Transform look = mouthTarget != null ? mouthTarget : transform;
+            Quaternion from = grabbedEye.rotation;
+            Vector3 fromLocal = grabbed.transform.localPosition;
+            float started = Time.time;
+
+            while (grabbed != null)
+            {
+                float pull = grabHandoverSeconds > 0f
+                    ? Mathf.Clamp01((Time.time - started) / grabHandoverSeconds)
+                    : 1f;
+
+                // 손 안으로 끌어당긴다. 이게 없으면 팔 길이만큼 떨어진 채 매달려서
+                // 입이 화면을 채우는 40~64f 가 통째로 안 나온다.
+                grabbed.transform.localPosition =
+                    Vector3.Lerp(fromLocal, Vector3.zero, pull * pull * (3f - 2f * pull));
+
+                Vector3 toMouth = look.position - grabbedEye.position;
+                if (toMouth.sqrMagnitude > 0.0001f)
+                {
+                    Quaternion target = Quaternion.LookRotation(toMouth, Vector3.up);
+                    float elapsed = Time.time - started;
+
+                    if (elapsed < grabHandoverSeconds && grabHandoverSeconds > 0f)
+                    {
+                        // 뺏는 구간. 원래 보던 방향에서 부드럽게 옮겨온다.
+                        float k = elapsed / grabHandoverSeconds;
+                        grabbedEye.rotation = Quaternion.Slerp(from, target, k * k * (3f - 2f * k));
+                    }
+                    else
+                    {
+                        grabbedEye.rotation = Quaternion.RotateTowards(
+                            grabbedEye.rotation, target, grabTurnSpeed * Time.deltaTime);
+                    }
+                }
+
+                yield return null;
+            }
+        }
+
+        /// <summary>손에서 내려놓는다. 죽어서 장이 다시 시작하든, 클립이 끊기든 여기로 온다.</summary>
+        private void ReleasePlayer()
+        {
+            if (grabbed == null)
+            {
+                return;
+            }
+
+            if (grabRoutine != null)
+            {
+                StopCoroutine(grabRoutine);
+                grabRoutine = null;
+            }
+
+            grabbed.transform.SetParent(null, worldPositionStays: true);
+            SetPlayerControl(true);
+            grabbed = null;
+            grabbedEye = null;
+        }
+
+        /// <summary>
+        /// 플레이어의 조작을 통째로 켜고 끈다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="CharacterController"/> 는 켜져 있는 동안 위치를 되돌리므로 껐다
+        /// 옮긴다. 입력만 끄면 <see cref="PlayerMotor"/> 가 계속 돌면서 꺼진 컨트롤러에
+        /// <c>Move</c> 를 걸고 중력으로 손에서 빠져나간다 — 삭도에서 이미 밟은 함정이다.
+        /// </remarks>
+        private void SetPlayerControl(bool on)
+        {
+            if (grabbed == null)
+            {
+                return;
+            }
+
+            var input = grabbed.GetComponent<PlayerInputReader>();
+            if (input != null)
+            {
+                input.enabled = on;
+            }
+
+            var look = grabbed.GetComponentInChildren<PlayerLook>();
+            if (look != null)
+            {
+                look.enabled = on;
+            }
+
+            var motor = grabbed.GetComponent<PlayerMotor>();
+            if (motor != null)
+            {
+                motor.enabled = on;
+            }
+
+            var controller = grabbed.GetComponent<CharacterController>();
+            if (controller != null)
+            {
+                controller.enabled = on;
+            }
+        }
+
+        private void DriveAnimator()
+        {
+            if (animator == null)
+            {
+                return;
+            }
+
+            animator.SetFloat(SpeedHash, agent.isOnNavMesh ? agent.velocity.magnitude : 0f);
+            animator.SetBool(ChasingHash, IsChasing);
+            animator.SetBool(BuriedHash, IsBuried);
+        }
+
+        private void OnDisable()
+        {
+            // 잡은 채로 꺼지면 플레이어가 손에 매달린 채 조작 불능으로 남는다.
+            ReleasePlayer();
         }
 
         /// <summary>
@@ -433,10 +748,21 @@ namespace Treeline
             damageSinceStagger += Mathf.Max(1, damage.Amount);
             if (damageSinceStagger < staggerThreshold)
             {
+                // 임계에 못 미쳐도 반응은 한다. 아무 반응이 없으면 맞았는지도 모른다.
+                if (animator != null && !IsGrabbing)
+                {
+                    animator.SetTrigger(HitReactHash);
+                }
+
                 return;
             }
 
             damageSinceStagger = 0;
+            if (animator != null)
+            {
+                animator.SetTrigger(StaggerHash);
+            }
+
             Stagger(-damage.Direction);
         }
 
@@ -484,6 +810,11 @@ namespace Treeline
 
             IsChasing = true;
             roarUntil = Time.time + roarSeconds;
+            if (animator != null)
+            {
+                animator.SetTrigger(RoarHash);
+            }
+
             Noticed?.Invoke();
             noticed?.Invoke();
         }

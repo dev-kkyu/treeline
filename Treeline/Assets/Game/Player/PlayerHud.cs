@@ -125,6 +125,9 @@ namespace Treeline
         [Header("피격")]
         [SerializeField] private Image damageOverlay;
 
+        [Tooltip("화면 전체를 덮는 검은 판. 붙잡혀 죽는 연출이 이걸 닫는다.")]
+        [SerializeField] private Image blackout;
+
         private PlayerWeapon subscribed;
         private RectTransform crosshairRect;
 
@@ -132,6 +135,10 @@ namespace Treeline
         private float ammoBlinkStart = float.NegativeInfinity;
         private float staminaBlinkStart = float.NegativeInfinity;
         private float damageOverlayStart = float.NegativeInfinity;
+
+        private float blackoutStart = float.NegativeInfinity;
+        private float blackoutSeconds;
+        private bool cutscene;
 
         private int lastHealth = int.MaxValue;
         private int lastLoaded = int.MaxValue;
@@ -213,12 +220,105 @@ namespace Treeline
 
         private void Update()
         {
+            if (cutscene)
+            {
+                // 조작을 뺏긴 동안은 게이지가 의미가 없다. 암전만 계속 몬다.
+                UpdateBlackout();
+                return;
+            }
+
             UpdateHealth();
             UpdateAmmo();
             UpdateBattery();
             UpdateStamina();
             UpdateInteraction();
             UpdateDamageOverlay();
+            UpdateBlackout();
+        }
+
+        /// <summary>
+        /// 화면을 검게 닫는다. 열리지 않는다 — 장이 다시 시작하며 HUD 가 새로 만들어진다.
+        /// </summary>
+        /// <remarks>
+        /// 붙잡혀 죽는 연출이 부른다. 무는 순간에 닫아야 그 뒤의 흔드는 동작이
+        /// 화면에 안 남는다. 인자가 없는 <c>UnityEvent</c> 로도 쓸 수 있게
+        /// <see cref="Blackout()"/> 를 같이 둔다.
+        /// </remarks>
+        public void Blackout(float seconds)
+        {
+            blackoutStart = Time.time;
+            blackoutSeconds = Mathf.Max(0f, seconds);
+        }
+
+        /// <summary>인스펙터의 <c>UnityEvent</c> 에 그대로 걸기 위한 것.</summary>
+        public void Blackout()
+        {
+            Blackout(0.12f);
+        }
+
+        /// <summary>
+        /// 게이지를 전부 치운다. 조작을 뺏기는 연출이 들어올 때 부른다.
+        /// </summary>
+        /// <remarks>
+        /// 죽는 연출 3 초 동안 체력칸과 탄창이 화면에 남아 있으면 긴장이 깨진다.
+        /// 되돌리는 함수를 두지 않은 것은, 이 상태에서 빠져나오는 길이 <b>장을 다시
+        /// 시작하는 것</b>뿐이고 그때 HUD 가 새로 만들어지기 때문이다.
+        /// </remarks>
+        public void HideForCutscene()
+        {
+            cutscene = true;
+
+            SetGroupAlpha(healthGroup);
+            SetGroupAlpha(ammoGroup);
+            SetGroupAlpha(batteryGroup);
+            SetGroupAlpha(staminaGroup);
+            SetGroupAlpha(interactGroup);
+
+            if (crosshair != null)
+            {
+                crosshair.enabled = false;
+            }
+
+            if (damageOverlay != null)
+            {
+                damageOverlay.enabled = false;
+            }
+        }
+
+        private static void SetGroupAlpha(CanvasGroup group)
+        {
+            if (group != null)
+            {
+                group.alpha = 0f;
+            }
+        }
+
+        private void UpdateBlackout()
+        {
+            if (blackout == null)
+            {
+                return;
+            }
+
+            float alpha = 0f;
+            if (blackoutStart > float.NegativeInfinity)
+            {
+                float elapsed = Time.time - blackoutStart;
+                alpha = blackoutSeconds > 0f ? Mathf.Clamp01(elapsed / blackoutSeconds) : 1f;
+            }
+
+            bool draw = alpha > 0f;
+            if (draw)
+            {
+                Color color = blackout.color;
+                color.a = alpha;
+                blackout.color = color;
+            }
+
+            if (blackout.enabled != draw)
+            {
+                blackout.enabled = draw;
+            }
         }
 
         // --- 체력 ---

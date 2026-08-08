@@ -3483,6 +3483,10 @@ PrefabInstance:
       value: Colossus
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: roarSeconds
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: roamPoints.Array.size
       value: 4
       objectReference: {fileID: 0}
@@ -3508,7 +3512,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.size
-      value: 2
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: roarSound.m_PersistentCalls.m_Calls.Array.size
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: lost.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -3535,6 +3543,10 @@ PrefabInstance:
       value: Stop
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: roarSound.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1057076546}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
       value: 2
       objectReference: {fileID: 0}
@@ -3559,6 +3571,14 @@ PrefabInstance:
       value: Play
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: roarSound.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: roarSound.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Play
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: lost.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: UnityEngine.AudioSource, UnityEngine
       objectReference: {fileID: 0}
@@ -3572,6 +3592,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
       propertyPath: noticed.m_PersistentCalls.m_Calls.Array.data[2].m_TargetAssemblyTypeName
+      value: UnityEngine.AudioSource, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6495784048326889252, guid: da999762e892be44aa4f1226b7de19f3, type: 3}
+      propertyPath: roarSound.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: UnityEngine.AudioSource, UnityEngine
       objectReference: {fileID: 0}
     m_RemovedComponents: []
