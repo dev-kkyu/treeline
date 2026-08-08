@@ -85,6 +85,13 @@ namespace Treeline
             LoadChapter(Chapters.First);
         }
 
+        /// <summary>타이틀로 돌아간다. 엔딩 화면의 「돌아가기」가 부른다.</summary>
+        public void ReturnToTitle()
+        {
+            hasCheckpoint = false;
+            LoadChapter(Chapters.Title);
+        }
+
         /// <summary>다음 장으로 넘어간다. 마지막 장이면 엔딩으로 간다.</summary>
         public void NextChapter()
         {

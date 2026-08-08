@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace Treeline
@@ -27,6 +28,18 @@ namespace Treeline
         [Tooltip("한 번만 당길 수 있는지.")]
         [SerializeField] private bool oneShot = true;
 
+        [Header("당겼다는 표시")]
+        [Tooltip("당기면 이 각도만큼 눕는다. 회색 박스에서 유일한 시각 신호다.")]
+        [SerializeField] private Vector3 pulledRotation = new Vector3(-55f, 0f, 0f);
+
+        [Tooltip("내려가는 데 걸리는 시간.")]
+        [SerializeField] private float pullSeconds = 0.25f;
+
+        [Tooltip("당긴 뒤로 바꿀 머티리얼. 비워두면 색은 그대로다.")]
+        [SerializeField] private Material pulledMaterial;
+
+        private Quaternion restRotation;
+
         /// <summary>이미 당겼는지.</summary>
         public bool IsPulled { get; private set; }
 
@@ -41,6 +54,8 @@ namespace Treeline
 
         private void Awake()
         {
+            restRotation = transform.localRotation;
+
             // 당기기 전에는 닫혀 있어야 한다. 씬에서 켜둔 채 저장해도 여기서 바로잡는다.
             if (opens != null && !IsPulled)
             {
@@ -61,6 +76,55 @@ namespace Treeline
             {
                 opens.SetActive(true);
             }
+
+            ShowPulled();
+        }
+
+        /// <summary>
+        /// 당겼다는 것을 화면에 보여준다. 내려간 채로 남는다.
+        /// </summary>
+        /// <remarks>
+        /// 소리도 애니메이션 클립도 없는 단계라 <b>이 움직임이 유일한 피드백</b>이다.
+        /// 없으면 눌러도 아무 일이 없는 것처럼 보인다. 실제로 그렇게 보고를 받았다.
+        /// <para>
+        /// 실제 레버처럼 제자리로 되돌리는 것도 만들어 봤다가 걷어냈다. **올라와 있으면
+        /// 또 당길 수 있어 보이는데 <see cref="oneShot"/> 이라 안 된다.** 보이는 것과
+        /// 되는 것이 어긋나면 색이 아무리 달라도 플레이어는 눌러보게 된다. 내려간
+        /// 채로 두면 각도와 색이 같은 말을 한다.
+        /// </para>
+        /// </remarks>
+        private void ShowPulled()
+        {
+            if (pulledMaterial != null)
+            {
+                var renderer = GetComponent<Renderer>();
+                if (renderer != null)
+                {
+                    renderer.sharedMaterial = pulledMaterial;
+                }
+            }
+
+            StopAllCoroutines();
+            StartCoroutine(Swing(restRotation, restRotation * Quaternion.Euler(pulledRotation), pullSeconds));
+        }
+
+        private IEnumerator Swing(Quaternion from, Quaternion to, float seconds)
+        {
+            if (seconds <= 0f)
+            {
+                transform.localRotation = to;
+                yield break;
+            }
+
+            for (float t = 0f; t < seconds; t += Time.deltaTime)
+            {
+                // 끝에서 부드럽게 멎도록 한 번 감쇠한다.
+                float k = t / seconds;
+                transform.localRotation = Quaternion.Slerp(from, to, k * k * (3f - 2f * k));
+                yield return null;
+            }
+
+            transform.localRotation = to;
         }
     }
 }
