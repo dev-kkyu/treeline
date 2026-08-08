@@ -41,6 +41,8 @@ TARGETS = {
     "Footsteps":  {"lufs": -22.0, "rms": -22.0},
     "Structure":  {"lufs": -22.0, "rms": -22.0},
     "Electrical": {"lufs": -22.0, "rms": -22.0},
+    "Interaction": {"lufs": -22.0, "rms": -22.0},
+    "Devices":    {"lufs": -22.0, "rms": -22.0},
 }
 
 PEAK_CEILING_DB = -1.0   # 이 위로는 올리지 않는다

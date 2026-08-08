@@ -22,7 +22,8 @@ import numpy as np
 
 SR = 44100
 ROOT = "Treeline/Assets/Game/Audio"
-ONE_SHOT_DIRS = ["Footsteps", "Structure", "Electrical"]
+ONE_SHOT_DIRS = ["Footsteps", "Structure", "Electrical", "Interaction",
+                 "Devices"]
 
 HEAD_PAD_MS = 10        # 앞에 남길 여유
 TAIL_PAD_MS = 60        # 뒤에 남길 잔향 여유

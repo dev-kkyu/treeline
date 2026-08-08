@@ -134,6 +134,74 @@ PROMPTS = [
     ("Electrical", "fluorescent-flicker",
      "Fluorescent tube struggling to start, rapid stuttering electrical "
      "flicker and ticking", 3.0, False),
+
+    # --- 상호작용. Lever · Pickup · Carriable 에 대응한다 -------------------
+    ("Interaction", "lever-pull",
+     "Large industrial lever being pulled down through its travel, metal "
+     "handle grinding then locking into place with a solid clack, close "
+     "microphone", 2.0, False),
+    ("Interaction", "lever-locked",
+     "Industrial lever jammed, metal straining against a stop, refuses to "
+     "move, close microphone", 1.5, False),
+    ("Interaction", "valve-turn",
+     "Stiff iron valve wheel turning several rotations, metal squeal and "
+     "grinding threads, close microphone", 3.0, False),
+    ("Interaction", "pickup-item",
+     "Picking up a metal object from a shelf, brief scrape then a soft "
+     "handling clink, close microphone", 1.5, False),
+    ("Interaction", "pickup-ammo",
+     "Handful of pistol cartridges picked up, brass casings rattling "
+     "together, close microphone", 1.5, False),
+    ("Interaction", "pickup-battery",
+     "Battery cell taken from a rack and seated with a plastic and metal "
+     "click, close microphone", 1.5, False),
+    ("Interaction", "carriable-lift",
+     "Heavy steel jerry can lifted off a concrete floor, liquid sloshing "
+     "inside, strained metal handle creak, close microphone", 2.0, False),
+    ("Interaction", "carriable-drop",
+     "Heavy steel jerry can set down hard on concrete, dull metallic boom "
+     "with liquid sloshing after, close microphone", 2.0, False),
+    ("Interaction", "interact-denied",
+     "Short dull thud of a locked mechanism refusing to move, single dead "
+     "clunk, no reverb, close microphone", 1.0, False),
+
+    # --- 장치. 즉시 발동 / 시간 발동 / 지속 상태 세 패턴에 대응한다 -------
+    ("Devices", "shutter-close",
+     "Heavy fire shutter released and rolling down its rails fast, chain "
+     "clatter, ending in a loud slam against the floor", 4.0, False),
+    ("Devices", "fuel-ignite",
+     "Pool of spilled diesel catching fire, sudden whoomph of ignition then "
+     "a roaring wall of flame", 4.0, False),
+    ("Devices", "hydrogen-explosion",
+     "Hydrogen gas explosion in a confined concrete room, sharp cracking "
+     "blast then debris and ringing metal", 4.0, False),
+    ("Devices", "avalanche-cannon",
+     "Gas avalanche cannon firing, compressed gas discharge with a deep "
+     "hollow boom rolling across a mountain slope", 3.0, False),
+    ("Devices", "avalanche-slide",
+     "Massive snow slab breaking loose and sliding down a mountainside, "
+     "deep rushing rumble building then fading", 5.0, False),
+    ("Devices", "device-start",
+     "Industrial machine starting up, relay clunk then a motor winding up "
+     "to speed, close microphone", 2.5, False),
+    ("Devices", "device-complete",
+     "Industrial process finishing, motor winding down and a single bell "
+     "chime confirming completion, close microphone", 2.0, False),
+    ("Devices", "ice-melt-crack",
+     "Thick ice on metal cracking and releasing as it thaws, sharp splitting "
+     "cracks with water dripping, close microphone", 3.0, False),
+    ("Devices", "generator-start",
+     "Large diesel generator cranking, catching, and settling into a steady "
+     "idle, recorded in the engine room", 5.0, False),
+    ("Devices", "snowblower-start",
+     "Rotary snow blower engine cranking and its auger beginning to spin up, "
+     "heavy machinery", 3.0, False),
+    ("Devices", "snowblower-loop",
+     "Rotary snow blower running at full speed, engine roar with the auger "
+     "chewing through packed snow, " + STEADY, 12.0, True),
+    ("Devices", "searchlight-swivel-loop",
+     "Large searchlight motor slewing the lamp housing, steady electric "
+     "servo whine with gear train, " + STEADY, 10.0, True),
 ]
 
 

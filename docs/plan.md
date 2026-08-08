@@ -215,6 +215,7 @@ IMPORTANT: **`E` 로 내려놓는 경로는 아직 사람이 눌러본 적이 �
 | 재료 | 어디 | 상태 |
 | --- | --- | --- |
 | 환경음 · 발소리 · 문 · 전기 **32종** | `Assets/Game/Audio/` | ✅ ElevenLabs 로 생성(`b14c34e`) |
+| **상호작용 · 장치음 21종** | `Audio/Interaction/` · `Audio/Devices/` | ✅ 컴포넌트 이름에 맞춰 생성 |
 | 장면별 **배경음악 10종** | `Assets/Game/Audio/Music/` | ✅ 타이틀 · 1~6장 · 큐 둘 · 엔딩(`cdb4d49`) |
 | 적 3종 모델링 시트 · 제작 규격 | [`../enemy-sheets/`](../enemy-sheets/) | ✅ 셋 다 확정(`bfda21d` 로 `Clinger` 까지) |
 | `Crawler` 리그 · 애니메이션 6종 | `Enemy/` | ✅ 스크립트로 생성(`ddcbd49`). **모델 파이프라인이 한 바퀴 돌았다** |
@@ -232,14 +233,16 @@ IMPORTANT: **적 모델이 늦어도 2-2 는 진행한다.** 1단계에서 캡�
 
 | 갈래 | 어디에 붙이나 | 언제 | 담당 |
 | --- | --- | --- | --- |
-| `Footsteps` 9종 | `PlayerMotor` 안에 | **지금** | A |
-| `Electrical` 5종 · `Structure` 문 3종 | 장치 · 레버 · 문 **컴포넌트**에 | **지금** | C |
+| `Footsteps` 12종 | `PlayerMotor` 안에 | **지금** | A |
+| `Interaction` 9종 | `Lever` · `Pickup` · `Carriable` **컴포넌트**에 | **지금** | C |
+| `Devices` 12종 | `InstantDevice` · `TimedDevice` · `SustainedDevice` 세 패턴에 | **지금** | C |
+| `Electrical` 5종 · `Structure` 문 3종 | 장치 · 문 **컴포넌트**에 | **지금** | C |
 | `Music/ch<번호>` · `title-theme` · `ending-descent` | 장이 로드될 때 진행이 튼다 | **지금** | C |
 | `Ambience` 8종 루프 | 씬에 `AudioSource` 로 놓는다 | 2-2 각자 장 | 장 소유자 |
 | `Music/power-restored` · `chase-stinger` | 그 사건이 벌어지는 자리에 큐로 | 2-2 · 3단계 | 그 장 소유자 |
 | `Structure` 나머지(지붕 눈 · 창 바람) | 씬에 연출로 | 2-2 각자 장 | 장 소유자 |
 
-IMPORTANT: **위 두 줄은 컴포넌트에 붙이므로 한 번 하면 세 장 전부에 적용된다.**
+IMPORTANT: **위 네 줄은 컴포넌트에 붙이므로 한 번 하면 세 장 전부에 적용된다.**
 레버 소리를 `Lever` 에 넣으면 1 · 2 · 6 어디에 놓아도 난다. 씬마다 넣으면 같은 일을
 세 번 하고 결국 한 곳을 빠뜨린다. **2-2 를 시작하기 전에 해두는 편이 싸다.**
 
@@ -259,12 +262,13 @@ IMPORTANT: **WebGL 은 사용자가 한 번 누르기 전에는 소리를 내지
 것으로 오해하기 쉬운 자리다.
 
 파일 수와 임포트 설정, 음량 정렬은 이미 정리되어 있다
-([`tech-design/architecture.md`](tech-design/architecture.md) 의 사운드 절). 여기서
-할 일은 **배포 빌드에서 용량과 실제 소리를 확인하는 것**뿐이다.
+([`tech-design/audio.md`](tech-design/audio.md)). 여기서 할 일은 **배포 빌드에서
+용량과 실제 소리를 확인하는 것**뿐이다. 오디오 63개가 빌드에 그대로 들어가고
+음악이 특히 무겁다.
 
 IMPORTANT: **장별 음악은 낮게 깔고 큐에서만 올린다.** 이 게임의 공포는
 `Ambience/` 에서 나온다. 음악이 크게 깔리면 발소리와 천장 소리가 묻혀 오히려 덜
-무서워진다.
+무서워진다. 카테고리별 `AudioSource` 설정과 권장 볼륨은 `audio.md` 에 있다.
 
 ### 2-2 각자 장 — 병렬
 
