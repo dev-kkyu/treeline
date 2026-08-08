@@ -26,6 +26,7 @@
 | `material-unity-spec.md` | 팔레트, 맵, URP 머터리얼, 임포트 규격 |
 | `generation-prompts.md` | 이미지/3D 생성용 프롬프트와 금지어 |
 | [`colossus/final/MODEL-SPEC.md`](colossus/final/MODEL-SPEC.md) | Colossus Final 치수·메시·리그·충돌·머터리얼 확정표 |
+| [`crawler/animation/`](crawler/animation/README.md) | Crawler 22본 리그와 6종 클립의 프레임별 제작·Unity 연결 명세 |
 | [`../비교.md`](../비교.md) | Claude 본문과 Codex 후속 검토를 합친 비교 보고서 |
 
 ## 채택 버전
