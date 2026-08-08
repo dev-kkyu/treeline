@@ -131,6 +131,11 @@ IMPORTANT: **제작용 IK 와 런타임 IK 는 다른 것이다.** 초판 명세
    **끝** (2026-08-09, 손목 전부 35° 안)
 5. `HandIK` 와 프롭 그립 트랜스폼을 붙여 **레버 하나로 런타임 IK 를 먼저 검증한다.**
 6. 맨손 → 운반 → 권총 → 산탄총 → 피격·사망 순으로 팔 17종.
+   **재장전 둘을 먼저 만들었다** — 제일 어려운 것이 통과하면 나머지는 기계적이다.
+   `Arms_PistolReload` 끝 (2026-08-09, 이음새 0.000 mm · 최악 손목 29.4°).
+   `Arms_ShotgunReload` 는 클립은 서지만 **양손 파지가 리그로 성립하지 않는다** —
+   [`07-shotgun.md`](07-shotgun.md) 의 「기준 자세는 틀렸다」 절 참고. 사람이
+   A · B · C 중 하나를 정해야 진행된다.
 7. 전신 3종.
 8. [`unity-integration.md`](unity-integration.md) 와 [`qa-checklist.md`](qa-checklist.md)
    로 검수한다.
