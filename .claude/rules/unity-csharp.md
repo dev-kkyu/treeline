@@ -23,6 +23,19 @@ IMPORTANT: WebGL은 아래 제약이 있다. 에디터에서 동작해도 빌드
 - **빌드 용량이 곧 첫 로딩 시간이다.** 심사자가 링크를 누르고 기다리는 시간이므로
   무거운 의존성을 추가하기 전에 사용자와 상의한다.
 
+## 입력
+
+IMPORTANT: 신규 Input System **전용** 프로젝트다 (`activeInputHandler: 1`).
+`Input.GetKey`·`Input.GetAxis`·`Input.mousePosition` 은 컴파일은 되고 **런타임에
+예외**가 난다. 입력은 `Assets/InputSystem_Actions.inputactions` 의 액션으로 받는다.
+이 에셋의 소유자는 플레이어 담당(A)이다.
+
+## 레이어
+
+레이어 번호를 코드에 직접 쓰지 않는다. `Assets/Game/Shared/GameLayers.cs` 의
+상수와 마스크를 쓴다. 레이어를 추가할 때는 담당별 번호 구간을 지킨다
+(`docs/tech-design/architecture.md` 참고).
+
 ## 에셋 취급
 
 - 제3자 에셋은 `Assets/ThirdParty/` 아래에 둔다. 이 폴더는 저장소에서 제외된다

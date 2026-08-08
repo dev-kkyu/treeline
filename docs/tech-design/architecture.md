@@ -157,6 +157,26 @@ Assets/Game/
 `IDamageable` 을 양쪽이 함께 쓰는 이유는, 총이 적을 죽이는 것과 적이 플레이어를
 때리는 것이 같은 모양이기 때문이다. 하나로 두면 A 와 B 가 서로를 기다리지 않는다.
 
+## 남에게 넘기는 프리팹
+
+씬 대신 프리팹으로 주고받으므로 **경로와 이름을 미리 박아둔다.** 나중에 이름을
+바꾸면 이미 참조를 건 쪽이 전부 깨진다.
+
+| 프리팹 | 만드는 쪽 | 쓰는 쪽 | 언제 |
+| --- | --- | --- | --- |
+| `Player/Player.prefab` | A | B 는 추격 대상으로, C 는 레벨에 배치 | 1단계 |
+| `Enemy/Crawler.prefab` | B | C | 1단계 |
+| `Enemy/Colossus.prefab` | B | 6장 담당 | 2단계 |
+| `Enemy/Clinger.prefab` | B | 4 · 5장 담당 | 3단계 |
+
+기획의 「기는 것 · 큰 것 · 매달린 것」이 각각 `Crawler` · `Colossus` · `Clinger`
+다. 프리팹 이름은 영문 PascalCase 로 쓰고, 폴더는 만드는 쪽의 담당 폴더다.
+
+IMPORTANT: **A 는 `Player.prefab` 을 완성 전에 먼저 올린다.** 캡슐에
+`CharacterController` 와 `Player` 태그만 붙은 껍데기여도 된다. B 의 적은 추격할
+대상이 있어야 하고 C 의 관통 확인에는 Player 와 Enemy 가 둘 다 필요하다. 완성을
+기다리면 두 사람이 자기 샌드박스에서 아무것도 검증하지 못한다.
+
 ---
 
 ## 새 컨텐츠를 추가하려면
