@@ -27,6 +27,18 @@ ENDPOINT = "https://api.elevenlabs.io/v1/sound-generation"
 CREDITS_PER_SECOND = 40
 OUT_ROOT = "Treeline/Assets/Game/Audio"
 
+# 적 · 무기 소리는 Audio/ 가 아니라 담당 폴더로 간다. architecture.md 의 규칙이다.
+CATEGORY_DIRS = {
+    "Crawler": "Treeline/Assets/Game/Enemy/Audio",
+    "Clinger": "Treeline/Assets/Game/Enemy/Audio",
+    "Colossus": "Treeline/Assets/Game/Enemy/Audio",
+}
+
+
+def dest_dir(out_root, category):
+    override = CATEGORY_DIRS.get(category)
+    return pathlib.Path(override) if override else pathlib.Path(out_root) / category
+
 # 루프에 공통으로 붙는 꼬리표. 페이드를 막는다.
 STEADY = "constant level throughout, no fade in, no fade out, no music"
 
@@ -202,6 +214,131 @@ PROMPTS = [
     ("Devices", "searchlight-swivel-loop",
      "Large searchlight motor slewing the lamp housing, steady electric "
      "servo whine with gear train, " + STEADY, 10.0, True),
+
+    # --- 적 소리 -----------------------------------------------------------
+    # 스펙(docs/enemy-sheets/)이 세 종의 표면을 「검은 회청색 균열 피부 + 흰 서리
+    # 흉터」로 고정하고 「젖은 값은 아래쪽 입과 관절 최심부에만 3% 미만」 이라고
+    # 못박았다. Colossus 는 「실제 석재·금속 재질 금지」 다. 그래서 소리도 몸통은
+    # 마른 서릿결이 갈라지는 쪽으로 가고, 젖은 소리는 입에서만 낸다.
+    # 셋 다 무안이라 「노려본다」 류의 신호가 없고 예고는 전부 호흡으로 만든다.
+
+    # Crawler — 바닥 쐐기. AC_Crawler 클립 6종 + 상태 전환 4종
+    ("Crawler", "crawler-idle-loop",
+     "Low steady breathing of a large four legged animal crouched flat "
+     "against a cold floor, air drawn through a lipless underslung jaw, dry "
+     "frost cracked hide creaking faintly as the ribs move, close "
+     "microphone, " + STEADY, 8.0, True),
+    ("Crawler", "crawler-skitter-loop",
+     "Four legged creature moving fast and low across concrete, hard keratin "
+     "claws ticking and scraping in a two beat diagonal rhythm, dry hide "
+     "creaking, close microphone, " + STEADY, 6.0, True),
+    ("Crawler", "crawler-sprint-loop",
+     "Four legged creature sprinting hard on concrete, heavy rapid claw "
+     "strikes with compressed breath forced out on every stride, dry frozen "
+     "hide flexing, close microphone, " + STEADY, 6.0, True),
+    # 04-attack-underbite.md — 8f 예고, 13f 히트. 둘로 나눈다
+    ("Crawler", "crawler-attack-tell",
+     "Large animal freezing then drawing a sharp hissing breath through an "
+     "opening jaw, low warning rasp building, close microphone, no music",
+     1.0, False),
+    ("Crawler", "crawler-attack",
+     "Very loud close up bite impact, wet crunch of flesh and cartilage at "
+     "full volume, aggressive animal bark on top, dry studio foley, no "
+     "music", 1.5, False),
+    ("Crawler", "crawler-hit",
+     "Bullet striking a large animal, dull wet impact under dry cracked "
+     "hide and a short choked grunt, close microphone, no music", 1.0, False),
+    ("Crawler", "crawler-death",
+     "Large four legged animal collapsing, air escaping a ruined throat in a "
+     "long rattling hiss as the limbs fold under the body, dry hide scraping "
+     "the floor, close microphone, no music", 3.0, False),
+    ("Crawler", "crawler-notice",
+     "Animal breathing stops abruptly, then a rising dry rasp through a jaw "
+     "opening wide, ending in one sharp bark, close microphone, no music",
+     2.0, False),
+    ("Crawler", "crawler-vocal-01",
+     "Distant creature call down a long concrete corridor, low dry rasping "
+     "moan rising into a thin whine, echoing, no music", 2.5, False),
+    ("Crawler", "crawler-vocal-02",
+     "Distant creature call in a concrete corridor, dry clicking chatter "
+     "from a jaw followed by a short guttural growl, echoing, no music",
+     2.5, False),
+
+    # Clinger — 천장의 것. 각질 갈고리 8개로 붙어 있다 떨어진다
+    ("Clinger", "clinger-cling-loop",
+     "Continuous scraping and creaking of a heavy body hanging from a "
+     "concrete ceiling, keratin hooks grinding slowly against the surface "
+     "without pause, steady shallow breathing underneath, never silent, "
+     "close microphone, " + STEADY, 8.0, True),
+    ("Clinger", "clinger-tremor-loop",
+     "Dense unbroken rattling texture, dozens of small dry horn plates "
+     "vibrating against stone at once, like a hard rain of clicks, "
+     "continuous from start to finish, close microphone, " + STEADY, 6.0, True),
+    # 03-unfold-drop.md — 10f AE_DropRelease
+    ("Clinger", "clinger-drop-release",
+     "Eight keratin hooks tearing free from a concrete ceiling at once, "
+     "sharp dry crack and scrape followed by the rush of a heavy body "
+     "falling, close microphone, no music", 1.5, False),
+    # 04-land.md — 15f AE_EnableGroundMode. 1.42 m 에서 네 점 착지
+    ("Clinger", "clinger-land",
+     "Heavy creature landing on four points on a concrete floor from above, "
+     "hard compressed thud with hide slapping and a forced grunt, close "
+     "microphone, no music", 2.0, False),
+    ("Clinger", "clinger-scuttle-loop",
+     "Unbroken run cycle of a heavy four limbed animal on concrete, rapid "
+     "overlapping hand and claw impacts with scrapes filling every gap, "
+     "dense continuous rhythm from start to finish, close microphone, "
+     + STEADY, 6.0, True),
+    # 06-attack-underjaw.md — 9f 예고, 13f 히트
+    ("Clinger", "clinger-attack-tell",
+     "Creature drawing back with a dry rasping inhale, jaw unlatching with a "
+     "wet click, close microphone, no music", 1.0, False),
+    ("Clinger", "clinger-attack",
+     "Underslung jaw striking upward together with both hands, wet snap and "
+     "a heavy grabbing impact, close microphone, no music", 1.5, False),
+    ("Clinger", "clinger-hit",
+     "Bullet impact on a thick limb, dry cracking hide and a short high "
+     "shriek, close microphone, no music", 1.0, False),
+    ("Clinger", "clinger-death",
+     "Creature losing its grip and collapsing sideways onto concrete, hooks "
+     "scraping loose, heavy body impact then a long draining hiss, close "
+     "microphone, no music", 3.0, False),
+
+    # Colossus — 죽지 않는 것. Death 클립이 없으므로 사망 소리도 없다
+    ("Colossus", "colossus-idle-loop",
+     "Enormous animal standing still and breathing very slowly, deep "
+     "subsonic inhale and exhale, huge frost cracked hide creaking under its "
+     "own weight, close microphone, " + STEADY, 10.0, True),
+    ("Colossus", "colossus-walk-loop",
+     "Enormous four point knuckle walker moving slowly, massive hands and "
+     "feet pressing into packed snow, deep slow rhythm with hide groaning, "
+     + STEADY, 8.0, True),
+    ("Colossus", "colossus-step-01",
+     "Single enormous hand slamming down onto frozen ground, deep low impact "
+     "with debris and a heavy weight shift, close microphone, no music",
+     2.0, False),
+    ("Colossus", "colossus-step-02",
+     "Single enormous foot planting on packed snow, deep crushing impact "
+     "with a long low rumble after, close microphone, no music", 2.0, False),
+    # MODEL-SPEC 5. 애니메이션 — Push 20f 에 전방 밀기
+    ("Colossus", "colossus-push",
+     "Enormous creature shoving forward with both arms, huge mass "
+     "accelerating into a deep grinding impact with forced breath, no music",
+     3.0, False),
+    ("Colossus", "colossus-grip-cable",
+     "Three huge fingers closing around a steel cable, metal creaking and "
+     "singing under an enormous load, no music", 3.0, False),
+    ("Colossus", "colossus-stagger",
+     "Enormous creature knocked back a step, heavy stumbling weight shift "
+     "with a deep angry rumble, no music", 3.0, False),
+    ("Colossus", "colossus-buried",
+     "Enormous body buried under collapsed snow, muffled deep breathing and "
+     "slow shifting still audible beneath the mass, no music", 5.0, False),
+    # 1장 창밖. 실물 없이 실루엣만 지나간다
+    ("Colossus", "colossus-distant-loop",
+     "Enormous unseen animal moving far away through a blizzard, deep low "
+     "rumble and slow heavy impacts muffled by wind and distance, "
+     + STEADY, 10.0, True),
 ]
 
 
@@ -230,7 +367,7 @@ def load_key(key_file):
 
 def generate(key, item, out_root, fmt, overwrite):
     category, name, text, seconds, loop = item
-    dest = pathlib.Path(out_root) / category / f"{name}.mp3"
+    dest = dest_dir(out_root, category) / f"{name}.mp3"
     # 단발성은 trim_silence.py 를 거치며 wav 가 된다. 그것도 있는 것으로 친다
     if not overwrite:
         for existing in (dest, dest.with_suffix(".wav")):

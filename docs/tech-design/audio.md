@@ -2,7 +2,7 @@
 
 # 사운드
 
-`Assets/Game/Audio/` 에 59 개가 들어 있다. **전부 만들어져 있고 임포트 설정도
+`Assets/Game/Audio/` 에 59 개, `Assets/Game/Enemy/Audio/` 에 28 개가 들어 있다. **전부 만들어져 있고 임포트 설정도
 끝났다. 가져다 붙이면 소리가 난다.** 아직 없는 것은 이것을 재생하는 코드다.
 
 만든 사람은 B 김도한이고 도구는 ElevenLabs 다. 출처와 권리는
@@ -174,6 +174,91 @@ IMPORTANT: **`EditorApplication.Step()` 으로 소리를 검증할 수 없다.**
 `PlayOneShot` 은 정지 중에도 걸려서 이 차이가 더 헷갈린다. 재려면
 `EditorApplication.isPaused = false` 로 풀고 실제로 흐르게 둔 뒤에 본다.
 
+### `Enemy/Audio/` — 적 소리 28 종
+
+IMPORTANT: **적 소리만 `Audio/` 밖에 있다.** `Assets/Game/Enemy/Audio/` 다.
+적은 담당(B)이 있고 그 폴더 안에서 모델 · 텍스처 · 애니메이션과 함께 관리되는
+것이 맞기 때문이다. 파이프라인 스크립트는 이 경로를 알고 있다.
+
+**클립 이름과 이벤트 프레임은 `docs/enemy-sheets/` 의 제작 명세를 그대로 따랐다.**
+소리를 상상해서 만들지 않고 그 문서의 클립 표와 「프레임과 이벤트」에 맞췄으므로,
+모델이 그 명세대로 나오면 이름만 보고 걸 수 있다.
+
+세 종의 소리가 같은 결을 갖는 이유도 명세에 있다. 표면이 **검은 회청색 균열
+피부에 흰 서리 흉터**로 고정되어 있고 **「젖은 값은 아래쪽 입과 관절 최심부에만
+3% 미만」** 이며, `Colossus` 는 **「실제 석재 · 금속 재질 금지」** 다. 그래서 몸통은
+전부 **마른 서릿결이 갈라지는 소리**이고 **젖은 소리는 입에서만** 난다. 셋 다
+무안(無眼)이라 「노려본다」 류의 신호가 없어 **예고는 전부 호흡으로** 만들었다.
+
+#### `Crawler` — 바닥 쐐기 10 종
+
+`AC_Crawler` 에 이미 연결되어 있는 클립들이다. **여섯은 클립, 넷은 상태 전환이다.**
+
+| 클립 / 상황 | 소리 | 거는 자리 |
+| --- | --- | --- |
+| `Crawler_Idle_Low` | `crawler-idle-loop` | 루프. `Speed` ≈ 0 |
+| `Crawler_Skitter` | `crawler-skitter-loop` | 루프. 배회 속도 |
+| `Crawler_Sprint` | `crawler-sprint-loop` | 루프. `IsChasing` |
+| `Crawler_Attack_Underbite` **8f** | `crawler-attack-tell` | 예고. 명세의 「예고 정점」 |
+| `Crawler_Attack_Underbite` **13f** | `crawler-attack` | `AE_AttackHit` 와 같은 프레임 |
+| `Crawler_Hit` | `crawler-hit` | `Hit` 트리거 |
+| `Crawler_Death` | `crawler-death` | `Dead` |
+| 배회 → 추격 | `crawler-notice` | 전환에 **한 번만** |
+| 배회 중 간헐 | `crawler-vocal-01` · `-02` | 몇 초에 한 번, 둘을 번갈아 |
+
+공격을 **예고와 히트 둘로 나눈 것**이 핵심이다. 명세가 8f 예고 · 13f 히트로
+나눠 놓았고, 기획도 「예고가 있으면 처음 만났을 때 억울하지 않다」고 못박았다.
+하나로 합치면 그 0.17 초가 사라진다.
+
+#### `Clinger` — 천장의 것 9 종
+
+`Clinger.cs` 도 프리팹도 아직 없다. **명세가 계약이므로 소리를 먼저 만들어 둔
+것**이고, 코드를 붙일 때 `unity-integration.md` 의 이벤트 이름에 그대로 걸면 된다.
+
+| 클립 / 이벤트 | 소리 | 거는 자리 |
+| --- | --- | --- |
+| `Clinger_Cling_Folded` | `clinger-cling-loop` | 루프. 천장 대기 |
+| `Clinger_Cling_Tremor` | `clinger-tremor-loop` | 루프. **곧 떨어진다는 예고** |
+| `Clinger_Unfold_Drop` **10f** | `clinger-drop-release` | `AE_DropRelease` |
+| `Clinger_Land` **15f** | `clinger-land` | `AE_EnableGroundMode` |
+| `Clinger_Scuttle` | `clinger-scuttle-loop` | 루프. 지상 추격 |
+| `Clinger_Attack_Underjaw` **9f** | `clinger-attack-tell` | 예고 |
+| `Clinger_Attack_Underjaw` **13f** | `clinger-attack` | 히트 |
+| `Clinger_Hit` | `clinger-hit` | 피격 |
+| `Clinger_Death` | `clinger-death` | 사망 |
+
+`clinger-cling-loop` 은 **3 장 끝의 예고에 그대로 쓴다.** 기획이 「3장 끝 — 천장에서
+나는 소리, 모습은 안 보인다」를 4 장의 예고로 잡아 두었는데, 그 소리가 이것이다.
+모델 없이도 먼저 쓸 수 있다.
+
+`clinger-tremor-loop` 과 `clinger-cling-loop` 의 차이가 곧 난이도다. 떨림으로
+바뀌면 곧 떨어진다는 뜻이고, 5 장은 **「보이기 전에 소리가 먼저 온다」** 로 설계된
+장이라 이 둘을 구분해서 들려주는 것이 그 장의 규칙 자체다.
+
+#### `Colossus` — 죽지 않는 것 9 종
+
+IMPORTANT: **사망 소리가 없다.** 명세에 `Death` 클립이 없고 `IsAlive` 는 항상
+참이다. 「죽지 않는 것이 있다」는 규칙이 1 장부터 6 장까지 한 번도 깨지지 않아야
+하므로, 소리로도 죽는 인상을 주면 안 된다.
+
+| 클립 / 상황 | 소리 | 거는 자리 |
+| --- | --- | --- |
+| `Idle_Weight` | `colossus-idle-loop` | 루프. 정지 |
+| `Walk_Knuckle` | `colossus-walk-loop` | 루프. 이동 바닥 |
+| `Walk_Knuckle` 접지 | `colossus-step-01` · `-02` | 발이 닿는 프레임마다 번갈아 |
+| `Push` **20f** | `colossus-push` | 전방 밀기 |
+| `Grip_Cable` | `colossus-grip-cable` | 6 장 삭도 케이블 파지 |
+| `Stagger` | `colossus-stagger` | 누적 임계로 2.50 m 밀릴 때 |
+| `Buried` | `colossus-buried` | 사면에 묻힌 뒤. **계속 들린다** |
+| 1 장 창밖 | `colossus-distant-loop` | 루프. 실물 없이 실루엣만 |
+
+`colossus-buried` 를 엔딩에서 **끊지 않는 것**이 이 적의 마지막 규칙이다. 묻힌
+뒤에도 숨소리가 들려야 「밀려나고 묻혔을 뿐 죽지 않았다」가 전달된다.
+
+`colossus-distant-loop` 은 1 장용이다. 기획이 1 장에서는 **실물이 필요 없다**고
+했으므로 창밖 실루엣 연출에 이 소리만 얹으면 된다. `Colossus` 는 처음과 끝을
+잇는 유일한 적이고, 그 이음매가 이 소리다.
+
 ### `Music/` — 배경음악 10 종
 
 장별 6 곡에 큐 2 개, 타이틀과 엔딩이다. 기획서의 「여섯 장소」를 그대로 따랐다.
@@ -206,9 +291,16 @@ IMPORTANT: **`EditorApplication.Step()` 으로 소리를 검증할 수 없다.**
 | `Structure/` · `Interaction/` · `Electrical/` | 1 (3D) | ✕ | ✕ |
 | `Devices/` 단발성 | 1 (3D) | ✕ | ✕ |
 | `Devices/` `-loop` 2 종 | 1 (3D) | ○ | 장치가 켜질 때 |
+| `Enemy/Audio/` `-loop` 9 종 | 1 (3D) | ○ | 그 상태인 동안 |
+| `Enemy/Audio/` 나머지 | 1 (3D) | ✕ | ✕ |
 
 앰비언스와 음악만 2D 다. 나머지는 **소리가 나는 물건이 공간에 있으므로** 3D 로
 두어야 방향과 거리가 들린다. 그래서 그것들은 임포트 단계에서 이미 모노다.
+
+IMPORTANT: 적 소리는 **거리 감쇠를 반드시 손본다.** 기본값(`Logarithmic`,
+`Max Distance` 500)으로 두면 복도 저 끝의 것이 코앞처럼 들려 위치를 읽을 수
+없다. 2 장은 소리로 위치를 가늠하는 장이므로 이것이 곧 난이도다. `Max Distance`
+를 20~30 쯤으로 좁히는 데서 시작한다.
 
 ### 볼륨은 파일이 아니라 `AudioSource` 에서 정한다
 
@@ -231,6 +323,7 @@ IMPORTANT: 파일들은 **카테고리 안에서만** 크기가 맞춰져 있다
 | `Interaction/` · `Electrical/` | 0.8 |
 | `Structure/` | 0.9 |
 | `Devices/` | 1.0 |
+| `Enemy/Audio/` | 0.9 |
 
 ### 발소리는 직전 것을 빼고 고른다
 
@@ -244,10 +337,10 @@ private int last = -1;
 private void PlayStep(AudioSource source)
 {
     if (clips.Length == 0) return;
-    int i = Random.Range(0, clips.Length - 1);
+    int i = UnityEngine.Random.Range(0, clips.Length - 1);
     if (i >= last) i++;                       // 직전 것을 건너뛴다
     last = i;
-    source.pitch = Random.Range(0.94f, 1.06f);
+    source.pitch = UnityEngine.Random.Range(0.94f, 1.06f);
     source.PlayOneShot(clips[i]);
 }
 ```
@@ -255,6 +348,10 @@ private void PlayStep(AudioSource source)
 `pitch` 를 조금씩 흔드는 것까지 해야 적은 수로도 반복감이 줄어든다. **표면당 2 종이
 되면서 이 흔들림이 더 중요해졌다** — 직전 것을 빼는 규칙과 겹쳐 실제로는 두 소리가
 번갈아 나기 때문이다.
+
+IMPORTANT: `UnityEngine.Random` 을 **끝까지 적는다.** 그냥 `Random` 으로 쓰면
+`using System;` 이 있는 파일에서 `System.Random` 과 충돌해 `CS0104` 로 컴파일이
+깨진다. `PlayerMotor.cs` 가 그런 파일이다.
 
 ### 음악은 낮게 깔고 큐에서 올린다
 
@@ -400,8 +497,10 @@ imp.SaveAndReimport();
 ## 5. 아직 없는 것
 
 - **재생 코드 전부.** 파일과 임포트 설정만 있다
-- **적 소리 · 무기 소리.** 대상이 확정되지 않아 지금 뽑으면 버리게 된다.
-  이것들은 `Audio/` 가 아니라 담당 폴더로 간다
+- **무기 소리.** 권총 · 산탄총. 담당 폴더(`Player/`)로 간다
+- **`Clinger` · `Colossus` 의 코드.** 소리는 명세대로 만들어 두었지만
+  `Clinger.cs` · `Clinger.prefab` 이 아직 없다. 모델이 명세와 다르게 나오면
+  그때 소리도 다시 본다
 - **오디오 믹서.** 지금은 `AudioSource.volume` 으로 맞추면 되지만, 설정 화면에
   볼륨 슬라이더가 들어가면 그때 `AudioMixer` 로 묶는 것이 맞다
 

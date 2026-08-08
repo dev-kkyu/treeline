@@ -43,6 +43,14 @@ TARGETS = {
     "Electrical": {"lufs": -22.0, "rms": -22.0},
     "Interaction": {"lufs": -22.0, "rms": -22.0},
     "Devices":    {"lufs": -22.0, "rms": -22.0},
+    # 적 소리는 조금 크게 둔다. 위치를 알려주는 것이 곧 게임 규칙이다.
+    # 세 종이 한 폴더에 있으므로 항목도 하나다
+    "Enemy":      {"lufs": -20.0, "rms": -20.0},
+}
+
+# Audio/ 밖에 있는 카테고리
+CATEGORY_DIRS = {
+    "Enemy": "Treeline/Assets/Game/Enemy/Audio",
 }
 
 PEAK_CEILING_DB = -1.0   # 이 위로는 올리지 않는다
@@ -154,7 +162,8 @@ def main():
     for category in TARGETS:
         if args.category and category not in args.category:
             continue
-        d = root / category
+        d = (pathlib.Path(CATEGORY_DIRS[category]) if category in CATEGORY_DIRS
+             else root / category)
         if not d.is_dir():
             continue
         files = sorted(list(d.glob("*.mp3")) + list(d.glob("*.wav")))

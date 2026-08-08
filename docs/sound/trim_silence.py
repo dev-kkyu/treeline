@@ -24,6 +24,8 @@ SR = 44100
 ROOT = "Treeline/Assets/Game/Audio"
 ONE_SHOT_DIRS = ["Footsteps", "Structure", "Electrical", "Interaction",
                  "Devices"]
+# Audio/ 밖에 있는 단발성. 적 소리는 담당 폴더에 있다
+EXTRA_DIRS = ["Treeline/Assets/Game/Enemy/Audio"]
 
 HEAD_PAD_MS = 10        # 앞에 남길 여유
 TAIL_PAD_MS = 60        # 뒤에 남길 잔향 여유
@@ -68,9 +70,13 @@ def bounds(x):
 def targets():
     root = pathlib.Path(ROOT)
     files = []
-    for d in ONE_SHOT_DIRS:
-        files += sorted((root / d).glob("*.mp3"))
-        files += sorted((root / d).glob("*.wav"))
+    dirs = [root / d for d in ONE_SHOT_DIRS]
+    dirs += [pathlib.Path(d) for d in EXTRA_DIRS]
+    for d in dirs:
+        if not d.is_dir():
+            continue
+        files += sorted(d.glob("*.mp3"))
+        files += sorted(d.glob("*.wav"))
     return [f for f in files if "-loop" not in f.stem]
 
 

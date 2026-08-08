@@ -48,6 +48,7 @@ IMPORTANT: OFL 은 **제품에 임베드하고 재배포하는 것을 명시적�
 | Treeline 환경음 32종 | 사운드 (MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스. 해지 후에도 생성분의 권리는 유지된다 | 앰비언스 · 발소리 · 문 · 전기 | 2026-08-08 |
 | Treeline 상호작용 · 장치음 21종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 레버 · 밸브 · 획득 · 운반 · 셔터 · 인화 · 폭발 · 발전기 · 제설기 | 2026-08-08 |
 | Treeline 배경음악 10종 | 음악 (MP3) | ElevenLabs Eleven Music `music_v2` (Starter 유료 플랜) | 유료 플랜에 음악 상업 이용 포함. 대형 스튜디오 게임 배급은 별도 라이선스가 필요하나 이 과제 범위에는 해당 없다 | 타이틀 · 1~6장 · 조명 복구 · 발각 · 엔딩 | 2026-08-08 |
+| Treeline 적 소리 28종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | Crawler · Clinger · Colossus. enemy-sheets 의 클립 명세와 이벤트 프레임에 맞춰 생성 | 2026-08-08 |
 | Crawler | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 · 2048 텍스처 3장) | 미확인 | 적 「기는 것」 | 2026-08-08 |
 | Crawler 리그 · 애니메이션 6종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Crawler/`) | 프로젝트 자체 제작 | 적 「기는 것」 | 2026-08-08 |
 
