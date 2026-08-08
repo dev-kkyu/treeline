@@ -88,17 +88,25 @@ Unity 6 에서 `WebGL` 은 **`Web`** 으로 이름이 바뀌었다. 목록에서
 비활성이면 모듈이 없는 것이니 Unity Hub → Installs → 해당 버전 → `Add modules`
 에서 **Web Build Support** 를 설치한다.
 
-## 7. 씬 열기
+## 7. 자기 샌드박스 씬 열기
 
 클론 후 처음 열면 Unity 가 **빈 씬**을 띄운다. 마지막으로 연 씬 기록은
 `Library/` 에 저장되는데 이 폴더는 저장소에서 제외되기 때문이다.
 
-Project 창에서 **`Assets/Scenes/SampleScene.unity`** 를 더블클릭해 연다.
+Project 창에서 **`Assets/Game/_Sandbox/<자기 이름>.unity`** 를 더블클릭해 연다.
 한 번 열어두면 다음부터는 Unity 가 기억한다.
 
 빈 씬에도 `Main Camera` 와 `Directional Light` 는 있으므로 얼핏 정상으로 보인다.
 `Global Volume` 이 없거나 상단 씬 이름이 `Untitled` 면 잘못된 씬을 보고 있는
 것이다.
+
+IMPORTANT: **남의 샌드박스를 열지 않는다.** `.unity` 는 두 사람이 고치면 병합할
+수 없어서, 실험은 각자 자기 씬에서만 한다. 자세한 규칙은
+[`tech-design/architecture.md`](tech-design/architecture.md) 참고.
+
+빌드 씬 목록은 아직 비어 있다. 1단계에서 `Levels/` 에 `Ch1` · `Ch2` · `Ch6` 이
+들어오면 그때 등록한다. 그전에 `Ctrl+B` 를 누르면 「씬이 없다」는 오류가 나는데
+정상이다.
 
 ## 8. Unity MCP 준비
 

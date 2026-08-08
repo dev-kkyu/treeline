@@ -13,19 +13,19 @@ TagManager:
   - UI
   - 
   - 
+  - Player
+  - ViewModel
+  - 
+  - 
+  - Enemy
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Interactable
+  - Carriable
+  - Device
+  - Trigger
+  - Hazard
   - 
   - 
   - 
