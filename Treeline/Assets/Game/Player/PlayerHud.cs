@@ -135,7 +135,9 @@ namespace Treeline
                 return;
             }
 
-            string label = subscribed.Kind == WeaponKind.Shotgun ? "산탄총" : "권총";
+            // 화면 문구는 영문으로 쓴다. 기본 폰트(LegacyRuntime.ttf)에 한글 글리프가
+            // 없어 에디터에서는 시스템 폰트로 대체되지만 WebGL 빌드에서 네모로 깨진다.
+            string label = subscribed.Kind == WeaponKind.Shotgun ? "SHOTGUN" : "PISTOL";
             ammoText.text = $"{label}  {current} / {subscribed.MaxAmmo}";
         }
 

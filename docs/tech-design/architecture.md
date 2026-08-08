@@ -368,6 +368,12 @@ Player                  태그 Player, 레이어 Player(8)
 초기값은 `OnEnable` 이 아니라 `Start` 에서 읽는다. `OnEnable` 은 `PlayerHealth.Awake`
 보다 먼저 돌 수 있어 체력을 0 으로 읽는다.
 
+IMPORTANT: **HUD 문구는 영문이다** (`PISTOL` · `SHOTGUN`). 기본 폰트에 한글
+글리프가 없어 WebGL 빌드에서 깨진다. 에디터에서는 시스템 폰트로 대체되어 멀쩡해
+보이고, `Font.GetCharacterInfo` 도 한글이 있다고 답하므로 **에디터에서는 확인할 수
+없는 종류다.** 근거는 [`decisions.md`](decisions.md) 의 「UI 는 uGUI 로 만들고
+화면 문구는 영문으로 쓴다」.
+
 `TestDamageTarget` 은 A 의 사격 검증용 표적 대역이고 **적이 아니다.** 적은 B 가
 `Enemy/` 에 만든다. `Crawler.prefab` 이 왔으므로 사격 감각을 맞추는 용도로만 남기고,
 필요 없어지면 지운다.

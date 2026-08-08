@@ -2152,7 +2152,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\uAD8C\uCD1D  0 / 24"
+  m_Text: PISTOL  0 / 24
 --- !u!1 &5747649907445762293
 GameObject:
   m_ObjectHideFlags: 0
