@@ -58,18 +58,32 @@ try {
     foreach ($rule in $rules) { $prompt = $prompt -replace $rule.p, $rule.r }
 
     # ---- write -----------------------------------------------------------
-    $dir = Join-Path $root 'docs/ai/prompts'
+    # One file per session, not per author. Several sessions run in parallel
+    # and a shared file conflicts on almost every commit; separate files
+    # cannot conflict at all.
+    $dir = Join-Path $root (Join-Path 'docs/ai/prompts' $author)
     if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
 
-    $file  = Join-Path $dir ($author + '.md')
     $stamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
     $sid   = "$($json.session_id)"
+    if ([string]::IsNullOrWhiteSpace($sid)) { $sid = 'unknown' }
     if ($sid.Length -gt 8) { $sid = $sid.Substring(0, 8) }
+
+    # The name is dated so the folder sorts chronologically, but a session can
+    # cross midnight. Keep writing to the file this session already owns rather
+    # than starting a second one under the new date.
+    $found = Get-ChildItem -Path $dir -Filter ('*-' + $sid + '.md') -File |
+             Sort-Object Name | Select-Object -First 1
+    if ($found) {
+        $file = $found.FullName
+    } else {
+        $file = Join-Path $dir ((Get-Date).ToString('yyyy-MM-dd') + '-' + $sid + '.md')
+    }
 
     $entry = "`n## $stamp - session $sid`n$prompt`n"
 
     if (-not (Test-Path $file)) {
-        $header = "# AI prompt log - $author`n`n" +
+        $header = "# AI prompt log - $author / session $sid`n`n" +
                   "This file is appended automatically by .claude/hooks/log-prompt.ps1.`n" +
                   "Do not edit by hand. Add ``[nolog]`` to a prompt to skip logging it.`n"
         [System.IO.File]::WriteAllText($file, $header, (New-Object System.Text.UTF8Encoding($false)))

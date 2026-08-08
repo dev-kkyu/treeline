@@ -17,7 +17,7 @@ IMPORTANT: 마감 때 기억에 의존해 쓰지 않는다. 아래 세 곳에 �
 
 - `git log --author="<이름>"` — 실제로 무엇을 커밋했는지
 - `docs/ai/milestones/<이름>.md` — 각자 남긴 작업 메모
-- `docs/ai/prompts/<이름>.md` — 어떻게 지시했는지
+- `docs/ai/prompts/<이름>/` — 어떻게 지시했는지. 세션마다 파일 하나다
 
 ---
 
