@@ -72,6 +72,12 @@ namespace Treeline
         [Tooltip("이만큼 떠 있었어야 착지음을 낸다. 계단을 내려갈 때 매 칸 울리는 것을 막는다.")]
         [SerializeField] private float minAirTimeForLanding = 0.2f;
 
+        [Tooltip("도약 순간의 음량. 착지보다 작다 — 미는 소리가 떨어지는 소리보다 작다.")]
+        [SerializeField, Range(0f, 1f)] private float jumpVolume = 0.45f;
+
+        [Tooltip("도약음의 피치 배수. 1 보다 낮춰 발을 끌며 미는 소리로 만든다.")]
+        [SerializeField, Range(0.5f, 1f)] private float jumpPitchScale = 0.78f;
+
         private CharacterController controller;
         private Vector3 lastPosition;
         private float travelled;
@@ -101,6 +107,35 @@ namespace Treeline
             }
 
             lastPosition = transform.position;
+        }
+
+        private void OnEnable()
+        {
+            if (motor != null)
+            {
+                motor.Jumped += OnJumped;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (motor != null)
+            {
+                motor.Jumped -= OnJumped;
+            }
+        }
+
+        /// <summary>
+        /// 도약음. 새 클립을 만들지 않고 <b>같은 표면의 발소리를 낮은 피치로</b> 낸다.
+        /// </summary>
+        /// <remarks>
+        /// 발이 바닥을 미는 소리는 밟는 소리와 같은 재질에서 난다. 피치를 내리고
+        /// 음량을 줄이면 「밟았다」가 「밀었다」로 읽힌다. 클립을 따로 뽑는 것보다
+        /// 싸고, 표면이 바뀌면 도약음도 저절로 따라온다.
+        /// </remarks>
+        private void OnJumped()
+        {
+            Play(jumpVolume, jumpPitchScale);
         }
 
         private void Update()
@@ -170,6 +205,11 @@ namespace Treeline
 
         private void Play(float volume)
         {
+            Play(volume, 1f);
+        }
+
+        private void Play(float volume, float pitchScale)
+        {
             AudioClip[] clips = Find(surface);
             if (clips == null || clips.Length == 0)
             {
@@ -183,7 +223,7 @@ namespace Treeline
                 return;
             }
 
-            source.pitch = 1f + UnityEngine.Random.Range(-pitchJitter, pitchJitter);
+            source.pitch = (1f + UnityEngine.Random.Range(-pitchJitter, pitchJitter)) * pitchScale;
             source.PlayOneShot(clip, volume);
         }
 

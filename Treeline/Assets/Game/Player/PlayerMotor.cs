@@ -136,6 +136,16 @@ namespace Treeline
         /// </remarks>
         public event Action<float> StaminaChanged;
 
+        /// <summary>
+        /// 방금 땅을 밀고 떠올랐다. 소리와 연출이 붙는 자리다.
+        /// </summary>
+        /// <remarks>
+        /// 착지는 <c>PlayerFootsteps</c> 가 접지 상태 변화로 스스로 알 수 있지만
+        /// <b>도약은 밖에서 알 수 없다.</b> 점프 입력은 여기서만 읽고, 웅크림과 접지
+        /// 조건을 통과한 뒤에야 실제로 뜨기 때문이다. 그래서 이 이벤트가 필요하다.
+        /// </remarks>
+        public event Action Jumped;
+
         /// <summary>회복 대기가 시작되거나 끝났다.</summary>
         public event Action<bool> RecoveryLockChanged;
 
@@ -203,6 +213,7 @@ namespace Treeline
             if (input.JumpPressed && controller.isGrounded && !isCrouching && jumpHeight > 0f)
             {
                 verticalVelocity = Mathf.Sqrt(-2f * gravity * jumpHeight);
+                Jumped?.Invoke();
             }
 
             verticalVelocity += gravity * Time.deltaTime;

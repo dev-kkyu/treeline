@@ -388,7 +388,7 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | `PlayerWeapon` | 총 한 자루. `GameLayers.Shot` 레이캐스트, 탄창 · 재장전, 반동 |
 | `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
 | `Flashlight` | 조명 토글과 배터리 소모 |
-| `PlayerFootsteps` | 발소리. 이동 거리로 내고 표면은 장마다 정한다 |
+| `PlayerFootsteps` | 발소리 · 도약 · 착지. 이동 거리로 내고 표면은 장마다 정한다 |
 | `PlayerHud` | 체력 · 탄약 · 배터리 · 스태미너 · 조준점 · 상호작용 문구 · 피격 오버레이 |
 
 프리팹 구조는 이렇다.
@@ -519,6 +519,15 @@ IMPORTANT: **청각은 벽을 통과한다.** 시야와 다른 점이 이것이�
 
 `Shared/` 에 인터페이스를 두지 않은 이유는 소리를 내는 것이 지금 플레이어뿐이라
 합의할 것이 없기 때문이다. 적이 서로 소리를 듣게 되면 그때 올린다.
+
+**점프와 착지도 같은 클립을 쓴다.** 새 클립을 뽑지 않았다. 발이 바닥을 미는 소리는
+밟는 소리와 같은 재질에서 나므로, **도약은 피치를 내리고 음량을 줄여** 「밟았다」를
+「밀었다」로 바꾼다. 착지는 반대로 음량을 올린다. 표면이 바뀌면 둘 다 저절로
+따라오고, 표면마다 점프음을 따로 준비하지 않아도 된다.
+
+IMPORTANT: **도약은 밖에서 알 수 없다.** 착지는 접지 상태가 바뀌는 것으로 알 수
+있지만, 점프 입력은 `PlayerMotor` 안에서만 읽고 웅크림·접지 조건을 통과한 뒤에야
+실제로 뜬다. 그래서 `PlayerMotor.Jumped` 이벤트를 두었다.
 
 IMPORTANT: **`CharacterController` 가 꺼져 있으면 걷지 않는 것으로 본다.** 삭도에
 올라타면 콜라이더를 끄고 플레이어를 차체에 붙여 옮기는데, 그 이동이 그대로 쌓이면
@@ -797,6 +806,10 @@ PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구�
 | 손전등 획득 (C) | `Flashlight.PickUp()` — 1장 |
 | 양손 운반 (C) | `WeaponSwitcher.SetCarrying(true/false)` |
 | 진행 (C) | `PlayerHealth.Died` 구독, 장 전환 시 `PlayerHealth.Restore` |
+
+`PlayerMotor` 는 구독할 것도 셋 낸다 — `StaminaChanged` · `RecoveryLockChanged` ·
+`Jumped`. 앞 둘은 HUD 가 쓰고 `Jumped` 는 발소리가 쓴다. 점프에 연출을 붙일 일이
+생기면 이 이벤트를 쓴다.
 
 IMPORTANT: 「무거운 것을 들면 총을 못 쓴다」 는 **운반 쪽이 총을 끄는 것이 아니라**
 `SetCarrying` 을 부르는 것으로 한다. 내려놓으면 들고 있던 총으로 알아서 돌아오므로
