@@ -140,3 +140,21 @@ No weak point, mouth, head, humanoid anatomy, stone golem or emission.
 
 첫 v2 정면은 다리가 6개 생성되어 폐기하고, 안쪽 여분 다리 둘을 제거한 4사지
 수정본을 채택했다. 저장 위치: `colossus/v2/colossus-v2-0{1..4}-*.png`.
+
+## Colossus 최종 생성 기록
+
+`concept-options/D-twin-ridge-juggernaut.png`를 `COLOSSUS-FINAL-1.0`의 확정
+정면으로 원본 그대로 복사했다. 동일 정면을 단일 입력 레퍼런스로 사용해 후·좌·우·상·하
+각 방향을 Codex 기본 내장 이미지 생성으로 한 번씩 독립 생성했다. 상·하는 손·발의
+3지 수량을 명시해 재생성한 교정본을 채택했다.
+
+```text
+Reconstruct the exact same Twin-ridge Juggernaut and rotate it into a strict
+orthographic BACK / LEFT / RIGHT / TOP / BOTTOM view. Preserve twin dorsal ridges,
+low buried wedge head, exactly two bowed arms, exactly two inner heavy legs,
+exactly three digits on each hand and foot, no exposed eyes and no tail. Maintain
+the selected dark blue-black leathery hide, pale pressure cracks and sparse muted
+red seams. No redesign, perspective, extra anatomy, stone, armor, text or watermark.
+```
+
+저장 위치: `colossus/final/colossus-final-0{1..6}-*.png`.
