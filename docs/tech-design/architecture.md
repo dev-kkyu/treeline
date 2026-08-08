@@ -96,6 +96,22 @@ IMPORTANT: **레이어를 추가할 땐 자기 구간 안에서만 쓴다.** 그
 | `Trigger` ↔ `Player` 외 전부 | 트리거는 플레이어만 감지한다 |
 | `Carriable` ↔ `Player` | 들고 걸을 때 자기 몸에 걸린다 |
 
+### NavMesh 는 캐릭터를 빼고 굽는다
+
+`NavMeshSurface` 의 `layerMask` 기본값은 **전부 포함**이다. 그대로 구우면 씬에 놓인
+플레이어와 적 캡슐까지 걷는 면이 된다. 원점을 샘플하면 바닥(`y≈0`)이 아니라 캡슐
+윗면(`y≈0.9`)이 잡히고, 경로 계산이 `PathInvalid` 로 조용히 실패한다. 에러도 경고도
+안 뜬다.
+
+굽기 전에 `Player` · `ViewModel` · `Enemy` · `Trigger` 를 뺀다.
+
+```csharp
+surface.layerMask = ~((1 << GameLayers.Player) | (1 << GameLayers.ViewModel)
+                    | (1 << GameLayers.Enemy)  | (1 << GameLayers.Trigger));
+```
+
+C 가 `Ch1` · `Ch2` · `Ch6` 을 구울 때도 같다.
+
 ### 레이캐스트 마스크
 
 레이어를 나눠도 각자 다른 마스크를 쓰면 의미가 없다. 세 개로 고정한다.

@@ -93,6 +93,14 @@ namespace Treeline.EnemyEditor
 
                 NavMeshSurface surface = ground.AddComponent<NavMeshSurface>();
                 surface.collectObjects = CollectObjects.All;
+
+                // IMPORTANT: 기본값(전부 포함)으로 구우면 씬에 놓인 플레이어와 적 캡슐까지
+                // 걷는 면이 된다. 원점 샘플이 바닥이 아니라 캡슐 윗면(y≈0.9)으로 잡히고
+                // 경로 계산이 조용히 실패한다. 캐릭터와 트리거는 빼고 굽는다.
+                surface.layerMask = ~((1 << GameLayers.Player)
+                                    | (1 << GameLayers.ViewModel)
+                                    | (1 << GameLayers.Enemy)
+                                    | (1 << GameLayers.Trigger));
                 surface.BuildNavMesh();
             }
 
