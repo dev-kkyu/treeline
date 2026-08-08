@@ -88,6 +88,19 @@ namespace Treeline
         [Range(0f, 1f)]
         [SerializeField] private float resumeThreshold = 0.2f;
 
+        [Header("내는 소리")]
+        [Tooltip("웅크린 채 걸을 때 소리가 닿는 거리(m).")]
+        [SerializeField] private float crouchNoiseRadius = 4f;
+
+        [Tooltip("걸을 때(m). 적의 시야가 막혀 있어도 이 거리 안이면 들킨다.")]
+        [SerializeField] private float walkNoiseRadius = 9f;
+
+        [Tooltip("달릴 때(m). 도망은 빠르지만 위치를 알린다.")]
+        [SerializeField] private float sprintNoiseRadius = 16f;
+
+        [Tooltip("이보다 느리게 움직이면 소리를 안 낸다(m/s). 제자리에서 서 있는 것과 같다.")]
+        [SerializeField] private float silentSpeed = 0.2f;
+
         private CharacterController controller;
         private float verticalVelocity;
         private bool isCrouching;
@@ -120,6 +133,19 @@ namespace Treeline
         /// 이어진다.
         /// </remarks>
         public bool IsExhausted => StaminaRatio <= 0f;
+
+        /// <summary>
+        /// 지금 내는 소리가 닿는 거리(m). 서 있으면 0 이다.
+        /// </summary>
+        /// <remarks>
+        /// **적이 이 값을 읽어 청각 판정을 한다.** 소리의 크기를 아는 것은 움직이는
+        /// 쪽이므로 여기서 낸다. 적마다 자기 기준으로 다시 계산하면 웅크리기를 조용하게
+        /// 만든 판단이 적 수만큼 흩어진다.
+        ///
+        /// 시야와 달리 **벽을 통과한다.** 소리는 모퉁이를 돌아 들리고, 「보이지 않는
+        /// 곳에 있으면 안전하다」를 깨는 것이 이 값의 존재 이유다.
+        /// </remarks>
+        public float NoiseRadius { get; private set; }
 
         /// <summary>스태미너가 바뀌었다. 0~1 을 넘긴다.</summary>
         /// <remarks>
@@ -204,6 +230,7 @@ namespace Treeline
             controller.Move(velocity * Time.deltaTime);
 
             UpdateFootsteps(speed);
+            UpdateNoise();
         }
 
         /// <summary>
@@ -260,6 +287,24 @@ namespace Treeline
             footstepSource.pitch = UnityEngine.Random.Range(0.94f, 1.06f);
             footstepSource.volume = isCrouching ? crouchStepVolume : stepVolume;
             footstepSource.PlayOneShot(footstepClips[index]);
+        }
+
+        /// <summary>지금 자세와 속도로 내는 소리의 크기를 정한다.</summary>
+        private void UpdateNoise()
+        {
+            // 실제로 움직인 결과를 본다. 벽에 붙어 입력만 넣는 것은 소리가 아니다.
+            Vector3 moved = controller.velocity;
+            moved.y = 0f;
+
+            if (moved.magnitude < silentSpeed)
+            {
+                NoiseRadius = 0f;
+                return;
+            }
+
+            NoiseRadius = isCrouching ? crouchNoiseRadius
+                : IsSprinting ? sprintNoiseRadius
+                : walkNoiseRadius;
         }
 
         /// <summary>

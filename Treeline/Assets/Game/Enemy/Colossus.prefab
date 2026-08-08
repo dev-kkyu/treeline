@@ -374,9 +374,19 @@ MonoBehaviour:
   eyeHeight: 3.6
   sightInterval: 0.2
   loseInterest: 12
+  hearingScale: 1
+  roamPoints: []
+  roamPauseSeconds: 3
+  roamSpeed: 1.2
+  chaseSpeed: 3.4
+  roarSeconds: 1.2
+  roarTurnSpeed: 220
+  noticed:
+    m_PersistentCalls:
+      m_Calls: []
   attackRange: 3.2
   attackCooldown: 2.4
-  attackDamage: 2
+  attackDamage: 99
   staggerThreshold: 4
   staggerDistance: 2.5
   staggerSeconds: 1.6

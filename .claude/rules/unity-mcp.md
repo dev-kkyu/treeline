@@ -56,3 +56,11 @@ git fetch origin -q && git diff --stat HEAD..origin/develop -- <프로젝트>/As
   실패로 보고 다시 실행하지 말고, 다음 호출에서 **상태를 읽어 확인**한다.
 - **플레이 모드는 에디터가 포커스를 잃으면 멈춘다.** 프레임이 안 도니 값이 그대로다.
   `Application.runInBackground = true` 를 켜고 나서 표본을 뜬다.
+- **`EditorApplication.Step()` 은 에디터를 일시정지 상태로 둔다.** 그 상태에서
+  `AudioSource.Play()` 는 안 걸리고 `PlayOneShot` 은 걸린다. **소리를 재려면**
+  `EditorApplication.isPaused = false` 로 풀고 호출 사이에 실제 시간이 흐르게 둔다.
+  루프 안에서 `Step()` 을 쓰면 `PlayerLoop ... called recursively` 경고가 콘솔에
+  쌓이는데, 이건 게임이 아니라 계측 방식이 낸 것이다.
+- **메인 스레드를 붙잡고 기다리면 `Update` 가 안 돈다.** `Stopwatch` 로 스핀하면
+  오디오(별도 스레드)는 진행하지만 게임 로직은 한 프레임도 안 간다. 게임 상태를
+  기다릴 때는 스핀하지 말고 호출을 나눈다.

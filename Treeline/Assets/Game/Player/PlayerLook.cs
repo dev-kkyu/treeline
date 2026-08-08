@@ -38,7 +38,20 @@ namespace Treeline
         [Tooltip("반동이 사라지는 빠르기. 클수록 빨리 돌아온다.")]
         [SerializeField] private float recoilRecovery = 8f;
 
+        [Header("놀람")]
+        [Tooltip("적에게 발각됐을 때 화면이 흔들리는 폭(도).")]
+        [SerializeField] private float shakeDegrees = 1.6f;
+
+        [Tooltip("흔들림이 잦아드는 시간(초).")]
+        [SerializeField] private float shakeSeconds = 0.7f;
+
+        [Tooltip("떠는 빠르기(초당 주기). 조준 흔들림보다 훨씬 빠르다.")]
+        [SerializeField] private float shakeFrequency = 22f;
+
         private float pitch;
+
+        private float shakeUntil = float.NegativeInfinity;
+        private float shakeStart;
 
         /// <summary>x 는 좌우, y 는 위로 튀는 양(도). 0 으로 감쇠한다.</summary>
         private Vector2 recoil;
@@ -87,6 +100,19 @@ namespace Treeline
             recoil.x += sideDegrees;
         }
 
+        /// <summary>
+        /// 화면을 짧게 떨게 한다. 적이 발각을 알릴 때 부른다.
+        /// </summary>
+        /// <remarks>
+        /// 인자가 없는 것은 <b>인스펙터의 <c>UnityEvent</c> 에 그대로 걸기 위해서</b>다.
+        /// 세기와 길이는 여기 값으로 두고 부르는 쪽은 「놀랐다」만 알린다.
+        /// </remarks>
+        public void Shake()
+        {
+            shakeStart = Time.time;
+            shakeUntil = Time.time + shakeSeconds;
+        }
+
         private void Update()
         {
             // ponytail: 브라우저는 사용자 제스처 없이 포인터 잠금을 허용하지 않는다.
@@ -110,12 +136,31 @@ namespace Treeline
             recoil = Vector2.Lerp(recoil, Vector2.zero, 1f - Mathf.Exp(-recoilRecovery * Time.deltaTime));
 
             Vector2 sway = EvaluateSway();
+            Vector2 shake = EvaluateShake();
 
             // 흔들림과 반동은 pitch 에 누적하지 않는다. 누적하면 한계각이 조용히 밀린다.
             cameraPivot.localRotation = Quaternion.Euler(
-                pitch - recoil.y + sway.y,
-                recoil.x + sway.x,
+                pitch - recoil.y + sway.y + shake.y,
+                recoil.x + sway.x + shake.x,
                 0f);
+        }
+
+        /// <summary>놀람 떨림. 시작할 때 가장 세고 끝에서 0 이 된다.</summary>
+        private Vector2 EvaluateShake()
+        {
+            if (Time.time >= shakeUntil || shakeSeconds <= 0f)
+            {
+                return Vector2.zero;
+            }
+
+            float left = 1f - (Time.time - shakeStart) / shakeSeconds;
+            float amount = shakeDegrees * left * left;
+            float t = Time.time * shakeFrequency;
+
+            // 조준 흔들림과 주기를 어긋나게 둬서 두 흔들림이 겹쳐 보이지 않게 한다.
+            return new Vector2(
+                Mathf.Sin(t) * amount,
+                Mathf.Sin(t * 1.37f + 1.1f) * amount * 0.7f);
         }
 
         private Vector2 EvaluateSway()

@@ -148,6 +148,8 @@ IMPORTANT: **`trim_silence.py --report` 는 이 넷을 전부 0~10ms 로 보고�
 | | `Heater/Snd_Start` 의 `Play` | `device-start` |
 | | `Heater/Snd_Hum` 의 `Play` | `heater-hum-loop` — 도는 동안 |
 | `Heater.activated` | `Heater/Snd_Complete` 의 `Play` | `ice-melt-crack` — 얼음이 깨진다 |
+| `Colossus.noticed` | `Cue_Chase` 의 `Play` | `chase-stinger` — 발각되는 순간 |
+| | `Player` 의 `PlayerLook.Shake` | 화면이 짧게 떨린다 |
 | `CableCar.activated` | `BoardLever` 의 `Play` | `lever-pull` |
 | | `CableCar/Snd_Start` 의 `Play` | `generator-start` — 권양기가 돈다 |
 | | `CableCar/Snd_Run` 의 `Play` | `generator-rumble-loop` — 가는 동안 |
@@ -167,6 +169,10 @@ IMPORTANT: **삭도 소리 둘은 대역이다.** `generator-start` 와 `generat
 
 `CableCar/Snd_Run` 은 차체의 자식이라 **삭도와 같이 멀어지면서 저절로 작아진다.**
 `Stop` 을 걸지 않은 이유가 이것이다.
+
+**적이 내는 소리는 아직 없다.** `Audio/` 에 크리처 계열이 한 종도 없어서 발각 순간의
+포효를 못 붙였다. 지금은 음악 큐와 화면 흔들림으로만 알린다. 적 소리를 뽑으면
+`Colossus.noticed` 에 한 줄 더 걸면 된다.
 
 IMPORTANT: **`EditorApplication.Step()` 으로 소리를 검증할 수 없다.** Step 은 에디터를
 일시정지 상태로 두는데, 그 상태에서 `AudioSource.Play()` 는 걸리지 않아 `isPlaying`
