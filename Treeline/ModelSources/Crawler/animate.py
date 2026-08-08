@@ -166,6 +166,61 @@ def settle_action(act):
     return worst
 
 
+def loop_seam(act):
+    """Measure how badly a looping action jumps where it wraps.
+
+    Two numbers matter. The pose gap is frame N+1 against frame 1 -- if that is
+    non-zero the clip teleports. The velocity gap compares the step across the
+    seam with the step just after it; a matching pose with a mismatched slope
+    still reads as a stutter every cycle.
+    """
+    arm.animation_data.action = act
+    first, last = int(act.frame_start), int(act.frame_end)
+
+    def sample(f):
+        bpy.context.scene.frame_set(f)
+        bpy.context.view_layer.update()
+        return {b.name: arm.pose.bones[b.name].matrix.copy()
+                for b in arm.data.bones if b.use_deform}
+
+    frames = [sample(f) for f in range(first, last + 1)]
+
+    pose_t = pose_r = 0.0
+    who = ""
+    for n in frames[0]:
+        dt = (frames[0][n].to_translation() - frames[-1][n].to_translation()).length
+        dr = math.degrees(frames[0][n].to_quaternion().rotation_difference(
+            frames[-1][n].to_quaternion()).angle)
+        if dt > pose_t or dr > pose_r:
+            who = n
+        pose_t, pose_r = max(pose_t, dt), max(pose_r, dr)
+
+    def accel(i, j, k):
+        """How much the per-frame step changes between i->j and j->k."""
+        worst, name = 0.0, ""
+        for n in frames[0]:
+            d1 = frames[j][n].to_translation() - frames[i][n].to_translation()
+            d2 = frames[k][n].to_translation() - frames[j][n].to_translation()
+            v = (d2 - d1).length
+            if v > worst:
+                worst, name = v, n
+        return worst, name
+
+    # the seam is frame last == frame first, so the step into it comes from
+    # last-1 and the step out of it goes to first+1
+    seam, seam_bone = accel(len(frames) - 2, 0, 1)
+    inside = sorted(accel(i, i + 1, i + 2)[0] for i in range(len(frames) - 3))
+    typical = inside[int(len(inside) * 0.9)] if inside else 0.0
+    verdict = "ok" if seam <= max(typical * 1.35, 0.004) else "JUMP"
+    print("SEAM %-26s pose %5.2f mm %5.2f deg (%s) | seam accel %6.2f mm  "
+          "worst inside %6.2f mm  %s"
+          % (act.name, pose_t * 1000, pose_r, who, seam * 1000,
+             inside[-1] * 1000 if inside else 0.0, verdict))
+    if verdict == "JUMP":
+        print("      worst at %s (p90 inside %.2f mm)" % (seam_bone, typical * 1000))
+    return pose_t, pose_r
+
+
 def new_action(name):
     if arm.animation_data is None:
         arm.animation_data_create()
@@ -193,6 +248,19 @@ def gait(u, duty, stride, lift):
     whip = s ** 0.5                      # forward travel front-loaded
     arc = math.sin(math.pi * (s ** 0.75))  # peak early, then drop onto the floor
     return stride * (0.5 - whip), lift * arc
+
+
+def drift(t, phase):
+    """Wandering value in roughly -1..1 that is exactly 1-periodic in t.
+
+    The head sweep used to run at 1.5x the gait so it never fell into step with
+    the legs. That does not survive a loop: after one cycle the term is halfway
+    through its own, so the clip snapped back at the seam. Stacking the 1st and
+    3rd harmonic keeps the motion from reading as a simple rhythm while landing
+    on the same value and the same slope at both ends of the cycle.
+    """
+    return (0.62 * math.sin(2 * math.pi * t + phase)
+            + 0.38 * math.sin(6 * math.pi * t + phase * 1.7))
 
 
 def slam(t, per_cycle=2):
@@ -230,15 +298,14 @@ def build_locomotion(name, frames, feet, duty, stride_f, stride_h, lift_f, lift_
         wloc(BODY, lurch * 0.5 * math.sin(2 * math.pi * t + 1.1),
              0.02 * slam(t, 1), -body_drop + bob * impact)
         body_pitch = pitch * impact
-        # yaw runs at 1.5x the gait so head and legs never settle into a rhythm
-        body_yaw = yaw * math.sin(3 * math.pi * t)
+        body_yaw = yaw * drift(t, 0.0)
         rot(BODY, body_pitch, lurch * 22 * math.sin(2 * math.pi * t), body_yaw)
         # the neck now only partly cancels the body pitch; a perfectly levelled
         # head is what made it look like it was politely watching the floor
         rot("DEF_SpineFront", -body_pitch * neck_counter, lurch * 14,
-            -body_yaw * 0.4 + head_sweep * 0.5 * math.sin(3 * math.pi * t + 2.0))
+            -body_yaw * 0.4 + head_sweep * 0.5 * drift(t, 2.0))
         rot("DEF_HeadPlate", -pitch * 0.35 * impact, 0,
-            head_sweep * math.sin(3 * math.pi * t + 2.6))
+            head_sweep * drift(t, 2.6))
         rot("DEF_Mouth", mouth_open + mouth_open * 0.45 * impact, 0, 0)
         for i in range(4):
             lag = 0.13 * (i + 1)
@@ -505,6 +572,11 @@ def main():
         # it left behind leaks into whichever action is evaluated next
         set_ik(1.0)
         print("SETTLE %-26s worst dip %7.4f" % (act.name, settle_action(act)))
+
+    for act in actions:
+        if act.name in ("Crawler_Idle_Low", "Crawler_Skitter", "Crawler_Sprint"):
+            set_ik(1.0)
+            loop_seam(act)
 
     bpy.ops.pose.select_all(action='SELECT')
     for act in actions:
