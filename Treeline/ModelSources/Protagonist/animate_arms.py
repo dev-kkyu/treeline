@@ -455,10 +455,11 @@ def build_pistol_reload():
     """54 frames. 06-pistol.md: 8 release, 16 out, 30 new one approaching,
     39 MagazineIn, 48 slide, 54 ReloadComplete.
 
-    The slide runs back over the first four frames rather than starting back.
-    09-weapons.md settled on one reload with the slide locked, but frame 1 has
-    to equal PistolIdle frame 1 or the clip pops on entry - and frame 54 has to
-    equal it as well. Racking it inside the clip satisfies both ends.
+    The slide is racked *after* the magazine goes in, not before it. That is the
+    order the gun is actually run - new magazine, then chamber a round - and it
+    puts the one moment of violence in the clip at the end where it reads as the
+    reload finishing. Frame 1 and frame 54 both have the slide forward, which is
+    what lets either end match PistolIdle exactly.
     """
     _last_quat.clear()
     act = new_action("Arms_PistolReload")
@@ -475,17 +476,14 @@ def build_pistol_reload():
     pistol_idle()
     key(1)
 
-    # 2..6 - the left hand comes off the support grip, takes the rear of the
-    # slide and runs it back. The slide used to travel on its own over these
-    # frames, which reads as the gun cycling itself.
-    for f in range(2, 7):
-        u = (f - 2) / 4.0
+    # 4 - presented: rolled inboard so the well faces the left hand, lifted
+    for f in range(2, 5):
+        u = (f - 1) / 3.0
         gun(f, lift=0.06 * u, roll=-30 * u, inboard=0.05 * u)
-        set_part("Slide", (0, 0.008 * u, 0))
+        set_part("Slide", (0, 0, 0))
         set_part("Magazine", (0, 0, 0))
         grip("PistolGrip")
-        # the serrations are at the back of the slide, above and behind the web
-        _rack_hand(u)
+        grip("PistolSupport")
         key(f)
 
     # 8 - magazine catch. Left hand leaves the slide and comes off the gun.
@@ -531,26 +529,36 @@ def build_pistol_reload():
         else:
             set_part("Magazine", (0, 0, 0))
         drift = (0, 0, -0.02 * math.sin(math.pi * (f - 39) / 3.0)) if f > 39 else None
-        grip("MagHold", drift=drift)
+        # a magazine is held like a stick, so its free angle is round its own
+        # long axis too
+        grip_around("MagHold", drift=drift)
         key(f)
 
-    # 45 - hand off the magazine, moving to the slide
-    free_hand("L", Vector((0.02, -0.36, -0.02)), Vector((0, -0.8, -0.6)),
-              Vector((1, 0, 0)), "Point")
-    key(45)
+    # 43..50 - the left hand takes the slide overhand, runs it back 8 mm and
+    # lets it go. Keyed every frame: the hand rolls a long way getting onto the
+    # slide, and this is the beat the whole clip is read by.
+    for f in range(43, 51):
+        gun(f, lift=0.05, roll=-22, inboard=0.04)
+        if f <= 45:
+            back = 0.0
+        elif f <= 47:
+            back = (f - 45) / 2.0            # pulled back
+        else:
+            back = max(0.0, 1.0 - (f - 47) / 1.5)   # released, runs forward
+        set_part("Slide", (0, 0.008 * back, 0))
+        grip("PistolGrip")
+        # around the slide, not about the palm: an overhand slide grip can sit
+        # anywhere on the circle round it, and the library solved only one of
+        # those, with the gun somewhere else. Pinned there the wrist hit 99.
+        grip_around("SlidePinch")
+        key(f)
 
-    # 48 - slide released and run forward. 06-pistol.md calls this the check.
+    # 52 - hand back towards the support grip
+    gun(52, lift=0.02, roll=-8, inboard=0.015)
     set_part("Slide", (0, 0, 0))
-    free_hand("L", Vector((0.02, -0.34, -0.01)), Vector((0, -0.8, -0.6)),
-              Vector((1, 0, 0)), "Point")
-    key(48)
-
-    # 51 - back towards the support grip
-    gun(51, lift=0.02, roll=-10, inboard=0.02)
     grip("PistolGrip")
-    free_hand("L", Vector((-0.04, -0.33, -0.14)), Vector((0, -0.85, -0.52)),
-              Vector((1, 0, 0)), "Hand_Relax")
-    key(51)
+    grip("PistolSupport")
+    key(52)
 
     # 54 - exactly the idle pose again. ReloadComplete.
     reset_pose()
@@ -572,8 +580,12 @@ def shotgun_idle():
 
 def build_shotgun_reload():
     """78 frames. 07-shotgun.md: 0 roll in, 12 port exposed, shells at
-    18/32/46/60, 68 TubesClosed, 78 ReloadComplete. No pump cycle - that lives
-    in FirePump, and the code refills the whole tube at 2.6 s either way.
+    18/32/46/60, 68 TubesClosed, 78 ReloadComplete.
+
+    A pump cycle closes it out. The spec did not ask for one and the code
+    refills the tube either way, but a tube-fed gun that was run dry has an
+    empty chamber when the last shell goes in the magazine, and coming back to
+    idle without working the action leaves it looking loaded when it is not.
     """
     _last_quat.clear()
     act = new_action("Arms_ShotgunReload")
@@ -592,15 +604,24 @@ def build_shotgun_reload():
     shotgun_idle()
     key(1)
 
-    # 12 - rolled inboard, port exposed, left hand off the pump
-    # the stance is already rolled 45 degrees, which is most of what exposing
-    # the port needs. Another 20 on top put the right wrist at 50 degrees.
-    gun(roll=6, lift=0.02, inboard=0.012)
-    set_part("Shell", (0, 0, 0))
-    grip("ShotgunGrip")
-    free_hand("L", POUCH + Vector((0, 0.04, 0.06)), Vector((0, -0.5, -0.87)),
-              Vector((1, 0, 0)), "Open")
-    key(12)
+    # 2..12 - rolling in and the left hand leaving the pump for the pouch,
+    # keyed every other frame. Two keys across this put 41 degrees of wrist in
+    # the middle of a move that measured 20 at both ends.
+    pump_home = arm.pose.bones["Hand.L"].head.copy()
+    pouch_hand = POUCH + Vector((0, 0.04, 0.06))
+    for f in range(2, 13):
+        u = (f - 1) / 11.0
+        gun(roll=6 * u, lift=0.02 * u, inboard=0.012 * u)
+        set_part("Shell", (0, 0, 0))
+        grip("ShotgunGrip")
+        if u < 0.35:
+            grip_around("PumpHold")
+        else:
+            v = (u - 0.35) / 0.65
+            free_hand("L", pump_home.lerp(pouch_hand, v),
+                      Vector((0, -0.5, -0.87)), Vector((1, 0, 0)),
+                      "Hand_Relax" if v < 0.6 else "Open")
+        key(f)
 
     # four shells, 14 frames apart, each one out of the pouch and into the port
     for k, seat in enumerate((18, 32, 46, 60)):
@@ -618,20 +639,45 @@ def build_shotgun_reload():
             grip_around("ShellHold")
             key(f)
 
-        # gone into the tube; hand drops back for the next one
+        # gone into the tube; hand drops back for the next one, or onto the
+        # pump if that was the last shell
         align_shell(1.0)
         set_part("Shell", PORT + Vector((0, -0.09, 0.01)))
-        free_hand("L", POUCH + Vector((0.04, -0.02, 0.10)), Vector((0, -0.5, -0.87)),
-                  Vector((1, 0, 0)), "Hand_Relax")
-        key(seat + 4)
+        back = POUCH + Vector((0.04, -0.02, 0.10))
+        if seat == 60:
+            # the run home to the pump, keyed every frame - two keys across it
+            # left 40 degrees of wrist in the middle
+            here = arm.pose.bones["Hand.L"].head.copy()
+            for f in range(seat + 1, 68):
+                v = (f - seat) / 7.0
+                v = v * v * (3 - 2 * v)      # ease out of the grip, not off it
+                free_hand("L", here.lerp(back, v),
+                          Vector((0, -0.5, -0.87)), Vector((1, 0, 0)),
+                          "Hand_Relax")
+                key(f)
+        else:
+            free_hand("L", back, Vector((0, -0.5, -0.87)),
+                      Vector((1, 0, 0)), "Hand_Relax")
+            key(seat + 4)
 
-    # 68 - tube closed, hand coming back to the pump
+    # 68 - tube closed, hand back on the pump. TubesClosed.
     align_shell(1.0)
     place_part("Shell", OFFSCREEN)
     gun(roll=3, lift=0.02, inboard=0.015)
     grip("ShotgunGrip")
     grip_around("PumpHold")
     key(68)
+
+    # 69..76 - work the action. Back over four frames, forward over four; the
+    # forward stroke is the one that has to snap, so it gets fewer.
+    for f in range(69, 77):
+        u = (f - 68) / 4.0 if f <= 72 else max(0.0, 1.0 - (f - 72) / 4.0)
+        gun(roll=3 * (1 - abs(u - 0.5) * 0.4), lift=0.02, inboard=0.015)
+        off = Vector((0, 0.070 * u, 0))
+        set_part("Pump", off)
+        grip("ShotgunGrip")
+        grip_around("PumpHold", drift=delta("WeaponRoot").to_3x3() @ off)
+        key(f)
 
     # 78 - idle again. ReloadComplete.
     reset_pose()
@@ -703,6 +749,7 @@ EVENTS = {
                           (48, "SlideRelease"), (54, "ReloadComplete")],
     "Arms_ShotgunReload": [(18, "ShellIn"), (32, "ShellIn"), (46, "ShellIn"),
                            (60, "ShellIn"), (68, "TubesClosed"),
+                           (72, "PumpBack"), (76, "PumpClosed"),
                            (78, "ReloadComplete")],
     "Arms_ShotgunFirePump": [(1, "Fire"), (16, "Eject"), (23, "PumpClosed")],
 }
