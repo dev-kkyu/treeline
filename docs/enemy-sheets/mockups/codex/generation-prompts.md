@@ -158,3 +158,20 @@ red seams. No redesign, perspective, extra anatomy, stone, armor, text or waterm
 ```
 
 저장 위치: `colossus/final/colossus-final-0{1..6}-*.png`.
+
+## Clinger 최종 생성 기록
+
+`clinger/concept-options-v2/C-ceiling-crawler-husk.png`를 `CLINGER-FINAL-1.0`의
+확정 정면으로 원본 그대로 복사했다. 동일 정면을 입력 레퍼런스로 사용해 후·좌·우·상·하
+방향을 Codex 기본 내장 이미지 생성으로 각각 독립 생성했다.
+
+```text
+Reconstruct the exact bulky Ceiling Crawler Husk and rotate it into a strict
+orthographic BACK / LEFT / RIGHT / TOP / BOTTOM view. Preserve the compressed
+heart-shaped torso, four ceiling-grip limbs with two hooks each, exactly two thick
+attack arms with three digits each, buried wedge head, underside mouth, zero exposed
+eyes and no tail. Keep the matte blue-black pressure-cracked family material. No
+redesign, perspective, thin limbs, extra anatomy, armor, stone, text or watermark.
+```
+
+저장 위치: `clinger/final/clinger-final-0{1..6}-*.png`.
