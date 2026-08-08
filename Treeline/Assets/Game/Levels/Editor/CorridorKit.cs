@@ -56,7 +56,10 @@ namespace Treeline.LevelEditorTools
             Save(Section("CorridorSection_Lockers", Variant.Lockers));
             Save(Section("CorridorSection_Bunks", Variant.Bunks));
             Save(Section("CorridorSection_Doorway", Variant.Doorway));
+            Save(Section("CorridorSection_DoorwayLeft", Variant.DoorwayLeft));
             Save(HideRoom());
+            Save(WashRoom());
+            Save(StoreRoom());
 
             AssetDatabase.Refresh();
             Debug.Log($"복도 모듈 3종을 {Dir} 에 만들었다.");
@@ -67,7 +70,8 @@ namespace Treeline.LevelEditorTools
             Base,
             Lockers,
             Bunks,
-            Doorway
+            Doorway,
+            DoorwayLeft
         }
 
         private static GameObject Section(string name, Variant v)
@@ -80,7 +84,20 @@ namespace Treeline.LevelEditorTools
             // ── 껍데기. 원점은 칸의 중심 바닥이다
             Box(root, "Floor", new Vector3(0f, -Thick * 0.5f, 0f), new Vector3(Width, Thick, Length), CorridorMaterials.Floor);
             Box(root, "Ceiling", new Vector3(0f, Height + Thick * 0.5f, 0f), new Vector3(Width, Thick, Length), CorridorMaterials.Ceiling);
-            Box(root, "Wall_L", new Vector3(-hw - Thick * 0.5f, Height * 0.5f, 0f), new Vector3(Thick, Height, Length), CorridorMaterials.Wall);
+            if (v == Variant.DoorwayLeft)
+            {
+                float owL = 1.5f, ohL = 2.1f;
+                float sideL = (Length - owL) * 0.5f;
+                Box(root, "Wall_L_Front", new Vector3(-hw - Thick * 0.5f, Height * 0.5f, -(Length - sideL) * 0.5f), new Vector3(Thick, Height, sideL), CorridorMaterials.Wall);
+                Box(root, "Wall_L_Back", new Vector3(-hw - Thick * 0.5f, Height * 0.5f, (Length - sideL) * 0.5f), new Vector3(Thick, Height, sideL), CorridorMaterials.Wall);
+                Box(root, "Wall_L_Header", new Vector3(-hw - Thick * 0.5f, (Height + ohL) * 0.5f, 0f), new Vector3(Thick, Height - ohL, owL), CorridorMaterials.Wall);
+                Box(root, "DoorJamb_LA", new Vector3(-hw - 0.02f, ohL * 0.5f, -owL * 0.5f), new Vector3(0.10f, ohL, 0.10f), CorridorMaterials.Trim);
+                Box(root, "DoorJamb_LB", new Vector3(-hw - 0.02f, ohL * 0.5f, owL * 0.5f), new Vector3(0.10f, ohL, 0.10f), CorridorMaterials.Trim);
+            }
+            else
+            {
+                Box(root, "Wall_L", new Vector3(-hw - Thick * 0.5f, Height * 0.5f, 0f), new Vector3(Thick, Height, Length), CorridorMaterials.Wall);
+            }
             if (v == Variant.Doorway)
             {
                 // 오른쪽 벽에 문틀만큼 구멍을 낸다. 벽을 앞뒤로 쪼개고 위에 인방을 얹는다
@@ -100,7 +117,10 @@ namespace Treeline.LevelEditorTools
 
             // ── 걸레받이. 바닥과 벽이 만나는 선을 어둡게 끊는다.
             // 이 선 하나로 바닥이 벽에서 떨어져 보이고 복도에 깊이가 생긴다
-            Box(root, "Skirting_L", new Vector3(-hw + 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, Length), CorridorMaterials.Trim);
+            if (v != Variant.DoorwayLeft)
+            {
+                Box(root, "Skirting_L", new Vector3(-hw + 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, Length), CorridorMaterials.Trim);
+            }
             if (v != Variant.Doorway)
             {
                 Box(root, "Skirting_R", new Vector3(hw - 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, Length), CorridorMaterials.Trim);
@@ -227,6 +247,92 @@ namespace Treeline.LevelEditorTools
 
             // 끌린 매트리스 — 1장의 「끌린 자국」과 이어진다. 복도가 아니라 여기에 둔다
             Box(root, "Mattress_Dragged", new Vector3(1.5f, 0.08f, 0.9f), new Vector3(1.50f, 0.16f, 0.80f), CorridorMaterials.Fabric);
+
+            return root;
+        }
+
+
+        /// <summary>방 셋이 공유하는 껍데기. 복도 쪽 벽은 문틀 칸이 이미 채우므로 만들지 않는다.</summary>
+        private static GameObject RoomShell(string name, out float W, out float D, out float H)
+        {
+            W = 4.2f;
+            D = Length;
+            H = Height;
+
+            GameObject root = new GameObject(name);
+            float cx = W * 0.5f;
+
+            Box(root, "Floor", new Vector3(cx, -Thick * 0.5f, 0f), new Vector3(W, Thick, D), CorridorMaterials.Floor);
+            Box(root, "Ceiling", new Vector3(cx, H + Thick * 0.5f, 0f), new Vector3(W, Thick, D), CorridorMaterials.Ceiling);
+            Box(root, "Wall_Far", new Vector3(W + Thick * 0.5f, H * 0.5f, 0f), new Vector3(Thick, H, D), CorridorMaterials.Wall);
+            Box(root, "Wall_A", new Vector3(cx, H * 0.5f, -(D + Thick) * 0.5f), new Vector3(W, H, Thick), CorridorMaterials.Wall);
+            Box(root, "Wall_B", new Vector3(cx, H * 0.5f, (D + Thick) * 0.5f), new Vector3(W, H, Thick), CorridorMaterials.Wall);
+
+            Box(root, "Skirting_Far", new Vector3(W - 0.045f, 0.10f, 0f), new Vector3(0.09f, 0.20f, D), CorridorMaterials.Trim);
+            Box(root, "Skirting_A", new Vector3(cx, 0.10f, -D * 0.5f + 0.045f), new Vector3(W, 0.20f, 0.09f), CorridorMaterials.Trim);
+            Box(root, "Skirting_B", new Vector3(cx, 0.10f, D * 0.5f - 0.045f), new Vector3(W, 0.20f, 0.09f), CorridorMaterials.Trim);
+
+            Box(root, "LightHousing", new Vector3(cx, H - 0.06f, 0f), new Vector3(1.30f, 0.08f, 0.30f), CorridorMaterials.Housing);
+            Box(root, "LightTube", new Vector3(cx, H - 0.12f, 0f), new Vector3(1.20f, 0.05f, 0.20f), CorridorMaterials.Tube);
+
+            return root;
+        }
+
+        /// <summary>세면장. 거울 줄이 손전등을 되쏘아 이 방만 다르게 읽힌다.</summary>
+        private static GameObject WashRoom()
+        {
+            float W, D, H;
+            GameObject root = RoomShell("Room_Wash", out W, out D, out H);
+
+            // 세면대 줄 — 안쪽 벽을 따라
+            for (int i = 0; i < 3; i++)
+            {
+                float z = -1.2f + i * 1.2f;
+                Box(root, $"Basin_{i}", new Vector3(W - 0.30f, 0.82f, z), new Vector3(0.52f, 0.14f, 0.86f), CorridorMaterials.Housing);
+                Box(root, $"BasinPipe_{i}", new Vector3(W - 0.30f, 0.38f, z), new Vector3(0.08f, 0.74f, 0.08f), CorridorMaterials.Pipe);
+                Box(root, $"Tap_{i}", new Vector3(W - 0.10f, 0.98f, z), new Vector3(0.08f, 0.22f, 0.08f), CorridorMaterials.Metal);
+            }
+
+            // 거울 — 얼음 재질을 빌려 쓴다. 반들거리는 면이 여기밖에 없다
+            Box(root, "MirrorStrip", new Vector3(W - 0.02f, 1.55f, 0f), new Vector3(0.03f, 0.80f, 3.20f), CorridorMaterials.Ice);
+
+            // 칸막이 하나 — 문에서 안쪽이 다 보이지 않게 가린다
+            Box(root, "Partition", new Vector3(1.5f, 1.0f, D * 0.5f - 0.9f), new Vector3(0.10f, 2.0f, 1.80f), CorridorMaterials.Metal);
+
+            // 바닥에 번진 물이 얼었다 — 2장이 추운 곳이라는 것을 방마다 반복한다
+            Box(root, "FrozenPuddle", new Vector3(2.2f, 0.015f, -0.6f), new Vector3(1.60f, 0.03f, 1.20f), CorridorMaterials.Ice);
+
+            return root;
+        }
+
+        /// <summary>창고. 선반과 상자로 시야가 막혀 숨기 제일 좋다.</summary>
+        private static GameObject StoreRoom()
+        {
+            float W, D, H;
+            GameObject root = RoomShell("Room_Store", out W, out D, out H);
+
+            // 선반 두 줄
+            for (int i = 0; i < 2; i++)
+            {
+                float z = -1.1f + i * 2.2f;
+                Box(root, $"ShelfPost_A{i}", new Vector3(W - 0.90f, 1.0f, z - 0.55f), new Vector3(0.07f, 2.0f, 0.07f), CorridorMaterials.Metal);
+                Box(root, $"ShelfPost_B{i}", new Vector3(W - 0.90f, 1.0f, z + 0.55f), new Vector3(0.07f, 2.0f, 0.07f), CorridorMaterials.Metal);
+                for (int k = 0; k < 3; k++)
+                {
+                    Box(root, $"Shelf_{i}_{k}", new Vector3(W - 0.62f, 0.45f + k * 0.62f, z), new Vector3(0.62f, 0.05f, 1.20f), CorridorMaterials.Metal);
+                }
+            }
+
+            // 넘어진 선반 — 이 방에서 무슨 일이 있었다
+            Box(root, "Shelf_Fallen", new Vector3(1.9f, 0.22f, -1.3f), new Vector3(1.90f, 0.44f, 0.62f), CorridorMaterials.Metal);
+
+            // 상자 더미 — 뒤가 숨는 자리다
+            Box(root, "Crate_A", new Vector3(1.3f, 0.34f, 1.3f), new Vector3(0.68f, 0.68f, 0.68f), CorridorMaterials.Rust);
+            Box(root, "Crate_B", new Vector3(1.9f, 0.30f, 1.5f), new Vector3(0.60f, 0.60f, 0.60f), CorridorMaterials.Rust);
+            Box(root, "Crate_C", new Vector3(1.4f, 0.92f, 1.35f), new Vector3(0.56f, 0.48f, 0.56f), CorridorMaterials.Fabric);
+
+            // 굴러다니는 드럼통
+            Box(root, "Drum", new Vector3(3.1f, 0.28f, 1.5f), new Vector3(0.56f, 0.56f, 0.86f), CorridorMaterials.Rust);
 
             return root;
         }
