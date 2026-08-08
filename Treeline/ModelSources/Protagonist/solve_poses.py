@@ -73,6 +73,16 @@ POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
 # backstrap moves 46 mm back over 75 mm of drop
 RAKE = Vector((0, 0.522, -0.853))
 FRONT = Vector((0, -0.855, -0.518))    # perpendicular to RAKE, forward and down
+# Down the barrel. A hand on a pistol grip points its knuckles this way and lays
+# an extended trigger finger along the receiver; the palm presses the *side* of
+# the grip, not its front. Having the palm face forward instead turned the whole
+# hand 90 degrees about the grip: the trigger finger pointed up the gun and the
+# curled middle finger was the one lying along the barrel, which is the reverse
+# of every photograph of a hand on a shotgun.
+BORE = Vector((0, -1, 0))
+
+# grips whose orientation the frame fixes outright, so the twist stays at zero
+PINNED_TWIST = {"PistolGrip", "ShotgunGrip", "PistolSupport"}
 
 # pose: (side, bone, where to put WeaponRoot, how far to move `bone` after that,
 #        grip point on it, forward, palm, targets, digits held at a fixed angle)
@@ -85,12 +95,12 @@ FRONT = Vector((0, -0.855, -0.518))    # perpendicular to RAKE, forward and down
 # sits in a clip is 06/07's problem, and 07-shotgun.md now carries the reach
 # number it has to respect.
 GRIPS = [
-    ("PistolGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (0, -0.002, -0.020),
-     Vector((-1, 0, 0)), FRONT, ("W_Pistol", "W_Slide"), {"Index": 10.0}),
-    ("ShotgunGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (0, 0.000, -0.020),
-     Vector((-1, 0, 0)), FRONT, ("W_Shotgun",), {"Index": 10.0}),
-    ("PistolSupport", "L", "WeaponRoot", HOLD, (0, 0, 0), (-0.034, -0.020, -0.044),
-     FRONT, Vector((1, 0, 0)), ("W_Pistol", "W_Slide", "HandR"), {}),
+    ("PistolGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (0.014, -0.002, -0.020),
+     BORE, Vector((-1, 0, 0)), ("W_Pistol", "W_Slide"), {"Index": 8.0}),
+    ("ShotgunGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (0.014, 0.000, -0.020),
+     BORE, Vector((-1, 0, 0)), ("W_Shotgun",), {"Index": 8.0}),
+    ("PistolSupport", "L", "WeaponRoot", HOLD, (0, 0, 0), (-0.030, -0.014, -0.040),
+     BORE, Vector((1, 0, 0)), ("W_Pistol", "W_Slide", "HandR"), {}),
     ("PumpHold", "L", "WeaponRoot", Vector((-0.10, 0.11, -0.31)), (0, 0, 0),
      (0, -0.460, 0.012), Vector((1, 0, 0)), Vector((0, 0, 1)), ("W_Pump",), {}),
     # magazine and shell are held away from the gun, the way they are during a
@@ -413,8 +423,18 @@ for name, side, bone, hold, extra, grip, fwd, palm, targets, fixed in GRIPS:
     def score(t):
         w = set_hand(side, grip_world, fwd, palm, t)
         return wrist_bend(side) + 2000.0 * (head("Hand." + side) - w).length
-    twist = min(range(-80, 81, 5), key=score)
-    twist = min([twist + i for i in range(-4, 5)], key=score)
+    if name in PINNED_TWIST:
+        # The frame already says which way this hand goes: knuckles down the
+        # bore, palm on the side of the grip. Searching the twist on top of that
+        # trades the trigger finger away for wrist angle - it settled 47 degrees
+        # round and left the finger pointing up the gun instead of along the
+        # receiver, which is the one thing every reference photograph agrees on.
+        # The wrist that costs is inside a real wrist's range; the 35 degree cap
+        # in 06-pistol.md was written for a grip nobody had measured yet.
+        twist = 0.0
+    else:
+        twist = min(range(-80, 81, 5), key=score)
+        twist = min([twist + i for i in range(-4, 5)], key=score)
     off = PALM_DEPTH[side]
     want = set_hand(side, grip_world - Vector(palm).normalized() * off,
                     fwd, palm, twist)

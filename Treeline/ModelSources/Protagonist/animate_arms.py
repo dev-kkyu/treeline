@@ -283,8 +283,14 @@ def set_hand(side, grip_world, forward, palm, twist=None, span=180.0):
 
 
 
-def grip(pose, drift=None, span=25.0):
+def grip(pose, drift=None, span=25.0, along=None):
     """Put the hand on whatever its pose is attached to, wherever that is now.
+
+    `along` can force the extended fingers down a direction, but the weapon
+    grips do not need it any more: the pose library's frames now put the palm on
+    the side of the grip with the knuckles forward, so a straight trigger finger
+    lands 6 degrees off the bore on its own. Forcing the twist on top of that
+    cost 20 degrees of wrist and bought nothing.
 
     This is what the pose library is for: FRAMES stores the grip in the bone's
     own space, so the hand tracks the magazine into the gun without a single
@@ -304,9 +310,47 @@ def grip(pose, drift=None, span=25.0):
     # endpoints. Holding one twist across a segment was tried and is worse: the
     # optimum genuinely moves as the magazine comes up, and pinning it put the
     # pistol wrist at 61 degrees where re-solving gave 29.
-    set_hand(side, grip_w - palm_w.normalized() * off, R @ Vector(fwd), palm_w,
-             twist, span=span)
+    target = grip_w - palm_w.normalized() * off
+    fw, pw = R @ Vector(fwd), palm_w
+    if span == 0.0:
+        # Use the library's twist exactly. It was solved on the real weapon with
+        # both things right at once - wrist 21 degrees and the trigger finger
+        # down the bore - and re-searching it here only ever traded one of those
+        # away for the other, because the twist is a single degree of freedom
+        # and they pull on opposite ends of it. The stance difference is the
+        # elbow's problem, not the hand's.
+        _apply_hand(side, target, (R @ Vector(fwd)).normalized(),
+                    _ortho(palm_w, R @ Vector(fwd)), twist)
+    elif along is None:
+        set_hand(side, target, fw, pw, twist, span=span)
+    else:
+        # Both at once. Scoring the wrist alone rolled the hand back round the
+        # grip and left the trigger finger 66 degrees off the bore; scoring the
+        # bore alone straightened the finger and cost 20 degrees of wrist. A
+        # degree of either is worth about the same to look at.
+        aim = Vector(along).normalized()
+        fwn, pwn = fw.normalized(), _ortho(pw, fw)
+
+        def score(t):
+            want = _apply_hand(side, target, fwn, pwn, t)
+            hb = arm.pose.bones["Hand." + side]
+            # the wrist is a hard limit and the bore is a preference, so the
+            # bore is worth less per degree
+            return (wrist_bend(side)
+                    + 0.45 * math.degrees(
+                        (hb.tail - hb.head).normalized().angle(aim))
+                    + 2000.0 * (hb.head - want).length)
+        best = min([twist + i for i in range(-40, 41, 5)], key=score)
+        best = min([best + i for i in range(-4, 5)], key=score)
+        _apply_hand(side, target, fwn, pwn, best)
     set_fingers(side, pose)
+    fit_elbow(side)
+
+
+def barrel():
+    """Which way the muzzle points right now, in world space."""
+    pb = arm.pose.bones["WeaponRoot"]
+    return (pb.tail - pb.head).normalized()
 
 
 def grip_around(pose, drift=None):
@@ -344,12 +388,42 @@ def grip_around(pose, drift=None):
     t, fw, pw = frame(best)
     set_hand(side, t, fw, pw, twist, span=20.0)
     set_fingers(side, pose)
+    fit_elbow(side)
     return best
 
 
 def free_hand(side, pos, fwd, palm, pose):
     set_hand(side, Vector(pos), fwd, palm)
     set_fingers(side, pose)
+
+
+def fit_elbow(side, span=170, step=10):
+    """Swing the elbow round the shoulder-wrist axis until the wrist is straight.
+
+    The elbow was pinned, so every degree the grip asked of the arm had to come
+    out of the wrist. It is a free degree of freedom: the hand stays exactly
+    where the IK target is no matter where the elbow goes, and the forearm
+    rotates under it. The reference photograph has the forearm continuing the
+    line of the grip - that is this, not a different hand pose.
+    """
+    sh = arm.pose.bones["UpperArm." + side].head.copy()
+    wr = arm.pose.bones["Hand." + side].head.copy()
+    axis = (wr - sh)
+    if axis.length < 1e-5:
+        return 0.0
+    axis = axis.normalized()
+    base = POLE[side]
+
+    def score(a):
+        p = sh + Matrix.Rotation(math.radians(a), 3, axis) @ (base - sh)
+        wloc("CTRL_ElbowPole." + side, p - rest_head("CTRL_ElbowPole." + side))
+        bpy.context.view_layer.update()
+        return wrist_bend(side)
+
+    best = min(range(-span, span + 1, step), key=score)
+    best = min([best + i * 2 for i in range(-5, 6)], key=score)
+    score(best)
+    return best
 
 
 def poles(r=None, l=None):
@@ -414,7 +488,7 @@ def pistol_idle():
     set_part("Slide", (0, 0, 0))
     set_part("Magazine", (0, 0, 0))
     poles()
-    grip("PistolGrip")
+    grip("PistolGrip", span=0.0)
     grip("PistolSupport")
 
 
@@ -482,7 +556,7 @@ def build_pistol_reload():
         gun(f, lift=0.06 * u, roll=-30 * u, inboard=0.05 * u)
         set_part("Slide", (0, 0, 0))
         set_part("Magazine", (0, 0, 0))
-        grip("PistolGrip")
+        grip("PistolGrip", span=0.0)
         grip("PistolSupport")
         key(f)
 
@@ -546,7 +620,7 @@ def build_pistol_reload():
         else:
             back = max(0.0, 1.0 - (f - 47) / 1.5)   # released, runs forward
         set_part("Slide", (0, 0.008 * back, 0))
-        grip("PistolGrip")
+        grip("PistolGrip", span=0.0)
         # around the slide, not about the palm: an overhand slide grip can sit
         # anywhere on the circle round it, and the library solved only one of
         # those, with the gun somewhere else. Pinned there the wrist hit 99.
@@ -556,7 +630,7 @@ def build_pistol_reload():
     # 52 - hand back towards the support grip
     gun(52, lift=0.02, roll=-8, inboard=0.015)
     set_part("Slide", (0, 0, 0))
-    grip("PistolGrip")
+    grip("PistolGrip", span=0.0)
     grip("PistolSupport")
     key(52)
 
@@ -574,7 +648,7 @@ def shotgun_idle():
     set_part("Pump", (0, 0, 0))
     set_part("Shell", (0, 0, 0))
     poles()
-    grip("ShotgunGrip")
+    grip("ShotgunGrip", span=0.0)
     grip_around("PumpHold")
 
 
@@ -613,7 +687,7 @@ def build_shotgun_reload():
         u = (f - 1) / 11.0
         gun(roll=6 * u, lift=0.02 * u, inboard=0.012 * u)
         set_part("Shell", (0, 0, 0))
-        grip("ShotgunGrip")
+        grip("ShotgunGrip", span=0.0)
         if u < 0.35:
             grip_around("PumpHold")
         else:
@@ -664,7 +738,7 @@ def build_shotgun_reload():
     align_shell(1.0)
     place_part("Shell", OFFSCREEN)
     gun(roll=3, lift=0.02, inboard=0.015)
-    grip("ShotgunGrip")
+    grip("ShotgunGrip", span=0.0)
     grip_around("PumpHold")
     key(68)
 
@@ -675,7 +749,7 @@ def build_shotgun_reload():
         gun(roll=3 * (1 - abs(u - 0.5) * 0.4), lift=0.02, inboard=0.015)
         off = Vector((0, 0.070 * u, 0))
         set_part("Pump", off)
-        grip("ShotgunGrip")
+        grip("ShotgunGrip", span=0.0)
         grip_around("PumpHold", drift=delta("WeaponRoot").to_3x3() @ off)
         key(f)
 
@@ -710,7 +784,7 @@ def build_shotgun_firepump():
     def hands(pump_u):
         off = Vector((0, TRAVEL * pump_u, 0))
         set_part("Pump", off)
-        grip("ShotgunGrip")
+        grip("ShotgunGrip", span=0.0)
         # same offset in the weapon's frame, so the hand stays on the sleeve.
         # Around the barrel axis, not about the palm: the pump is a cylinder and
         # that is where its free angle lives.
