@@ -337,7 +337,8 @@ Player                  태그 Player, 레이어 Player(8)
 ├── Body                회색 박스 캡슐
 ├── Camera              본 카메라. Player 와 ViewModel 을 그리지 않는다
 │   ├── ViewModelCamera URP 오버레이. ViewModel(9) 만, 깊이를 지우고 겹쳐 그린다
-│   ├── Flashlight      Spot Light
+│   ├── Flashlight      Spot Light. ViewModel 은 안 비춘다
+│   ├── ViewModelLight  총만 비추는 약광. ViewModel(9) 전용
 │   ├── Pistol          PlayerWeapon + Model
 │   └── Shotgun         PlayerWeapon + Model
 └── HUD                 Screen Space Overlay 캔버스
@@ -359,6 +360,11 @@ Player                  태그 Player, 레이어 Player(8)
 본 카메라 위에 깊이를 지우고 겹쳐 그린다. 총이 벽에 파고들지 않고, 시야각을 따로
 줄 수 있어(본 카메라 70도 / 뷰모델 50도) 총이 덜 왜곡된다. 그래서 본 카메라의
 컬링 마스크에서 `ViewModel`(9) 을 뺐다 — **둘 다 그리면 총이 두 번 그려진다.**
+
+IMPORTANT: **손전등도 `ViewModel` 을 비추지 않는다.** 손전등과 총이 0.36m 밖에
+안 떨어져 있어 역제곱 감쇠로 총이 하얗게 날아간다. 대신 `ViewModelLight` 라는
+약한 점광을 `ViewModel` 전용으로 따로 둔다. 이것이 없으면 정전 상태에서 자기 총이
+아예 안 보인다. 세기를 바꿀 때는 손전등이 아니라 이쪽을 만진다.
 
 총 모델은 `PlayerWeapon` 이 자기 `OnEnable`/`OnDisable` 에서 켜고 끈다. 장착
 상태와 화면의 총이 어긋날 자리를 만들지 않으려는 것이다.
