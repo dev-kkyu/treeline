@@ -32,6 +32,16 @@ namespace Treeline
         [Tooltip("지나간 뒤 스스로 꺼지는지. 끄면 제자리에 남는다.")]
         [SerializeField] private bool hideWhenDone = true;
 
+        [Header("걷는 모습")]
+        [Tooltip("지나가는 동안 이 Animator 의 속도 파라미터를 올린다. 비워 두면 아무것도 안 한다.")]
+        [SerializeField] private Animator animator;
+
+        [Tooltip("올릴 파라미터 이름.")]
+        [SerializeField] private string speedParameter = "Speed";
+
+        [Tooltip("걷기에 해당하는 값. Colossus 는 1.15 가 너클보행이다.")]
+        [SerializeField] private float speedValue = 1.15f;
+
         private Vector3 origin;
         private float elapsed;
         private bool captured;
@@ -53,6 +63,12 @@ namespace Treeline
 
             elapsed = 0f;
             transform.localPosition = origin + from;
+
+            // 위치만 옮기면 미끄러져 지나간다. 다리가 움직여야 「지나갔다」로 읽힌다.
+            if (animator != null && !string.IsNullOrEmpty(speedParameter))
+            {
+                animator.SetFloat(speedParameter, speedValue);
+            }
         }
 
         private void Update()
