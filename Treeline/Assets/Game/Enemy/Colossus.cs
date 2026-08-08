@@ -62,7 +62,7 @@ namespace Treeline
 
         [Header("발각 — 돌아보고 포효한 뒤에 온다")]
         [Tooltip("알아채고 이만큼 멈춰 서서 플레이어를 본다. 0 이면 바로 쫓는다.")]
-        [SerializeField] private float roarSeconds = 1.2f;
+        [SerializeField] private float roarSeconds = 2f;
 
         [Tooltip("포효하는 동안 플레이어 쪽으로 도는 빠르기(도/초).")]
         [SerializeField] private float roarTurnSpeed = 220f;

@@ -379,7 +379,7 @@ MonoBehaviour:
   roamPauseSeconds: 3
   roamSpeed: 1.2
   chaseSpeed: 3.4
-  roarSeconds: 1.2
+  roarSeconds: 2
   roarTurnSpeed: 220
   noticed:
     m_PersistentCalls:
