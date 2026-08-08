@@ -24,7 +24,7 @@ namespace Treeline
     {
         [Header("앰비언트")]
         [Tooltip("정전이므로 거의 검정이다. 완전한 0 은 피한다 — 실루엣조차 안 보이면 길을 못 찾는다.")]
-        [SerializeField] private Color ambient = new Color(0.020f, 0.024f, 0.032f);
+        [SerializeField] private Color ambient = new Color(0.007f, 0.009f, 0.013f);
 
         [Header("안개 — 손전등 원뿔에 형태를 준다")]
         [SerializeField] private bool useFog = true;
