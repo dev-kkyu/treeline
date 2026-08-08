@@ -96,9 +96,19 @@ blender Protagonist_Arms.blend -b --python arms_test.py
 ## 1인칭 팔 — 2026-08-09 완성
 
 별도 파일 `Protagonist_Arms.fbx`, root 는 `ViewModelRoot`, Generic 리그다. deform
-는 UpperChest 부터 양손 손가락까지 39개 **+ 무기 본 5개 = 44개**
+는 UpperChest 부터 양손 손가락까지 39개 **+ 팔뚝 twist 2개 + 무기 본 5개 = 46개**
 ([`09-weapons.md`](09-weapons.md)). 컨트롤은 `CTRL_HandIK.L/R` 과
 `CTRL_ElbowPole.L/R` 넷.
+
+### 팔뚝 twist 본 — 각도가 아니라 스키닝을 고친다
+
+`LowerArmTwist.L/R` 이 팔뚝 중간에서 손목까지 걸리고, `Hand` 의 **로컬 Y 회전만**
+복사한다. 가중치는 팔꿈치 0 → 손목 1 로 램프를 준다. 본은 회전 하나뿐이고,
+소매를 따라가는 **기울기는 가중치가 만든다.**
+
+IMPORTANT: **이것은 손목 각도를 줄이지 않는다.** 회내는 팔뚝 방향과 손 방향 사이
+각을 바꾸지 않는다. 고쳐지는 것은 손이 팔뚝에 대해 45° 돌아갔을 때 **소매가 정점
+한 줄에서 찢어지며 장갑이 각지게 접히던 것**이다.
 
 `build_arms.py` 가 `Protagonist_Rig.blend` 를 읽어 만든다. **전신과 같은 rest
 pose 를 그대로 쓴다** — 본 표 · roll · 미리 접은 팔꿈치를 전신에서 그대로 가져오기
@@ -190,7 +200,7 @@ pose 를 그대로 쓴다** — 본 표 · roll · 미리 접은 팔꿈치를 �
 
 | # | 항목 | 기준 | 실측 |
 | ---: | --- | --- | --- |
-| 1 | 본 수 | deform 44 | **44** (+ ViewModelRoot + 컨트롤 4) |
+| 1 | 본 수 | deform 46 | **46** (+ ViewModelRoot + 컨트롤 4) |
 | 2 | `ViewModelRoot` 위치 | 원점 | **(0, 0, 0)** |
 | 3 | 잘린 메시에 몸통이 남았나 | 없을 것 | x 0.14 안쪽 20정점, 전부 카메라 아래 |
 | 4 | 소매 절단면 | 열린 곳 0 | **0** (구멍 2개, 경계 변 75개) |

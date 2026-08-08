@@ -3,9 +3,10 @@ own armature with the weapon bones in it.
 
     blender Protagonist_Rig.blend -b --python build_arms.py -- [Weapons.blend]
 
-Follows 00-rigging.md's "1인칭 팔" section and 09-weapons.md. 44 deform bones:
-UpperChest, both arms down to the fingers (39), plus WeaponRoot / Slide /
-Magazine / Pump / Shell (5). Generic rig, root is ViewModelRoot.
+Follows 00-rigging.md's "1인칭 팔" section and 09-weapons.md. 46 deform bones:
+UpperChest, both arms down to the fingers (39), a forearm twist each side (2),
+plus WeaponRoot / Slide / Magazine / Pump / Shell (5). Generic rig, root is
+ViewModelRoot.
 
 Two things make this a separate file from the body rather than a second export
 of it:
@@ -284,6 +285,38 @@ def cap_holes(ob):
     return len(new)
 
 
+def spread_twist(mesh_ob, table):
+    """Hand the outer half of each forearm's weight to its twist bone.
+
+    A linear ramp - nothing at the elbow, all of it at the wrist - is what turns
+    the bone's single roll into a gradient along the sleeve. The bone copies the
+    hand's roll whole; the gradient lives here, in the weights.
+    """
+    by = {t[0]: t for t in table}
+    for side in ("R", "L"):
+        src = mesh_ob.vertex_groups.get("LowerArm." + side)
+        if src is None:
+            continue
+        dst = (mesh_ob.vertex_groups.get("LowerArmTwist." + side)
+               or mesh_ob.vertex_groups.new(name="LowerArmTwist." + side))
+        elbow = by["LowerArm." + side][1]
+        axis = (by["LowerArm." + side][2] - elbow)
+        span = axis.length
+        axis = axis.normalized()
+        moved = 0
+        for vt in mesh_ob.data.vertices:
+            w = next((g.weight for g in vt.groups if g.group == src.index), 0.0)
+            if w <= 0.0:
+                continue
+            u = min(1.0, max(0.0, (vt.co - elbow).dot(axis) / span))
+            if u <= 0.0:
+                continue
+            dst.add([vt.index], w * u, 'REPLACE')
+            src.add([vt.index], w * (1.0 - u), 'REPLACE')
+            moved += 1
+        print("TWIST  %s  %d verts share the roll" % (side, moved))
+
+
 def prune_groups(ob, keep_names):
     for g in [g for g in ob.vertex_groups if g.name not in keep_names]:
         ob.vertex_groups.remove(g)
@@ -318,6 +351,20 @@ def arms_bone_table():
             name = base + "." + side
             n, h, t, p, c, _ = by_name[name]
             table.append((n, h, t, p, c, True))
+        # Forearm twist. The hand takes the whole roll relative to the
+        # forearm, so with the wrist turned 45 degrees onto a grip the sleeve
+        # shears in one loop of vertices and the glove creases into facets. A
+        # twist bone from mid-forearm to the wrist, copying the hand's roll,
+        # spreads that turn along the sleeve instead.
+        #
+        # It does NOT reduce the wrist angle. Pronation does not change the
+        # angle between forearm and hand - it is the skinning this fixes.
+        elbow = by_name["LowerArm." + side][1]
+        wrist = by_name["LowerArm." + side][2]
+        table.append(("LowerArmTwist." + side, elbow.lerp(wrist, 0.5), wrist,
+                      "LowerArm." + side, False, True))
+        axes["LowerArmTwist." + side] = axes["LowerArm." + side]
+
         ctrl = "CTRL_HandIK." + side
         n, h, t, _, c, _ = by_name[ctrl]
         table.append((n, h, t, "ViewModelRoot", False, False))
@@ -382,6 +429,7 @@ def main():
     table = stretch_forearms(table, arms, ARM_EXTENSION)
     keep = {t[0] for t in table if t[5]}
     prune_groups(arms, keep)
+    spread_twist(arms, table)
 
     arm_data = bpy.data.armatures.new("Arms_Armature")
     arm_ob = bpy.data.objects.new("Arms_Armature", arm_data)
@@ -406,7 +454,7 @@ def main():
 
     n_def = sum(1 for b in arm_data.bones if b.use_deform)
     print("BONES  %d  deform %d" % (len(arm_data.bones), n_def))
-    assert n_def == 44, "09-weapons.md asks for 44 deform bones, built %d" % n_def
+    assert n_def == 46, "expected 46 deform bones, built %d" % n_def
 
     for vt in arms.data.vertices:
         vt.co -= CAMERA
@@ -475,6 +523,16 @@ def main():
         c.subtarget = "CTRL_HandIK." + side
         c.target_space = 'WORLD'
         c.owner_space = 'WORLD'
+
+        # roll only, and in local space, so the twist bone follows how far the
+        # hand has turned about the forearm and nothing else
+        c = arm_ob.pose.bones["LowerArmTwist." + side].constraints.new(
+            'COPY_ROTATION')
+        c.target = arm_ob
+        c.subtarget = "Hand." + side
+        c.use_x = c.use_z = False
+        c.target_space = 'LOCAL'
+        c.owner_space = 'LOCAL'
     for pb in arm_ob.pose.bones:
         if pb.name.rsplit(".", 1)[0] == "LowerArm":
             pb.lock_ik_y = True
