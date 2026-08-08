@@ -289,10 +289,14 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 
 ### 새 장치
 
-1. 세 패턴 중 하나를 고른다 — 즉시 발동 / 시간 발동 / 지속 상태
-2. 기존 컴포넌트를 **파라미터만 바꿔** 쓴다. 새 스크립트를 만들기 전에 세 패턴으로
-   안 되는 이유를 먼저 확인한다
-3. `IDeviceTrigger` 로 발동을 받는다
+1. 빈 오브젝트에 세 컴포넌트 중 하나를 붙인다 — `InstantDevice` · `TimedDevice` ·
+   `SustainedDevice`. 레이어는 `Device`(18) 다
+2. `enables` 에 발동하면 켜질 것을, `disables` 에 꺼질 것을 넣는다
+3. 발동시킬 `Lever` 의 `devices` 에 그 장치를 넣는다
+4. **새 스크립트를 만들지 않는다.** 셋으로 안 되는 것이 나오면 왜 안 되는지를 먼저
+   확인한다. 장치마다 클래스를 만들면 아홉 개가 되고 그중 여덟은 서로 복사본이 된다
+
+자세한 것은 [시스템 목록의 Devices](#devices).
 
 ### 새 상호작용 대상
 
@@ -309,7 +313,7 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | Player | 1인칭 이동 · 카메라 · 손전등 · 체력 · 무기 | 1단계 구현됨 |
 | Enemy | 추격 · 공격 · 피격 · 사망. NavMesh 기반 | `Crawler` · `Colossus` 회색 박스 |
 | Interaction | 바라보는 대상과의 상호작용, 획득, 양손 운반 | 1단계 구현됨 |
-| Devices | 장치 발동. 세 패턴으로 수렴 | 미구현 |
+| Devices | 장치 발동. 세 패턴으로 수렴 | 2-1 구현됨 |
 | Progress | 씬 전환 · 체크포인트 · 사망 · 재시작 | 1단계 구현됨 |
 | UI | 타이틀 · 설정 · 엔딩 · 최소 HUD · WebGL 로딩 | 미구현 |
 
@@ -454,13 +458,24 @@ IMPORTANT: 크기를 **Transform 스케일로 만들지 않는다.** 스케일�
 
 ### Interaction
 
-`Assets/Game/Interaction/`. 1단계는 `Lever` 하나다. `IInteractable` 의 첫
-구현체이고, 6장 삭도 기동이 이것이다.
+`Assets/Game/Interaction/`. `Lever` 하나다. `IInteractable` 의 첫 구현체이고,
+6장 삭도 기동이 이것이다.
 
-당기면 지정한 오브젝트를 켠다. 6장에서는 `ChapterExit` 를 켜므로 **레버를 당기기
-전에는 장을 나갈 수 없다.** 장치 시스템(`IDeviceTrigger`)이 들어오면 그쪽을
-발동시키는 것으로 바꾼다. 지금 미리 추상화하지 않는 이유는 없는 시스템에 맞추면
-상상으로 만들게 되기 때문이다.
+**레버는 조작부일 뿐이고 무슨 일이 일어나는지는 장치가 정한다.** `devices` 에 넣은
+`Device` 들을 발동시킨다. 1단계에는 여는 대상을 직접 들고 있었는데, 장치 시스템이
+없을 때 미리 추상화하면 상상으로 만들게 되기 때문이었다. 실물이 생겨 갈아끼웠다.
+
+`oneShot` 이 두 가지 물건을 만든다.
+
+| `oneShot` | 무엇이 되나 | 눌렀을 때 |
+| --- | --- | --- |
+| 켬 (기본) | **한 번 당기는 레버.** 셔터 · 삭도 | `Activate`. 내려간 채로 남고 다시 안 눌린다 |
+| 끔 | **켜고 끄는 스위치.** 서치라이트 | `Activate` / `Deactivate` 를 번갈아. 각도도 왕복한다 |
+
+IMPORTANT: **각도가 되돌아오는 것은 「다시 당길 수 있다」는 뜻이다.** `oneShot`
+레버를 되돌리는 연출을 만들었다가 걷어낸 적이 있다. 올라와 있는데 안 눌리면 색이
+아무리 달라도 플레이어는 계속 눌러본다. 문구도 같다 — `promptWhenOn` 은 스위치일
+때만 채운다.
 
 IMPORTANT: **상호작용 대상은 눈높이에 둔다.** A 의 조준 광선은 카메라에서 나가고
 1인칭 눈높이는 바닥에서 `y≈1.73` 이다. 허리 높이에 두면 광선이 위로 지나가 아무리
@@ -468,7 +483,40 @@ IMPORTANT: **상호작용 대상은 눈높이에 둔다.** A 의 조준 광선�
 
 IMPORTANT: **동선 위에 두지 않는다.** 상호작용 대상은 보통 막는 콜라이더라
 통로 한가운데 두면 플레이어가 거기서 걸린다. 6장 레버를 출구 통로(`x -3~3`)
-바깥인 `x=6` 에 둔 것이 그 이유다.
+바깥인 `x=4` 에 둔 것이 그 이유다.
+
+### Devices
+
+`Assets/Game/Devices/`. 기획의 장치는 아홉이지만 **구현은 세 개다.** 셋 다
+`Device` 를 물려받고 `IDeviceTrigger` 로 발동을 받는다.
+
+| 컴포넌트 | 언제 켜지나 | 끌 수 있나 | 기획의 어느 장치 |
+| --- | --- | --- | --- |
+| `InstantDevice` | 바로 | 아니오 | 셔터 · 연료 인화 · 수소 폭발 · 제설포 |
+| `TimedDevice` | `seconds` 뒤 | 아니오 | 히터 케이블 · 환기 팬 · 발전기 예열 |
+| `SustainedDevice` | 바로 | **예** | 서치라이트 · 유도등 · 로터리 제설기 |
+
+셋의 차이는 **언제 `IsActive` 가 되고 되돌릴 수 있는가**뿐이다. 「무엇이
+일어나는가」는 전부 `Device` 가 맡는다.
+
+| 인스펙터 | 무엇 |
+| --- | --- |
+| `enables` | 발동하면 켜질 것들. 내려온 셔터, 열린 문 |
+| `disables` | 발동하면 꺼질 것들. 얼음 막, 막고 있던 벽 |
+| `activated` · `deactivated` | 소리와 연출을 끌어다 놓는 자리 |
+
+코드에서 상태를 따라가야 하면 `Device.ActiveChanged` 를 구독한다. 인스펙터의
+`UnityEvent` 와 나란히 둔 것은 **배선 비용이 다르기 때문**이다. 소리 하나는
+에디터에서 끌어다 놓는 편이 빠르고, 시스템이 상태를 물고 가는 것은 코드가 안전하다.
+
+`TimedDevice` 는 `IsRunning` · `Progress` · `SecondsLeft` 를 내놓는다. 2장에서
+히터가 도는 동안 숨는 구간과 4장 환기 팬 대기가 이 값을 본다. **한 번 걸면 못
+멈춘다** — 취소를 만들면 기다리는 것이 선택이 되어 버티는 구간 자체가 사라진다.
+4장의 「환기 팬을 돌릴까 그냥 들어갈까」도 **걸기 전에** 하는 선택이다.
+
+IMPORTANT: **`Device.Awake` 가 시작 모습을 강제로 맞춘다.** `enables` 를 끄고
+`disables` 를 켠다. 편집하다 켜둔 채 저장하는 일은 반드시 생기고, 그것을 씬 파일에
+맡기면 「내 컴퓨터에서는 닫혀 있었다」가 된다.
 
 ### Progress
 
@@ -495,6 +543,7 @@ IMPORTANT: **동선 위에 두지 않는다.** 상호작용 대상은 보통 막
 ```
 PlayerWeapon ──레이캐스트(Shot)──▶ IDamageable   (적: B)
 PlayerInteractor ──레이캐스트(Interaction)──▶ IInteractable   (문·레버: C)
+Lever ──Activate/Deactivate──▶ Device   (장치: C)
 Enemy ──▶ IDamageable   (PlayerHealth: A)
 PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구독자 없음)
 ```

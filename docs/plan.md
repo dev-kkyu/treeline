@@ -134,7 +134,7 @@ IMPORTANT: **`Player/TestDamageTarget.cs` 와 `TestTarget.prefab` 을 지울 때
 
 | | 만드는 것 | 누가 기다리나 | |
 | --- | --- | --- | --- |
-| **C** | 장치 3패턴 컴포넌트 — 즉시 발동 / 시간 발동 / 지속 상태. `IDeviceTrigger` | A · B 가 파라미터만 바꿔 쓴다 | 남음 |
+| **C** | 장치 3패턴 컴포넌트 — 즉시 발동 / 시간 발동 / 지속 상태. `IDeviceTrigger` | A · B 가 파라미터만 바꿔 쓴다 | ✅ |
 | **C** | 양손 운반 (들면 총을 못 쓴다) | A 의 6장 권양기 | 남음 |
 | **C** | 손전등 배터리 소모 · 줍기 | 2장의 어둠이 성립한다 | 남음 |
 | **A** | 달리기 스태미너 소모 · 회복 대기 · HUD 연결 | 2장과 6장의 도망 구간 | ✅ `b4761e0` |
@@ -142,9 +142,15 @@ IMPORTANT: **`Player/TestDamageTarget.cs` 와 `TestTarget.prefab` 을 지울 때
 
 **완료 기준:** A 와 B 가 새 스크립트를 쓰지 않고 자기 장에 장치를 놓을 수 있다.
 
-**남은 것은 전부 C 다.** A 와 B 는 자기 몫을 끝냈으므로, 이 차수의 진행 속도는
-C 에 달려 있다. 특히 **장치 3패턴 컴포넌트가 2-2 전체를 막는다** — B 의 2장 히터 ·
-셔터도, A 의 6장 케이블 히터도 그것으로 만든다.
+**장치 3패턴이 들어와 2-2 를 막던 것이 풀렸다.** `InstantDevice` · `TimedDevice` ·
+`SustainedDevice` 셋이고, 빈 오브젝트에 붙여 `enables` · `disables` 만 채우면 된다.
+쓰는 법은 [`tech-design/architecture.md`](tech-design/architecture.md) 의 「새 장치」.
+
+- B 의 2장 — 얼어붙은 문은 `TimedDevice`, 비상 셔터는 `InstantDevice`
+- A 의 6장 — 케이블 히터는 `TimedDevice`
+- C 의 1장 — 서치라이트는 `SustainedDevice` + `oneShot` 을 끈 `Lever`
+
+남은 둘(양손 운반 · 손전등 배터리)은 C 몫이지만 **남을 막지 않는다.**
 
 계약 두 개는 **둘 다 정해졌다.** 둘 다 C 가 만드는데 효과는 A 의 코드에서 나므로
 정하지 않으면 양쪽이 각자 만들어 두 벌이 되는 자리였다.

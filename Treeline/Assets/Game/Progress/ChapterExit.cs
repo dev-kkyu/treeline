@@ -11,7 +11,9 @@ namespace Treeline
     /// 정하므로 여기에 다음 장 이름을 적지 않는다. 적어두면 장을 끼워 넣을 때마다
     /// 씬을 열어 고쳐야 한다.
     /// </remarks>
-    [RequireComponent(typeof(Collider))]
+    // 추상 타입인 Collider 를 적으면 Unity 가 붙이지 못해 빈 오브젝트에
+    // AddComponent 하면 조용히 null 이 돌아온다. 기즈모도 BoxCollider 를 전제한다.
+    [RequireComponent(typeof(BoxCollider))]
     public sealed class ChapterExit : MonoBehaviour
     {
         private void Reset()
