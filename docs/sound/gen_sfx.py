@@ -29,6 +29,7 @@ OUT_ROOT = "Treeline/Assets/Game/Audio"
 
 # 적 · 무기 소리는 Audio/ 가 아니라 담당 폴더로 간다. architecture.md 의 규칙이다.
 CATEGORY_DIRS = {
+    "Music": "Treeline/Assets/Game/Audio/Music",
     "Crawler": "Treeline/Assets/Game/Enemy/Audio",
     "Clinger": "Treeline/Assets/Game/Enemy/Audio",
     "Colossus": "Treeline/Assets/Game/Enemy/Audio",
@@ -214,6 +215,23 @@ PROMPTS = [
     ("Devices", "searchlight-swivel-loop",
      "Large searchlight motor slewing the lamp housing, steady electric "
      "servo whine with gear train, " + STEADY, 10.0, True),
+
+    # --- 음악이지만 효과음 API 로 만드는 것 -------------------------------
+    # 금속 질감이라 악기 생성보다 이쪽이 맞고, loop 파라미터가 있어 이음매를
+    # 생성기가 처리한다. 다만 생성 결과가 매번 원본보다 밝게 나오므로 뽑은 뒤
+    # 아래 두 단계를 반드시 거친다.
+    #   1. ffmpeg treble=g=-9:f=2000:width_type=q:w=0.6
+    #      목표는 무게중심 1393 Hz 다. 그냥 쓰면 3000 Hz 근처로 쇳소리만 난다.
+    #   2. 루프 안 음량 기울기 펴기(원형 이동 RMS 의 역수, ±3 dB 로 세 번).
+    #      원본은 9.5 dB 차이라 한 바퀴마다 부풀었다 꺼진다.
+    #   3. normalize.py 로 -18 LUFS
+    ("Music", "chase-dread-loop",
+     "Grinding scraped metal resonance and harsh inharmonic ringing, sheets "
+     "of cold steel groaning and singing under stress, sitting on top of a "
+     "heavy low drone that holds underneath. Dense and metallic, unresolved, "
+     "oppressive, airless. Already at full intensity with no build up and no "
+     "development, the same state held all the way through. " + STEADY
+     + " No music, no instruments, no melody.", 22.0, True),
 
     # --- 적 소리 -----------------------------------------------------------
     # 스펙(docs/enemy-sheets/)이 세 종의 표면을 「검은 회청색 균열 피부 + 흰 서리

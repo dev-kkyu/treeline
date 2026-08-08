@@ -88,11 +88,12 @@ TRACKS = [
      + INSTRUMENTAL,
      75),
 
-    # 발각 순간. 짧고 날카롭게 끊는다
-    ("chase-stinger",
-     "Short horror chase stinger. Sudden dissonant string burst into fast "
-     "panicked tremolo, sharp attack, cuts off abruptly. " + INSTRUMENTAL,
-     20),
+    # 추격 중에 깔리는 바닥. 스팅어가 아니라 루프다.
+    #
+    # IMPORTANT: 이것만 **효과음 API 로 만든다.** gen_music.py 가 아니라
+    # gen_sfx.py 의 Music 카테고리에 있다. 악기가 아니라 금속 질감이라 그쪽이
+    # 맞았고, 효과음 API 에는 loop 파라미터가 있어 이음매를 생성기가 처리한다.
+    # 음악 API 로도 뽑아 봤지만(당시 A 안) 관현악 쪽으로 흘렀다.
 
     # 엔딩. 탈출했지만 그것은 죽지 않았다
     ("ending-descent",

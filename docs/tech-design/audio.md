@@ -181,11 +181,18 @@ IMPORTANT: **같은 장치에 클립과 이벤트를 둘 다 걸면 소리가 �
 | | `Heater/Snd_Start` 의 `Play` | `device-start` |
 | | `Heater/Snd_Hum` 의 `Play` | `heater-hum-loop` — 도는 동안 |
 | `Heater.activated` | `Heater/Snd_Complete` 의 `Play` | `ice-melt-crack` — 얼음이 깨진다 |
-| `Colossus.noticed` | `Cue_Chase` 의 `Play` | `chase-stinger` — 발각되는 순간 |
+| `Colossus.noticed` | `Cue_Chase` 의 `Play` | **비어 있다.** 아래 참고 |
 | | `Player` 의 `PlayerLook.Shake` | 화면이 짧게 떨린다 |
 | `CableCar.activated` | `BoardLever` 의 `Play` | `lever-pull` |
 | | `CableCar/Snd_Start` 의 `Play` | `generator-start` — 권양기가 돈다 |
 | | `CableCar/Snd_Run` 의 `Play` | `generator-rumble-loop` — 가는 동안 |
+
+IMPORTANT: **6 장 `Cue_Chase` 는 지금 클립이 비어 있다.** 원래 걸려 있던
+`chase-stinger` 를 2026-08-09 에 지웠기 때문이다. 기획에 안 맞는다고 판단해 버리고
+`chase-dread-loop` 으로 바꿨는데, 그것은 22 초 루프라 「발각되는 순간」 자리에는
+길이가 맞지 않는다. **발각 큐용 짧은 소리를 새로 만들어 다시 걸어야 한다.**
+6 장 기획이 「알아채면 멈춰 서서 돌아보고 포효한 뒤 온다. 그 1.2 초가 달아날
+시간」 이라고 못박은 자리라, 소리가 없으면 그 1.2 초가 사건으로 안 읽힌다.
 
 **소리 하나에 오브젝트 하나**로 나눈다 (`Snd_<무엇>`). 한 오브젝트에 `AudioSource` 를
 여럿 붙이면 인스펙터에서 어느 이벤트가 어느 소리를 부르는지 읽히지 않는다. 레버 소리만
@@ -312,7 +319,7 @@ IMPORTANT: **사망 소리가 없다.** 명세에 `Death` 클립이 없고 `IsAl
 | `ch5-blizzard` | 5 장 외부 철탑 | 59s |
 | `ch6-colossus` | 6 장 삭도 승강장 | 67s |
 | `power-restored` | **큐.** 4 장 조명이 켜지는 순간 | 29s |
-| `chase-stinger` | **큐.** 발각되는 순간 | 19s |
+| `chase-dread-loop` | **루프.** 추격이 이어지는 동안 | 22s |
 | `ending-descent` | `Ending.unity` | 58s |
 
 ---
@@ -401,8 +408,8 @@ IMPORTANT: **이 게임의 공포는 소리에서 나오고 그 소리는 `Ambie
 
 - `power-restored` — 4 장에서 조명이 켜지는 순간. 기획서가 이 장의 핵심으로
   꼽은 지점이고, 장 전체에 깔린 음악으로는 이 순간이 안 만들어진다
-- `chase-stinger` — 발각되는 순간. 이것만 `Decompress On Load` + preload 로
-  두었으므로 지연 없이 터진다
+`chase-dread-loop` 은 큐가 아니라 **추격 중에 깔아 두는 루프**다. 발각 순간에
+치는 짧은 소리는 지금 없다 — 아래 「6 장 `Cue_Chase`」 참고.
 
 ### 장이 넘어갈 때
 

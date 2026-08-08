@@ -30,6 +30,9 @@ EXTRA_DIRS = ["Treeline/Assets/Game/Enemy/Audio"]
 HEAD_PAD_MS = 10        # 앞에 남길 여유
 TAIL_PAD_MS = 60        # 뒤에 남길 잔향 여유
 MUSIC_TAIL_PAD_MS = 400  # 음악은 잔향이 길어 더 남긴다
+SKIP_SEC = 0.03         # 단발성. 잘라낼 양이 이보다 적으면 손대지 않는다
+MUSIC_SKIP_SEC = 0.08   # 음악은 더 너그럽게. 수십 ms 앞당겨도 티가 안 나고,
+                        # 반복 실행으로 갉이는 쪽이 훨씬 해롭다
 THRESHOLD = 0.02      # 피크 대비 이 비율을 넘으면 소리가 시작된 것으로 본다
 
 
@@ -107,6 +110,14 @@ def trim_music(apply_it):
 
         ss = max(0.0, start / SR - HEAD_PAD_MS / 1000)
         to = min(len(x) / SR, end / SR + MUSIC_TAIL_PAD_MS / 1000)
+
+        # 이미 처리한 파일은 건드리지 않는다. 반복 실행하면 프레임 경계 때문에
+        # 매번 몇십 ms 씩 더 깎여 나가고, 그게 쌓이면 소리가 갉인다. 실제로
+        # 음악 세 개가 그렇게 짧아졌다. **잘라낼 양**으로 판단해야 한다 —
+        # 무음 길이로 보면 경계값에서 새어 나간다.
+        if ss < MUSIC_SKIP_SEC and (len(x) / SR - to) < MUSIC_SKIP_SEC:
+            print(f"  {path.stem:22} 건너뜀 (이미 정리됨)")
+            continue
         tmp = path.with_suffix(".trim.mp3")
         subprocess.run(
             ["ffmpeg", "-v", "quiet", "-y", "-ss", f"{ss:.3f}", "-to",
@@ -154,6 +165,12 @@ def main():
 
         s = max(0, start - int(SR * HEAD_PAD_MS / 1000))
         e = min(len(x), end + int(SR * TAIL_PAD_MS / 1000))
+
+        # 이미 처리한 것은 건너뛴다. 위 trim_music 과 같은 이유다
+        if s / SR < SKIP_SEC and (len(x) - e) / SR < SKIP_SEC:
+            print(f"  {path.name:34} 건너뜀 (이미 정리됨)")
+            continue
+
         y = x[s:e]
 
         # wav 로 저장한다. mp3 로 다시 인코딩하면 손실이 한 세대 더 쌓인다
