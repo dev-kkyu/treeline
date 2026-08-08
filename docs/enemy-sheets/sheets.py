@@ -649,7 +649,7 @@ def sheet_crawler():
         ("애니메이션", "Idle · Prowl(배회) · Chase(추격) · Attack · Hit · Death — 6종"),
         ("Animator", "Speed(float) · Attack(trigger) · Hit(trigger) · Dead(bool)"),
         ("루트", "applyRootMotion = false. 이동은 NavMeshAgent 가 담당한다"),
-    ], "제작 규격  SPEC", "Game/Enemy/Crawler.prefab · Game/Enemy/"))
+    ], "제작 규격  SPEC", "Assets/Game/Enemy/Crawler.prefab"))
 
     o.append(panel(px, Y3, pw, H3, "실루엣 설계 근거",
                    "기획서 「셋이 역광에서 검은 실루엣만 보여도 구분되는지」"))
@@ -826,7 +826,7 @@ def sheet_colossus():
         ("1장 등장", "실루엣만. 모델은 같은 것을 쓰고 안개와 거리로 가린다"),
         ("스케일", "4.5m 를 Transform 스케일로 키우지 않는다. 모델링 단계에서 실측"),
         ("", "크기로 만든다. 스케일을 쓰면 NavMeshAgent 반경과 물리가 어긋난다"),
-    ], "제작 규격  SPEC", "Game/Enemy/Colossus.prefab · Game/Enemy/"))
+    ], "제작 규격  SPEC", "Assets/Game/Enemy/Colossus.prefab"))
 
     o.append(spec(px + 916, Y3, R - (px + 916), H3, AXIS_ROWS + [
         ("--", ""),
@@ -989,7 +989,7 @@ def sheet_clinger():
         ("Animator", "Speed · Attack · Hit · Dead + Drop(trigger) · Clinging(bool)"),
         ("낙하", "Drop 은 애니메이션만. 실제 낙하는 코드가 y 를 내리고 착지에서 Agent 를 켠다"),
         ("배치", "4 · 5장 담당에게 프리팹으로 넘긴다. 남의 씬에 직접 놓지 않는다"),
-    ], "제작 규격  SPEC", "Game/Enemy/Clinger.prefab · Game/Enemy/"))
+    ], "제작 규격  SPEC", "Assets/Game/Enemy/Clinger.prefab"))
 
     o.append(spec(px + 916, Y3, R - (px + 916), H3, AXIS_ROWS + [
         ("--", ""),

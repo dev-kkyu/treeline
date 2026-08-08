@@ -15,6 +15,10 @@ desktop.ini
 *.tmp
 *.bak
 
+# Python 생성 캐시
+__pycache__/
+*.py[cod]
+
 # 병합 충돌 잔여물
 *.orig
 *.rej
