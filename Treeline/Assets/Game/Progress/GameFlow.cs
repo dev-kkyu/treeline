@@ -25,6 +25,7 @@ namespace Treeline
         private Quaternion checkpointRotation;
         private bool isTransitioning;
         private PlayerHealth watchedHealth;
+        private PlayerLoadout carried;
 
         public static GameFlow Instance
         {
@@ -82,6 +83,7 @@ namespace Treeline
         public void StartNewGame()
         {
             hasCheckpoint = false;
+            carried = null;      // 새로 시작하면 빈손이다
             LoadChapter(Chapters.First);
         }
 
@@ -89,6 +91,7 @@ namespace Treeline
         public void ReturnToTitle()
         {
             hasCheckpoint = false;
+            carried = null;
             LoadChapter(Chapters.Title);
         }
 
@@ -152,6 +155,18 @@ namespace Treeline
             if (sceneName != CurrentChapter)
             {
                 hasCheckpoint = false;
+
+                // 나가는 순간의 소지품을 베껴 둔다. 씬이 언로드되면 못 읽는다.
+                //
+                // IMPORTANT: **같은 장을 다시 시작할 때는 베끼지 않는다.** 그러면
+                // carried 에 장 시작 시점의 것이 그대로 남아, 죽어도 그 장을
+                // 시작할 때 가졌던 만큼으로 돌아간다. 죽기 직전을 베끼면 배터리와
+                // 탄약이 죽을 때마다 되살아나 「죽어서 보충하기」가 된다.
+                PlayerLoadout snapshot = PlayerLoadout.Capture(GameObject.FindWithTag("Player"));
+                if (snapshot != null)
+                {
+                    carried = snapshot;
+                }
             }
 
             isTransitioning = true;
@@ -195,7 +210,28 @@ namespace Treeline
         private void EnterChapter()
         {
             PlacePlayer();
+            RestoreLoadout();
             WatchPlayerDeath();
+        }
+
+        /// <summary>
+        /// 이전 장에서 들고 온 것을 되돌린다.
+        /// </summary>
+        /// <remarks>
+        /// <c>sceneLoaded</c> 에서 불리므로 새 씬의 <c>Awake</c> 는 전부 끝났고
+        /// <c>Start</c> 는 아직이다. 플레이어의 소지품 초기화가 모두 <c>Awake</c> 에
+        /// 있으므로(손전등 배터리 · 무기 탄약 · 시작 무기 장착) 여기서 덮어쓰면
+        /// 된다. 초기화가 <c>Start</c> 로 옮겨가면 이 시점이 무효가 되니, 그때는
+        /// 한 프레임 뒤로 미뤄야 한다.
+        /// </remarks>
+        private void RestoreLoadout()
+        {
+            if (carried == null)
+            {
+                return;
+            }
+
+            carried.Apply(GameObject.FindWithTag("Player"));
         }
 
         /// <summary>

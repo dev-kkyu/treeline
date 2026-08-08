@@ -38,6 +38,29 @@ namespace Treeline
             batteryCapacitySeconds > 0f ? Mathf.Clamp01(batterySeconds / batteryCapacitySeconds) : 0f;
 
         /// <summary>켜짐 상태가 바뀔 때. 배터리가 다 닳아 꺼질 때도 부른다.</summary>
+        /// <summary>남은 배터리(초). 장을 넘길 때 그대로 옮기려고 밖에서 읽는다.</summary>
+        public float BatterySeconds => batterySeconds;
+
+        /// <summary>
+        /// 장을 넘어온 상태를 그대로 되돌린다. <see cref="GameFlow"/> 가 부른다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="PickUp"/> 과 <see cref="AddBattery"/> 로는 못 한다. 그 둘은
+        /// <b>더하는</b> 함수이고 여기서 필요한 것은 <b>맞추는</b> 것이다. 새 씬의
+        /// 손전등은 <c>Awake</c> 에서 배터리가 가득 찬 상태로 시작하므로, 더하기만
+        /// 해서는 1 장에서 다 쓴 배터리가 2 장에서 가득 차 버린다.
+        /// </remarks>
+        public void RestoreState(bool owned, float seconds)
+        {
+            IsOwned = owned;
+            batterySeconds = Mathf.Clamp(seconds, 0f, batteryCapacitySeconds);
+
+            if (!IsOwned && IsOn)
+            {
+                SetOn(false);
+            }
+        }
+
         public event Action<bool> Toggled;
 
         private void Awake()

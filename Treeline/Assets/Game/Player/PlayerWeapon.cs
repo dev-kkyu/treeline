@@ -109,6 +109,22 @@ namespace Treeline
 
         public bool IsReloading => reloading;
 
+        /// <summary>
+        /// 장을 넘어온 상태를 그대로 되돌린다. <see cref="GameFlow"/> 가 부른다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="PickUp"/> · <see cref="AddAmmo"/> 로는 못 한다. 둘 다 더하는
+        /// 함수라 이전 장에서 쓴 만큼을 표현할 수 없고, 특히 탄창(<see cref="Loaded"/>)
+        /// 은 넣을 방법이 아예 없다.
+        /// </remarks>
+        public void RestoreState(bool owned, int loaded, int reserve)
+        {
+            IsOwned = owned;
+            Loaded = Mathf.Clamp(loaded, 0, magazineSize);
+            Reserve = Mathf.Clamp(reserve, 0, maxReserve);
+            AmmoChanged?.Invoke();
+        }
+
         /// <summary>탄창이나 여분이 바뀌었다. 어느 쪽인지는 읽는 쪽이 본다.</summary>
         public event Action AmmoChanged;
 
