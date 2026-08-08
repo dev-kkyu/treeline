@@ -274,13 +274,28 @@ PROMPTS = [
      "Animal breathing stops abruptly, then a rising dry rasp through a jaw "
      "opening wide, ending in one sharp bark, close microphone, no music",
      2.0, False),
+    # IMPORTANT: 여기에 moan · call · bellow · cry 를 쓰면 **소 울음이 온다.**
+    # 전부 생성기에게 포유류 발성 신호다. 실제로 그렇게 나와서 다시 뽑았고,
+    # 재보니 스펙트럴 플랫니스가 0.0001 이었다 — 음정이 완벽하게 또렷하다는 뜻,
+    # 즉 짐승 울음이다. 「울음」 을 뜻하는 단어 대신 **소리가 나는 기관**으로
+    # 지시한다. 형제들의 범위는 플랫니스 0.03~0.39 · 무게중심 39~5800 Hz 다.
     ("Crawler", "crawler-vocal-01",
-     "Distant creature call down a long concrete corridor, low dry rasping "
-     "moan rising into a thin whine, echoing, no music", 2.5, False),
-    ("Crawler", "crawler-vocal-02",
-     "Distant creature call in a concrete corridor, dry clicking chatter "
-     "from a jaw followed by a short guttural growl, echoing, no music",
+     "A predatory thing forcing air out through a lipless underslung jaw in a "
+     "concrete corridor. Dry rasping hiss tearing into a high strangled "
+     "screech that splinters and breaks apart, wet at the very end. "
+     "Reptilian and insectile, ragged, no clear pitch. Not a cow, not cattle, "
+     "not a mammal, no lowing, no mooing, no bellow, no human voice, no music.",
      2.5, False),
+    # snarl 도 포유류 발성이다. 이것 하나 남겨뒀다가 플랫니스가 0.046 에 머물러
+    # 다시 뽑았다. 목으로 내는 소리를 아예 지우고 턱과 뼈판이 부딪히는 물리적인
+    # 소리로만 지시하니 0.157 이 됐다.
+    ("Crawler", "crawler-vocal-02",
+     "A predatory thing working its jaw fast in a long concrete corridor: hard "
+     "bone plates clacking together in rapid irregular bursts, dry rattling "
+     "and scraping of keratin, ending in one short sharp hiss of air forced "
+     "out. Brittle, insectile, mechanical, no voice at all, no pitch. "
+     "Not a cow, not cattle, not a mammal, no growl, no snarl, no moan, "
+     "no lowing, no human voice, no music.", 2.5, False),
 
     # Clinger — 천장의 것. 각질 갈고리 8개로 붙어 있다 떨어진다
     ("Clinger", "clinger-cling-loop",
