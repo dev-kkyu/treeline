@@ -51,6 +51,10 @@ namespace Treeline
         [Tooltip("초당 발사 수.")]
         [SerializeField] private float shotsPerSecond = 2f;
 
+        [Header("획득")]
+        [Tooltip("시작할 때 이미 가지고 있는가. 권총은 3장, 산탄총은 5장에서 얻는다.")]
+        [SerializeField] private bool startsOwned;
+
         [Header("탄약")]
         [Tooltip("탄창 하나에 들어가는 발수.")]
         [SerializeField] private int magazineSize = 8;
@@ -89,6 +93,9 @@ namespace Treeline
         private Quaternion viewModelBaseRotation;
 
         public WeaponKind Kind => kind;
+
+        /// <summary>주웠는가. 안 주운 총은 들 수 없다.</summary>
+        public bool IsOwned { get; private set; }
 
         /// <summary>탄창에 든 발수. 0 이면 재장전해야 쏜다.</summary>
         public int Loaded { get; private set; }
@@ -135,6 +142,8 @@ namespace Treeline
                 viewModelBasePosition = viewModel.transform.localPosition;
                 viewModelBaseRotation = viewModel.transform.localRotation;
             }
+
+            IsOwned = startsOwned;
 
             // 가진 탄약에서 탄창을 먼저 채우고 나머지를 여분으로 둔다.
             int total = Mathf.Max(0, startingAmmo);
@@ -221,7 +230,17 @@ namespace Treeline
             return true;
         }
 
+        /// <summary>
+        /// 이 총을 주웠다. 이제 들 수 있다. 부르는 쪽은 <see cref="WeaponSwitcher.PickUp"/> 이다.
+        /// </summary>
+        /// <remarks>탄약은 별개다. 총만 줍고 탄이 없을 수 있다.</remarks>
+        public void PickUp()
+        {
+            IsOwned = true;
+        }
+
         /// <summary>여분 탄약을 줍는다. 넘치는 분은 버린다.</summary>
+        /// <remarks>총을 아직 안 주웠어도 탄약은 쌓인다. 3장에서 권총과 탄약을 함께 얻는다.</remarks>
         /// <returns>실제로 채운 발수.</returns>
         public int AddAmmo(int rounds)
         {

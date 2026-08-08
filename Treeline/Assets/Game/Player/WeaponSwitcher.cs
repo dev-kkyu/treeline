@@ -21,11 +21,8 @@ namespace Treeline
         [Tooltip("가진 총. 순서는 상관없고 종류로 고른다.")]
         [SerializeField] private PlayerWeapon[] weapons = Array.Empty<PlayerWeapon>();
 
-        [Tooltip("시작할 때 들고 있을 총.")]
+        [Tooltip("이미 가진 총이 있으면 시작할 때 이것을 든다. 안 가졌으면 맨손이다.")]
         [SerializeField] private WeaponKind startingKind = WeaponKind.Pistol;
-
-        [Tooltip("아직 못 얻은 총은 들 수 없다. 3장 전에는 권총도 없다.")]
-        [SerializeField] private bool startsUnarmed = true;
 
         private bool carrying;
 
@@ -73,10 +70,8 @@ namespace Treeline
                 weapon.enabled = false;
             }
 
-            if (!startsUnarmed)
-            {
-                Equip(startingKind);
-            }
+            // 안 주운 총은 Equip 이 거부하므로, 가진 것이 없으면 그대로 맨손이 된다.
+            Equip(startingKind);
         }
 
         private void Update()
@@ -92,7 +87,7 @@ namespace Treeline
         }
 
         /// <summary>
-        /// 총을 든다. 아직 못 얻었거나 양손이 찼으면 아무 일도 없다.
+        /// 총을 든다. **아직 안 주웠거나** 양손이 찼으면 아무 일도 없다.
         /// </summary>
         /// <returns>실제로 들었으면 참.</returns>
         public bool Equip(WeaponKind wanted)
@@ -103,7 +98,7 @@ namespace Treeline
             }
 
             PlayerWeapon target = Find(wanted);
-            if (target == null || target == Current)
+            if (target == null || !target.IsOwned || target == Current)
             {
                 return false;
             }
@@ -144,7 +139,28 @@ namespace Treeline
             Equipped?.Invoke(carrying ? null : Current);
         }
 
-        /// <summary>탄약을 준다. 그 총을 아직 안 들고 있어도 채워진다.</summary>
+        /// <summary>
+        /// 총을 줍는다. 상호작용 담당(C)이 3장 경비 캐비닛 · 5장에서 부른다.
+        /// </summary>
+        /// <remarks>
+        /// 주우면 바로 손에 든다. 양손이 차 있으면 소지만 되고 들지는 않는다 —
+        /// 내려놓을 때 <see cref="SetCarrying"/> 이 되돌린다.
+        /// </remarks>
+        /// <returns>그런 총이 있으면 참. 이미 주웠어도 참이다.</returns>
+        public bool PickUp(WeaponKind wanted)
+        {
+            PlayerWeapon target = Find(wanted);
+            if (target == null)
+            {
+                return false;
+            }
+
+            target.PickUp();
+            Equip(wanted);
+            return true;
+        }
+
+        /// <summary>탄약을 준다. 그 총을 아직 안 줍거나 안 들고 있어도 채워진다.</summary>
         /// <returns>실제로 채운 발수. 그런 총이 없으면 0.</returns>
         public int AddAmmo(WeaponKind wanted, int rounds)
         {

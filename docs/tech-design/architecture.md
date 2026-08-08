@@ -369,6 +369,14 @@ IMPORTANT: **손전등도 `ViewModel` 을 비추지 않는다.** 손전등과 �
 총 모델은 `PlayerWeapon` 이 자기 `OnEnable`/`OnDisable` 에서 켜고 끈다. 장착
 상태와 화면의 총이 어긋날 자리를 만들지 않으려는 것이다.
 
+**손전등 · 권총 · 산탄총은 셋 다 「주워야 쓴다」.** 각자 `IsOwned` 를 갖고
+`PickUp()` 으로 켜진다. 안 주운 총은 `Equip` 이 거부하고, 안 주운 손전등은 `F` 를
+눌러도 반응하지 않는다. 프리팹 기본값은 **전부 미획득**이라 C 의 장 씬에 그대로
+놓으면 기획대로 맨손으로 시작한다.
+
+셋을 같은 모양으로 맞춘 이유는, 손전등만 다르게 두면 「가졌는가」를 다루는 방식이
+두 벌이 되기 때문이다. 나중에 세 번째 획득물이 생겨도 같은 자리에 붙는다.
+
 **탄약은 탄창(`Loaded`)과 여분(`Reserve`)으로 나뉜다.** 획득물은 여분에 넣고,
 재장전이 여분에서 탄창으로 옮긴다. 재장전 중에는 쏘지 못하고, 무기를 바꾸거나
 무거운 것을 들면 `OnDisable` 에서 취소된다 — 다시 들면 처음부터다.
@@ -502,7 +510,8 @@ PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구�
 | --- | --- |
 | 적 (B) | `PlayerHealth.TakeDamage` |
 | 획득물 (C) | `WeaponSwitcher.AddAmmo(종류, 발수)` — **여분에 들어간다** · `Flashlight.AddBattery` |
-| 총 획득 (C) | `WeaponSwitcher.Equip(종류)` — 권총 3장, 산탄총 5장 |
+| 총 획득 (C) | `WeaponSwitcher.PickUp(종류)` — 권총 3장, 산탄총 5장 |
+| 손전등 획득 (C) | `Flashlight.PickUp()` — 1장 |
 | 양손 운반 (C) | `WeaponSwitcher.SetCarrying(true/false)` |
 | 진행 (C) | `PlayerHealth.Died` 구독, 장 전환 시 `PlayerHealth.Restore` |
 

@@ -168,6 +168,7 @@ MonoBehaviour:
   input: {fileID: 1000010}
   beam: {fileID: 1300002}
   batteryCapacitySeconds: 240
+  startsOwned: 0
 --- !u!114 &5316144467640077334
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -185,7 +186,6 @@ MonoBehaviour:
   - {fileID: 4261399646895787605}
   - {fileID: 1592540805705413607}
   startingKind: 0
-  startsUnarmed: 1
 --- !u!1 &1100000
 GameObject:
   m_ObjectHideFlags: 0
@@ -1585,6 +1585,7 @@ MonoBehaviour:
   damagePerPellet: 1
   range: 40
   shotsPerSecond: 2
+  startsOwned: 0
   magazineSize: 8
   maxReserve: 24
   startingAmmo: 0
@@ -2557,6 +2558,7 @@ MonoBehaviour:
   damagePerPellet: 1
   range: 25
   shotsPerSecond: 0.9
+  startsOwned: 0
   magazineSize: 4
   maxReserve: 12
   startingAmmo: 0
