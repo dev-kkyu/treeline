@@ -49,6 +49,14 @@ namespace Treeline
         [Tooltip("배터리는 초, 탄약은 발수. 손전등과 총은 보지 않는다.")]
         [SerializeField] private float amount = 120f;
 
+        [Tooltip("주웠을 때. 종류마다 다른 것을 넣는다 — 배터리 · 탄약 · 그 외.")]
+        [SerializeField] private AudioClip takeClip;
+
+        [Tooltip("가득 차 못 주울 때.")]
+        [SerializeField] private AudioClip deniedClip;
+
+        [SerializeField] private float sfxVolume = 0.85f;
+
         private bool taken;
 
         /// <summary>배터리 초 · 탄약 발수.</summary>
@@ -72,12 +80,25 @@ namespace Treeline
 
             if (!Give(who))
             {
+                if (deniedClip != null)
+                {
+                    AudioSource.PlayClipAtPoint(deniedClip, transform.position, sfxVolume);
+                }
+
                 // 탄약이 가득 차 한 발도 안 들어간 경우다. 사라지면 없어진 것으로 보이므로
                 // 그대로 둔다. 나중에 쓰고 와서 다시 주우면 된다.
                 return;
             }
 
             taken = true;
+
+            // 오브젝트를 끄기 **전에** 낸다. 끄고 나서 자기 AudioSource 로 내면
+            // 소리가 함께 죽는다. 그 자리에서 재생하는 방식이라 안전하다.
+            if (takeClip != null)
+            {
+                AudioSource.PlayClipAtPoint(takeClip, transform.position, sfxVolume);
+            }
+
             gameObject.SetActive(false);
         }
 

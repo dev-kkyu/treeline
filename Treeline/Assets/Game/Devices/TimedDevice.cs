@@ -28,6 +28,13 @@ namespace Treeline
         [Tooltip("돌기 시작했을 때. 웅웅거리는 소리를 여기 붙인다.")]
         [SerializeField] private UnityEvent started;
 
+        [Header("소리")]
+        [Tooltip("걸었을 때 한 번. 레버를 당겼는데 아무 소리도 없으면 걸렸는지 알 수 없다.")]
+        [SerializeField] private AudioClip startedClip;
+
+        [Tooltip("도는 동안 계속. 이 소리가 없으면 기다리는 시간이 그냥 멈춘 시간이 된다.")]
+        [SerializeField] private AudioSource runningLoop;
+
         private float elapsed;
         private bool isRunning;
         private bool isActive;
@@ -69,6 +76,13 @@ namespace Treeline
             elapsed = 0f;
             isRunning = true;
 
+            PlaySfx(startedClip);
+            if (runningLoop != null)
+            {
+                runningLoop.loop = true;
+                runningLoop.Play();
+            }
+
             Started?.Invoke();
             started?.Invoke();
         }
@@ -100,6 +114,9 @@ namespace Treeline
         {
             elapsed = seconds;
             isActive = true;
+
+            // 다 녹은 뒤에도 히터는 계속 돈다. 끄지 않는 것이 맞다.
+            // 꺼야 하는 장치라면 그 장에서 이벤트로 끈다.
             ApplyState(true, notify: true);
         }
     }

@@ -20,6 +20,9 @@ namespace Treeline
         [Tooltip("씬이 시작할 때 켜져 있는지. 정전으로 꺼진 조명은 여기를 끈다.")]
         [SerializeField] private bool startsActive;
 
+        [Tooltip("켜져 있는 동안 계속 도는 소리. 제설기 · 서치라이트가 그렇다.")]
+        [SerializeField] private AudioSource runningLoop;
+
         private bool isActive;
 
         public override bool IsActive => isActive;
@@ -54,6 +57,20 @@ namespace Treeline
             }
 
             isActive = active;
+
+            if (runningLoop != null)
+            {
+                if (active)
+                {
+                    runningLoop.loop = true;
+                    runningLoop.Play();
+                }
+                else
+                {
+                    runningLoop.Stop();
+                }
+            }
+
             ApplyState(active, notify: true);
         }
     }

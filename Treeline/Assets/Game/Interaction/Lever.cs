@@ -43,6 +43,15 @@ namespace Treeline
         [Tooltip("당긴 뒤로 바꿀 머티리얼. 비워두면 색은 그대로다.")]
         [SerializeField] private Material pulledMaterial;
 
+        [Header("소리")]
+        [Tooltip("당길 때. 비워 두면 조용하다.")]
+        [SerializeField] private AudioClip pullClip;
+
+        [Tooltip("이미 당겨 더 못 쓸 때. 눌렀는데 아무 반응이 없으면 고장으로 오해한다.")]
+        [SerializeField] private AudioClip lockedClip;
+
+        [SerializeField] private float sfxVolume = 0.8f;
+
         private Quaternion restRotation;
         private Material restMaterial;
         private Renderer body;
@@ -81,14 +90,34 @@ namespace Treeline
         {
             if (!CanInteract)
             {
+                // 눌렀다는 것 자체는 알려준다. 무반응이면 조작이 안 먹은 줄 안다.
+                Play(lockedClip);
                 return;
             }
+
+            Play(pullClip);
 
             bool turningOn = !IsPulled;
             IsPulled = turningOn;
 
             Drive(turningOn, interactor);
             ShowState(turningOn);
+        }
+
+        /// <summary>
+        /// 손잡이 자리에서 한 번 낸다. 3D 라 방향과 거리가 들린다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="AudioSource"/> 를 컴포넌트에 두지 않고 그 자리에서 재생한다.
+        /// 레버는 눌리고 끝나는 물건이라 붙여 둘 이유가 없고, 프리팹마다
+        /// <c>AudioSource</c> 를 챙기지 않아도 된다.
+        /// </remarks>
+        private void Play(AudioClip clip)
+        {
+            if (clip != null)
+            {
+                AudioSource.PlayClipAtPoint(clip, transform.position, sfxVolume);
+            }
         }
 
         private void Drive(bool turningOn, GameObject interactor)

@@ -34,6 +34,11 @@ namespace Treeline
         [Tooltip("발 앞 몇 미터에 내려놓나.")]
         [SerializeField] private float dropDistance = 1.2f;
 
+        [Header("소리")]
+        [SerializeField] private AudioClip liftClip;
+        [SerializeField] private AudioClip dropClip;
+        [SerializeField] private float sfxVolume = 0.85f;
+
         private Transform hands;
         private WeaponSwitcher weapons;
         private PlayerInputReader input;
@@ -67,6 +72,11 @@ namespace Treeline
             }
 
             PickUp(who);
+
+            if (liftClip != null)
+            {
+                AudioSource.PlayClipAtPoint(liftClip, transform.position, sfxVolume);
+            }
         }
 
         /// <summary>
@@ -143,6 +153,11 @@ namespace Treeline
             }
 
             Vector3 where = DropPosition();
+
+            if (dropClip != null)
+            {
+                AudioSource.PlayClipAtPoint(dropClip, where, sfxVolume);
+            }
 
             transform.SetParent(originalParent, worldPositionStays: false);
             transform.SetPositionAndRotation(where, Quaternion.Euler(0f, hands.eulerAngles.y, 0f));

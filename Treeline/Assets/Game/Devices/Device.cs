@@ -35,6 +35,14 @@ namespace Treeline
         [Tooltip("꺼졌을 때. 지속 상태 장치에서만 불린다.")]
         [SerializeField] private UnityEvent deactivated;
 
+        [Header("소리")]
+        [Tooltip("발동이 끝났을 때. 셔터가 닫히거나 문이 녹는 순간이다.")]
+        [SerializeField] private AudioClip activatedClip;
+
+        [SerializeField] private AudioClip deactivatedClip;
+
+        [SerializeField] private float sfxVolume = 0.85f;
+
         /// <summary>
         /// 켜지고 꺼질 때마다 불린다. 코드에서 듣는 쪽은 이것을 쓴다.
         /// </summary>
@@ -81,6 +89,8 @@ namespace Treeline
 
             ActiveChanged?.Invoke(active);
 
+            PlaySfx(active ? activatedClip : deactivatedClip);
+
             if (active)
             {
                 activated?.Invoke();
@@ -88,6 +98,22 @@ namespace Treeline
             else
             {
                 deactivated?.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// 장치 자리에서 한 번 낸다. 세 패턴이 모두 이것을 쓴다.
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: <see cref="Awake"/> 의 초기 정렬에서는 울리면 안 된다. 씬을 열자마자
+        /// 셔터 닫히는 소리가 나면 무슨 일이 벌어진 줄 안다. 그래서 <c>notify</c> 가
+        /// 참일 때만 부른다.
+        /// </remarks>
+        protected void PlaySfx(AudioClip clip)
+        {
+            if (clip != null)
+            {
+                AudioSource.PlayClipAtPoint(clip, transform.position, sfxVolume);
             }
         }
 
