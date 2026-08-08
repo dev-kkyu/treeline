@@ -80,8 +80,10 @@ IMPORTANT: **제작용 IK 와 런타임 IK 는 다른 것이다.** 초판 명세
 
 ### 제작용 IK — 전면 사용
 
-`00-rigging.md` 의 컨트롤 리그를 그대로 쓴다. 손발 IK/FK 스위치, pole, foot roll,
-`CTRL_Weapon`, `CTRL_CarryProp`. FBX 로 나갈 때 전부 deform bone 에 굽는다.
+`00-rigging.md` 의 컨트롤 리그를 쓴다. 전신은 사지당 IK 타깃 하나씩 넷, 1인칭
+팔은 손 IK 둘에 팔꿈치 pole 둘이다. FBX 로 나갈 때 전부 deform bone 에 굽는다.
+`CTRL_Weapon` 과 `CTRL_CarryProp` 은 만들지 않았다 — 무기는 팔 리그 안의 본이고
+([`09-weapons.md`](09-weapons.md)) 운반물은 런타임 IK 가 잡는다.
 
 ### 런타임 IK — 두 곳만
 
@@ -124,10 +126,13 @@ IMPORTANT: **제작용 IK 와 런타임 IK 는 다른 것이다.** 초판 명세
    **끝** (2026-08-09, 10항목 전부 통과 · [`00-rigging.md`](00-rigging.md) 승인 포즈)
 3. 팔 메시를 분리하고 팔 리그를 만든다.
    **끝** (2026-08-09, 팔 2,520 tris · deform 44 · 무기 7조각까지 물림)
-4. `HandIK` 와 프롭 그립 트랜스폼을 붙여 **레버 하나로 런타임 IK 를 먼저 검증한다.**
-5. 맨손 → 운반 → 권총 → 산탄총 → 피격·사망 순으로 팔 17종.
-6. 전신 3종.
-7. [`unity-integration.md`](unity-integration.md) 와 [`qa-checklist.md`](qa-checklist.md)
+4. [`10-hand-poses.md`](10-hand-poses.md) 대로 손 포즈 12종을 만든다. **여기서
+   그립이 확정된다** — 클립은 이 열두 개 사이를 오갈 뿐이다.
+   **끝** (2026-08-09, 손목 전부 35° 안)
+5. `HandIK` 와 프롭 그립 트랜스폼을 붙여 **레버 하나로 런타임 IK 를 먼저 검증한다.**
+6. 맨손 → 운반 → 권총 → 산탄총 → 피격·사망 순으로 팔 17종.
+7. 전신 3종.
+8. [`unity-integration.md`](unity-integration.md) 와 [`qa-checklist.md`](qa-checklist.md)
    로 검수한다.
 
 ## 상세 문서
@@ -146,3 +151,10 @@ IMPORTANT: 아래 여덟 문서는 **전신 28종 기준으로 쓰였다.** 위 
 | 권총 | [`06-pistol.md`](06-pistol.md) | 4종 그대로 |
 | 산탄총 | [`07-shotgun.md`](07-shotgun.md) | 4종 그대로 |
 | 피격·사망 | [`08-damage-death.md`](08-damage-death.md) | 팔 기준으로 다시 쓴다 |
+
+무기와 손은 위 여덟 문서보다 뒤에 정해졌고 이번 범위 기준으로 쓰였다.
+
+| 묶음 | 문서 |
+| --- | --- |
+| 무기 모델·가동부 | [`09-weapons.md`](09-weapons.md) |
+| 손 포즈 12종 | [`10-hand-poses.md`](10-hand-poses.md) |
