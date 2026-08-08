@@ -162,10 +162,15 @@ Unity 빌트인 `Player` 태그로 충분하다. 적은 `FindWithTag("Player")` 
 
 | # | 씬 |
 | --- | --- |
-| 0 | `Game/Levels/Ch1.unity` |
-| 1 | `Game/Levels/Ch2.unity` |
-| 2 | `Game/Levels/Ch6.unity` |
-| 3 | `Game/Levels/Ending.unity` |
+| 0 | `Game/Levels/Title.unity` |
+| 1 | `Game/Levels/Ch1.unity` |
+| 2 | `Game/Levels/Ch2.unity` |
+| 3 | `Game/Levels/Ch6.unity` |
+| 4 | `Game/Levels/Ending.unity` |
+
+`Title` 이 맨 앞이어야 게임이 거기서 시작한다. 순서가 바뀌면 빌드가 엉뚱한 씬으로
+열린다. `Title` 과 `Ending` 은 `Chapters.Order` 에 넣지 않는다 — 장이 아니라서
+`GameFlow` 가 플레이어를 찾거나 배치하려 들면 안 된다.
 
 `Ending` 은 마지막 장을 빠져나온 뒤 가는 곳이다. 없으면 `Ch6` 의 출구가 갈 데가
 없어 관통이 끝에서 끊긴다. 지금은 검은 화면뿐이고 UI 담당이 채운다.

@@ -21,6 +21,9 @@ namespace Treeline
         public const string Ch5 = "Ch5";
         public const string Ch6 = "Ch6";
 
+        /// <summary>게임이 시작되는 곳. 빌드 씬 목록의 맨 앞이다.</summary>
+        public const string Title = "Title";
+
         /// <summary>마지막 장을 빠져나온 뒤 가는 곳.</summary>
         public const string Ending = "Ending";
 
