@@ -156,7 +156,8 @@ namespace Treeline
                     watcher.transform.rotation = watchStand.rotation;
                 }
 
-                watcher.enabled = false;
+                // 컴포넌트만 끄면 Speed 파라미터가 마지막 값에 굳어 제자리걸음이 남는다.
+                watcher.StandDown();
             }
 
             Vector3 from = car.position;

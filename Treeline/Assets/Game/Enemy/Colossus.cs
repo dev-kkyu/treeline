@@ -819,6 +819,42 @@ namespace Treeline
             noticed?.Invoke();
         }
 
+        /// <summary>
+        /// 쫓기를 그만두고 선다. 6장에서 삭도가 떠날 때 부른다.
+        /// </summary>
+        /// <remarks>
+        /// <b>컴포넌트를 그냥 끄면 안 된다.</b> <c>Update</c> 가 멈추면서
+        /// <c>Speed</c> 파라미터가 마지막 값에 굳어, 서 있는데 제자리걸음을 계속한다.
+        /// 여기서 경로와 속도를 먼저 지우고 애니메이터를 아이들로 내린 다음에 끈다.
+        /// <para>
+        /// <see cref="Bury"/> 와 다르다. 저쪽은 눈에 묻혀 갇히는 것이라 전용 클립이
+        /// 있고, 이쪽은 그냥 서서 지켜보는 것이다.
+        /// </para>
+        /// </remarks>
+        public void StandDown()
+        {
+            IsChasing = false;
+            roarUntil = float.NegativeInfinity;
+
+            if (agent.isOnNavMesh)
+            {
+                if (agent.hasPath)
+                {
+                    agent.ResetPath();
+                }
+
+                agent.velocity = Vector3.zero;
+            }
+
+            if (animator != null)
+            {
+                animator.SetFloat(SpeedHash, 0f);
+                animator.SetBool(ChasingHash, false);
+            }
+
+            enabled = false;
+        }
+
         /// <summary>눈에 묻어 멈춘다. 6장에서 부른다.</summary>
         public void Bury()
         {
