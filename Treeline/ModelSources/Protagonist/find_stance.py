@@ -125,8 +125,11 @@ def grip(pose, twist_span=25.0, grip_override=None):
                                             - want).length
     best = min([twist + i for i in range(int(-twist_span), int(twist_span) + 1, 5)],
                key=score)
-    place(side, target, R @ Vector(fwd), pw, best)
-    return (arm.pose.bones["Hand." + side].head - target).length, wrist_bend(side)
+    want = place(side, target, R @ Vector(fwd), pw, best)
+    # against the WRIST target place() returns, not the grip point. The web sits
+    # about 56 mm out from the wrist, and comparing the wrist to the web reported
+    # a constant ~53 mm miss at every stance - which read as "unreachable".
+    return (arm.pose.bones["Hand." + side].head - want).length, wrist_bend(side)
 
 
 def wrist_bend(side):
@@ -168,7 +171,7 @@ def try_stance(loc, muzzle, roll):
     vis = on_screen(shotgun)
     pvis = on_screen(pump)
     ok = missR < 0.002 and missL < 0.002 and wR <= WRIST_LIMIT and wL <= WRIST_LIMIT
-    return ok, vis, pvis, max(wR, wL), max(missR, missL)
+    return ok, vis, pvis, max(wR, wL), max(missR, missL), missR, missL, wR, wL
 
 
 def main():
@@ -176,26 +179,32 @@ def main():
     for back in (0.0, 0.05, 0.09, 0.113):
         PUMP_GRIP = (0, -0.460 + back, 0.012)
         ok, vis, pvis, w, miss = try_stance(Vector((0.16, -0.06, -0.36)),
-                                            Vector((-0.55, -0.80, -0.24)), 0)
+                                            Vector((-0.55, -0.80, -0.24)), 0)[:5]
         print("PUMPBACK %.3f  miss %6.2f mm  wrist %5.1f  vis %2.0f%%"
               % (back, miss * 1000, w, vis * 100))
     PUMP_GRIP = (0, -0.347, 0.012)
     ok, vis, pvis, w, miss = try_stance(Vector((0.16, -0.06, -0.36)),
-                                        Vector((-0.55, -0.80, -0.24)), 0)
+                                        Vector((-0.55, -0.80, -0.24)), 0)[:5]
     print("REF07 ok=%s vis %.0f%% pump %.0f%% wrist %.1f miss %.2f mm"
           % (ok, vis * 100, pvis * 100, w, miss * 1000))
     best = None
+    bestR = bestL = 1e9
+    bestSum = (1e9, 0, 0, 0, 0, None, None, 0)
     tried = ok_n = 0
-    for gx in (0.06, 0.10, 0.14, 0.18):
-        for gy in (-0.28, -0.22, -0.16, -0.10):
-            for gz in (-0.34, -0.28, -0.22, -0.16):
-                for mx in (-0.75, -0.60, -0.45, -0.30):
-                    for mz in (-0.45, -0.30, -0.15, 0.0):
+    for gx in (0.06, 0.12, 0.18):
+        for gy in (-0.30, -0.22, -0.14):
+            for gz in (-0.34, -0.26, -0.18):
+                for mx in (-0.70, -0.50, -0.30):
+                    for mz in (-0.40, -0.22, -0.05):
                         m = Vector((mx, -1.0, mz))
-                        for roll in (20, 35, 50):
+                        for roll in (25, 45):
                             tried += 1
-                            ok, vis, pvis, w, miss = try_stance(
+                            ok, vis, pvis, w, miss, mR, mL, wR, wL = try_stance(
                                 Vector((gx, gy, gz)), m, roll)
+                            bestR = min(bestR, mR); bestL = min(bestL, mL)
+                            if mR + mL < bestSum[0]:
+                                bestSum = (mR + mL, mR, mL, wR, wL,
+                                           (gx, gy, gz), tuple(m), roll)
                             if miss > 0.002:
                                 continue
                             ok_n += 1
@@ -204,6 +213,10 @@ def main():
                                 best = (s, (gx, gy, gz), tuple(m), roll, vis,
                                         pvis, w, miss)
     print("TRIED %d, reachable %d" % (tried, ok_n))
+    print("BESTMISS  right alone %.1f mm   left alone %.1f mm" % (bestR * 1000, bestL * 1000))
+    print("BESTBOTH  R %.1f mm  L %.1f mm  wrists %.1f / %.1f  loc %s muzzle %s roll %s"
+          % (bestSum[1] * 1000, bestSum[2] * 1000, bestSum[3], bestSum[4],
+             bestSum[5], bestSum[6], bestSum[7]))
     if best is None:
         print("NONE reachable")
         return

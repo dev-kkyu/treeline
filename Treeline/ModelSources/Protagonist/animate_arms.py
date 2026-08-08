@@ -43,10 +43,13 @@ NEAR_CLIP = 0.03        # 00-rigging.md
 # from anywhere else.
 PISTOL_IDLE = dict(loc=Vector((0.10, -0.35, -0.12)),
                    muzzle=Vector((0.0, -0.9925, -0.1219)),   # 7 deg below level
-                   up=Vector((0, 0, 1)))
-SHOTGUN_IDLE = dict(loc=Vector((0.16, -0.06, -0.36)),
-                    muzzle=Vector((-0.55, -0.80, -0.24)),
-                    up=Vector((0, 0, 1)))
+                   roll=0.0)
+# found by find_stance.py: of 486 candidates, 274 are holdable two-handed and
+# this one shows the most gun - 83% of the shotgun and all of the pump inside an
+# 80 degree frame, worst wrist 34.7 of 35.
+SHOTGUN_IDLE = dict(loc=Vector((0.06, -0.22, -0.18)),
+                    muzzle=Vector((-0.70, -1.00, -0.40)),
+                    roll=45.0)
 
 POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
 
@@ -110,7 +113,13 @@ def aim_basis(muzzle, up):
 REST_BASIS = aim_basis(Vector((0, -1, 0)), Vector((0, 0, 1)))
 
 
-def set_weapon(loc, muzzle, up):
+def up_from_roll(muzzle, roll):
+    return Matrix.Rotation(math.radians(roll), 3,
+                           Vector(muzzle).normalized()) @ Vector((0, 0, 1))
+
+
+def set_weapon(loc, muzzle, roll=0.0, up=None):
+    up = up if up is not None else up_from_roll(muzzle, roll)
     rot = aim_basis(muzzle, up) @ REST_BASIS.inverted()
     wrot("WeaponRoot", rot)
     head = rest_head("WeaponRoot")
@@ -181,6 +190,12 @@ WEB_REST = {s: (arm.data.bones["Thumb1." + s].head_local
             for s in ("R", "L")}
 
 
+def _ortho(pal, fwd):
+    f = Vector(fwd).normalized()
+    p = Vector(pal)
+    return (p - p.dot(f) * f).normalized()
+
+
 def _apply_hand(side, grip_world, fwd, pal, twist):
     target = Matrix((fwd, fwd.cross(pal), -pal)).transposed()
     if twist:
@@ -225,7 +240,9 @@ def set_hand(side, grip_world, forward, palm, twist=None, span=180.0):
     return best
 
 
-def grip(pose, drift=None):
+
+
+def grip(pose, drift=None, span=25.0):
     """Put the hand on whatever its pose is attached to, wherever that is now.
 
     This is what the pose library is for: FRAMES stores the grip in the bone's
@@ -240,9 +257,14 @@ def grip(pose, drift=None):
     if drift:
         grip_w = grip_w + Vector(drift)
     # a grip stays within 25 degrees of the twist the pose library solved, so
-    # the fingers keep wrapping the way they were solved to wrap
+    # the fingers keep wrapping the way they were solved to wrap.
+    #
+    # Travel segments are keyed every frame by the callers below, not at their
+    # endpoints. Holding one twist across a segment was tried and is worse: the
+    # optimum genuinely moves as the magazine comes up, and pinning it put the
+    # pistol wrist at 61 degrees where re-solving gave 29.
     set_hand(side, grip_w - palm_w.normalized() * off, R @ Vector(fwd), palm_w,
-             twist, span=25.0)
+             twist, span=span)
     set_fingers(side, pose)
 
 
@@ -281,12 +303,26 @@ def new_action(name):
     return act
 
 
+_last_quat = {}
+
+
 def key(frame):
+    """Key everything, keeping quaternions on one hemisphere.
+
+    q and -q are the same orientation, but the curve between them is not: if
+    two consecutive keys land on opposite sides, the hand takes the long way
+    round between them. The shotgun reload read 34.7 degrees of wrist at every
+    beat and 132 degrees five frames in, which is what that looks like.
+    """
     for name in KEYED:
         pb = arm.pose.bones[name]
         if name in CTRLS or name in PARTS:
             pb.keyframe_insert("location", frame=frame)
         if pb.rotation_mode == 'QUATERNION':
+            prev = _last_quat.get(name)
+            if prev is not None and pb.rotation_quaternion.dot(prev) < 0:
+                pb.rotation_quaternion = -pb.rotation_quaternion
+            _last_quat[name] = pb.rotation_quaternion.copy()
             pb.keyframe_insert("rotation_quaternion", frame=frame)
         else:
             pb.keyframe_insert("rotation_euler", frame=frame)
@@ -312,6 +348,7 @@ def build_pistol_reload():
     to equal PistolIdle frame 1 or the clip pops on entry - and frame 54 has to
     equal it as well. Racking it inside the clip satisfies both ends.
     """
+    _last_quat.clear()
     act = new_action("Arms_PistolReload")
     L = PISTOL_IDLE
 
@@ -319,8 +356,7 @@ def build_pistol_reload():
         loc = L["loc"] + Vector((-inboard, 0, lift))
         m = L["muzzle"].copy()
         m.z += pitch
-        up = Matrix.Rotation(math.radians(roll), 3, m.normalized()) @ L["up"]
-        set_weapon(loc, m, up)
+        set_weapon(loc, m, L["roll"] + roll)
 
     # 1 - idle
     reset_pose()
@@ -360,28 +396,27 @@ def build_pistol_reload():
               Vector((1, 0, 0)), "Open")
     key(20)
 
-    # 26 - the new magazine is in the hand
-    grip("MagHold")
-    key(26)
-
-    # 30 - coming up to the well
-    place_part("Magazine", Vector((-0.02, -0.30, -0.30)))
-    grip("MagHold")
-    key(30)
-
-    # 36 - lined up under the well
-    set_part("Magazine", (0, 0, -0.055))
-    grip("MagHold")
-    key(36)
-
-    # 39 - seated. MagazineIn.
-    set_part("Magazine", (0, 0, 0))
-    grip("MagHold")
-    key(39)
-
-    # 42 - palm strike, 2 cm past seated and back
-    grip("MagHold", drift=(0, 0, -0.02))
-    key(42)
+    # 26..42 - the magazine is in the hand and comes up into the well. Keyed
+    # every frame: the hand's roll changes a lot over this stretch, and keying
+    # only the beats let the wrist swing to 90 degrees between two keys that
+    # both measured 30.
+    WAY = [(26, OFFSCREEN), (30, Vector((-0.02, -0.30, -0.30))),
+           (36, None), (39, None), (42, None)]
+    for f in range(26, 43):
+        if f <= 30:
+            u = (f - 26) / 4.0
+            place_part("Magazine", OFFSCREEN.lerp(
+                Vector((-0.02, -0.30, -0.30)), u))
+        elif f <= 39:
+            u = (f - 30) / 9.0
+            seated = delta("WeaponRoot") @ rest_head("Magazine")
+            place_part("Magazine",
+                       Vector((-0.02, -0.30, -0.30)).lerp(seated, u))
+        else:
+            set_part("Magazine", (0, 0, 0))
+        drift = (0, 0, -0.02 * math.sin(math.pi * (f - 39) / 3.0)) if f > 39 else None
+        grip("MagHold", drift=drift)
+        key(f)
 
     # 45 - hand off the magazine, moving to the slide
     free_hand("L", Vector((0.02, -0.36, -0.02)), Vector((0, -0.8, -0.6)),
@@ -424,13 +459,13 @@ def build_shotgun_reload():
     18/32/46/60, 68 TubesClosed, 78 ReloadComplete. No pump cycle - that lives
     in FirePump, and the code refills the whole tube at 2.6 s either way.
     """
+    _last_quat.clear()
     act = new_action("Arms_ShotgunReload")
     S = SHOTGUN_IDLE
 
     def gun(roll=0.0, lift=0.0, inboard=0.0):
-        m = S["muzzle"]
-        up = Matrix.Rotation(math.radians(roll), 3, m.normalized()) @ S["up"]
-        set_weapon(S["loc"] + Vector((-inboard, 0, lift)), m, up)
+        set_weapon(S["loc"] + Vector((-inboard, 0, lift)), S["muzzle"],
+                   S["roll"] + roll)
 
     # the loading port is under the receiver; rolling the gun inboard turns it
     # towards the left hand instead of the floor
@@ -451,20 +486,17 @@ def build_shotgun_reload():
 
     # four shells, 14 frames apart, each one out of the pouch and into the port
     for k, seat in enumerate((18, 32, 46, 60)):
-        # the shell is parked out of sight until the hand has it
-        place_part("Shell", POUCH)
-        grip("ShellHold")
-        key(seat - 10)
-
-        place_part("Shell", POUCH.lerp(
-            delta("WeaponRoot") @ (rest_head("Shell") + PORT), 0.6))
-        grip("ShellHold")
-        key(seat - 5)
-
-        # at the port, thumb pushing it in
-        set_part("Shell", PORT)
-        grip("ShellHold")
-        key(seat)
+        # out of the pouch and into the port, every frame. Two keys and an
+        # interpolation put 90 degrees of wrist in the middle of this.
+        port_w = delta("WeaponRoot") @ (rest_head("Shell") + PORT)
+        for f in range(seat - 10, seat + 1):
+            u = (f - (seat - 10)) / 10.0
+            place_part("Shell", POUCH.lerp(port_w, u))
+            # a shell is a cylinder, so the hand may roll further around it than
+            # a pistol grip allows before the fingers stop wrapping. At the
+            # library's +/-25 the wrist hit 90 degrees at the loading port.
+            grip("ShellHold", span=90.0)
+            key(f)
 
         # gone into the tube; hand drops back for the next one
         set_part("Shell", PORT + Vector((0, -0.09, 0.01)))

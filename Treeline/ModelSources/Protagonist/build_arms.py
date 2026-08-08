@@ -17,9 +17,8 @@ of it:
     reason: bolt it to Hand.R and the gun's motion is the wrist's motion, and
     the reload lays the gun over further than a wrist can go.
 
-The rest pose is the body's T-pose, unchanged, with the weapon parked at the
-right hand's grip web. Rest is not a grip - the hand does not close on the gun
-here. The grips get built in the pose library, and sharing the body's rest is
+The rest pose is the body's T-pose, with the weapon parked at the right hand's
+grip web. Rest is not a grip - the hand does not close on the gun here. The grips get built in the pose library, and sharing the body's rest is
 what lets this file reuse the body's bone table, rolls and pre-bent elbow.
 
 Wants Weapons.blend from prep_weapons.py; pass its path after -- if it is not
@@ -48,6 +47,17 @@ WEAPONS = argv[0] if argv else os.path.join(SCRATCH, "Weapons.blend")
 # sits on the head's own axis, and everything the clips are authored against is
 # measured from the camera.
 CAMERA = Vector((0.0, 0.0, 1.65))
+
+# How much longer the viewmodel forearm is than the body's. Zero, and it stays
+# zero unless something measured says otherwise.
+#
+# This exists because the shotgun looked unreachable and lengthening the arm is
+# the usual viewmodel answer. It was not unreachable: the search was comparing
+# the wrist against the grip web, two points 56 mm apart by construction, so
+# every stance in the sweep reported the same ~53 mm miss. With that fixed, 274
+# of 486 stances hold the gun two-handed at this arm length. The knob is left
+# here, off, because it is the right knob if a later weapon really does not fit.
+ARM_EXTENSION = 0.0
 
 # grip web of the right hand: the notch between thumb and index, read off the
 # rest hand. Both weapons have their origin on their own grip web already
@@ -87,6 +97,52 @@ ARM_GROUPS = {n + "." + s for n in ARM_BASES for s in ("L", "R")}
 # Inboard limit for the cut. The shoulder joint is at x 0.155, so 0.13 keeps the
 # whole deltoid and nothing of the neck.
 CUT_X = 0.13
+
+
+def stretch_forearms(table, mesh_ob, ext):
+    """Push the wrist and everything past it out along the forearm.
+
+    The mesh is ramped rather than translated: zero at the elbow, full at the
+    wrist, constant beyond. That lengthens the sleeve and carries the hand out
+    rigidly, so no hand or finger proportion changes and every grip solved
+    against those proportions stays valid.
+    """
+    if ext <= 0:
+        return table
+    by = {t[0]: t for t in table}
+    moved = {}
+    for side in ("R", "L"):
+        elbow = by["LowerArm." + side][1]
+        wrist = by["LowerArm." + side][2]
+        axis = (wrist - elbow).normalized()
+        span = (wrist - elbow).length
+        moved[side] = (elbow, axis, span)
+
+        out = []
+        for name, h, t, p, c, d in table:
+            if not name.endswith("." + side):
+                out.append((name, h, t, p, c, d))
+                continue
+            base = name.rsplit(".", 1)[0]
+            past = base in ("Hand", "CTRL_HandIK") or base[:-1] in (
+                "Thumb", "Index", "Middle", "Ring", "Little")
+            if past:
+                out.append((name, h + axis * ext, t + axis * ext, p, c, d))
+            elif base == "LowerArm":
+                out.append((name, h, t + axis * ext, p, c, d))
+            else:
+                out.append((name, h, t, p, c, d))
+        table = out
+
+        for vt in mesh_ob.data.vertices:
+            if (vt.co.x > 0) != (side == "R"):
+                continue
+            u = (vt.co - elbow).dot(axis) / span
+            if u <= 0:
+                continue
+            vt.co += axis * (ext * min(u, 1.0))
+    print("STRETCH forearms +%.0f mm" % (ext * 1000))
+    return table
 
 
 def cut_arms(body, keep_ratio):
@@ -323,6 +379,7 @@ def main():
     cap_holes(arms)
 
     table, axes = arms_bone_table()
+    table = stretch_forearms(table, arms, ARM_EXTENSION)
     keep = {t[0] for t in table if t[5]}
     prune_groups(arms, keep)
 
