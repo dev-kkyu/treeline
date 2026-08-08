@@ -10,7 +10,8 @@
 공통으로 반복한다.
 
 - 공통 요소: 검푸른 무광 피부, 압력 균열, 백색 서리 흉터, 균열 안의 젖은 조직
-- 금지 요소: 옷, 장비, 산업 부품, 케이블, 갑옷, 눈, 인간 얼굴, 뿔, 털
+- 금지 요소: 옷, 장비, 산업 부품, 케이블, 갑옷, 인간 얼굴, 뿔, 털
+- 눈 규칙: Crawler는 눈 없음. Clinger v2와 Colossus v2만 비발광 다안을 쓴다
 - 구분 요소: 색이 아닌 외곽선
   - `Crawler`: 바닥을 긁는 **쐐기형 수평선**
   - `Clinger`: 접힌 마름모에서 펴지는 **가는 수직선**
@@ -26,30 +27,102 @@
 | `generation-prompts.md` | 이미지/3D 생성용 프롬프트와 금지어 |
 | [`../비교.md`](../비교.md) | Claude 본문과 Codex 후속 검토를 합친 비교 보고서 |
 
-## 4방향 이미지
+## 채택 버전
+
+| 모델 | 현재 태그 | 상태 | 핵심 변경 |
+| --- | --- | --- | --- |
+| Crawler | `CRAWLER-V1.0` | 채택 | 삽날 머리, 바닥 쐐기, 눈 없음 |
+| Clinger | `CLINGER-V2.0` | **최신** | 뒤틀린 4사지 관절, 전면 비대칭 8안 |
+| Colossus | `COLOSSUS-V2.0` | **최신** | 생체 방벽 판, 전방 집게 사지, 심연 속 15안 |
+
+버전 태그는 폴더와 파일명에 함께 넣는다. v1 이미지는 덮어쓰지 않고 비교·회귀용으로
+보존한다.
+
+## 현재 4방향 이미지
 
 각 이미지는 1254×1254 PNG이며, 모델링 입력과 형태 비교를 위해 같은 스튜디오
 조건으로 생성했다. 좌·우 이미지는 단순 반전이 아니라 표면과 비대칭 구조를 각각
 생성한 독립 이미지다.
 
-| 적 | 정면 | 후면 | 좌측 | 우측 |
+| 버전 | 정면 | 후면 | 좌측 | 우측 |
 | --- | --- | --- | --- | --- |
-| Crawler | [`01-front.png`](crawler/01-front.png) | [`02-back.png`](crawler/02-back.png) | [`03-left.png`](crawler/03-left.png) | [`04-right.png`](crawler/04-right.png) |
-| Clinger | [`01-front.png`](clinger/01-front.png) | [`02-back.png`](clinger/02-back.png) | [`03-left.png`](clinger/03-left.png) | [`04-right.png`](clinger/04-right.png) |
-| Colossus | [`01-front.png`](colossus/01-front.png) | [`02-back.png`](colossus/02-back.png) | [`03-left.png`](colossus/03-left.png) | [`04-right.png`](colossus/04-right.png) |
+| `CRAWLER-V1.0` | [`01-front.png`](crawler/01-front.png) | [`02-back.png`](crawler/02-back.png) | [`03-left.png`](crawler/03-left.png) | [`04-right.png`](crawler/04-right.png) |
+| `CLINGER-V2.0` | [`front-v2`](clinger/v2/clinger-v2-01-front.png) | [`back-v2`](clinger/v2/clinger-v2-02-back.png) | [`left-v2`](clinger/v2/clinger-v2-03-left.png) | [`right-v2`](clinger/v2/clinger-v2-04-right.png) |
+| `COLOSSUS-V2.0` | [`front-v2`](colossus/v2/colossus-v2-01-front.png) | [`back-v2`](colossus/v2/colossus-v2-02-back.png) | [`left-v2`](colossus/v2/colossus-v2-03-left.png) | [`right-v2`](colossus/v2/colossus-v2-04-right.png) |
 
 - Crawler: 네 발이 지면에 닿는 낮은 중립 자세.
-- Clinger: 골격 판독성을 위해 닫힌 대기 자세가 아니라 펼친 매달림 자세.
-- Colossus: 네 기둥이 같은 지면을 지지하는 수정 정면을 최종 기준으로 사용.
+- Clinger: 골격 판독성을 위해 펼친 매달림 자세. 눈은 전면에만 있고 후면에는 없다.
+- Colossus: 앞 집게 사지 2 + 뒤 지지 기둥 2, 정확히 네 사지가 지면을 지지한다.
 - 이미지 간 작은 표면 균열 차이보다 `modeling-design.md`의 치수와 큰 덩어리를
   우선한다.
+
+### v1 보관본
+
+- [`Clinger v1`](clinger/) — 정돈된 관절, 눈 없음
+- [`Colossus v1`](colossus/) — 둥근 두 판, 눈 없음
+
+## 전체 모델 수치표
+
+아래 값은 이미지 픽셀을 재서 얻은 값이 아니라 **Blender/Unity에서 맞출 제작 목표치**다.
+단위는 m, 삼각형 수는 tris다. 닫힌 메시가 나오기 전에는 실제 체적(L)을 정확히
+계산할 수 없으므로 리터 대신 게임 제작에 필요한 바운드 치수를 적는다.
+
+### 크기
+
+| 모델 | 기본 바운드(길이/깊이 × 폭 × 높이) | 추가 자세·제약 |
+| --- | --- | --- |
+| `CRAWLER-V1.0` | `2.88 × 1.52 × 0.98 m` | 몸통+머리 1.90m, 꼬리 약 0.98m |
+| `CLINGER-V2.0` | 펼침 `0.48 × 1.10 × 2.51 m` | 접힘 `0.28 × 0.42 × 0.72m`, 착지 높이 1.42m, 천장 3.4m 권장 |
+| `COLOSSUS-V2.0` | `2.10 × 3.44 × 4.50 m` | 몸통 폭 2.64m, 레벨 유효 통로 폭 최소 4.0m |
+
+### 메시·리그·텍스처 예산
+
+| 모델 | LOD0 시작 / 상한 | LOD1 / LOD2 | deform 본 상한 | 아틀라스 | 슬롯 | 동시 화면 상한 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Crawler | 4,000 / 5,200 | 2,000 / 700 | 24 | 1024²×2 | 1 | 6 |
+| Clinger v2 | 3,500 / 4,200 | 1,800 / 600 | 24 | 1024²×2 | 1 | 8 |
+| Colossus v2 | 9,000 / 11,000 | 4,500 / 1,500 | 28 | 2048²×2 | 1 | 1 |
+
+`×2`는 BaseMap(RGB+Smoothness A)과 Normal 두 장이다. 눈 때문에 별도 머터리얼
+슬롯을 늘리지 않고 같은 아틀라스 안에 눈 영역을 배치한다.
+
+### 눈
+
+| 모델 | 수 | 위치 | 동작·머터리얼 |
+| --- | ---: | --- | --- |
+| Crawler | 0 | — | 머리 방향과 아래 공격구로 의도 전달 |
+| Clinger v2 | 8 | 중앙 균열 전면 상·중부 | 고정 시선, 비발광, Smoothness 0.72, 작은 손전등 반사만 허용 |
+| Colossus v2 | 15 | 중앙 심연 내부(큰 눈 3 + 작은 눈 12) | 판보다 안쪽에 매립, 비발광, 공격 약점 판정 금지 |
+
+### Unity 충돌·이동 초안
+
+| 모델 | 본체 콜라이더 | NavMeshAgent | 이동 메모 |
+| --- | --- | --- | --- |
+| Crawler | Capsule h 0.90, r 0.40, center y 0.45 | r 0.40, h 0.90, speed 5.5 | 커밋된 프리팹 값 유지 |
+| Clinger v2 | 천장 Sphere r 0.32 / 착지 Capsule h 1.30, r 0.35 | r 0.35, h 1.42, speed 4.2 | Land 마지막 프레임에 Agent 켬 |
+| Colossus v2 | Box `2.90 × 4.20 × 1.60` | r 1.35, h 4.50, speed 1.15 | 체력 사망 없음, Stagger와 밀림만 |
+
+## v2 변경 기록
+
+### `CLINGER-V2.0`
+
+- 네 리본 사지의 관절 회전축을 번갈아 90° 뒤틀어 정상 해부학을 제거했다.
+- 중앙 균열에 크기가 다른 비발광 눈 8개를 매립했다.
+- 눈은 앞면에만 있으며 후면은 건조하게 봉합한다.
+
+### `COLOSSUS-V2.0`
+
+- 둥근 몸을 겹겹의 동결압 생체 방벽 판으로 교체했다.
+- 중앙 심연 안에 큰 눈 3개와 작은 눈 12개를 깊이별로 배치했다.
+- 앞 사지 2개는 보행과 케이블 붙잡기를 겸하는 갈라진 집게, 뒤 사지 2개는 지지 기둥이다.
+- 눈은 약점이 아니며 `IDamageable` 체력 사망과 Death 클립을 만들지 않는다.
 
 ## 우선 제작
 
 기획 순서대로 `Crawler` 한 종을 먼저 끝까지 통과시킨다.
 
-1. 2.25 m 블록아웃과 검은 실루엣 검수
-2. LOD0 5,200 tris 이하 리토폴로지
+1. 2.88m 블록아웃과 검은 실루엣 검수
+2. LOD0 4,000 tris 시작, 필요할 때만 5,200까지 올림
 3. 1024 아틀라스와 공용 머터리얼 구성
 4. 리그/6클립 제작
 5. Unity 프리팹에서 손전등 2 m·6 m 검수

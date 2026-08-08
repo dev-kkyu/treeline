@@ -112,3 +112,31 @@ no human, no props, no environment, no label, no text, no watermark.
 방향, `back`은 -Z에서 보는 방향, `left/right`는 각각 개체의 좌우 측면이다.
 Colossus 정면 1차 결과는 뒤쪽 두 기둥이 떠 있어 폐기하고, 네 발이 같은 지면에
 닿도록 한 번 수정한 결과를 `01-front.png`로 채택했다.
+
+## v2 생성 기록
+
+### `CLINGER-V2.0`
+
+```text
+Preserve the thin vertical hanging silhouette. Twist the four ribbon limbs into
+alternating anatomically wrong joint axes with corkscrew torsion between clear,
+riggable joints. Embed asymmetrical wet lidless non-glowing eyes around the frontal
+central fissure. Cold flashlight catchlights only; no human face, wings, gore or
+extra limbs. Back view has no eyes.
+```
+
+최종 생성 결과가 프롬프트의 7안보다 자연스러운 8안으로 나와 8안을 채택했다.
+저장 위치: `clinger/v2/clinger-v2-0{1..4}-*.png`.
+
+### `COLOSSUS-V2.0`
+
+```text
+Transform the rounded v1 body into a 4.5m-tall unkillable moving biological
+fortress: two layered frost-pressure slabs, exactly four pillar limbs, front pair
+ending in closed prehensile clamps and rear pair load-bearing. A deep frontal abyss
+contains three large and twelve tiny recessed non-glowing eyes at different depths.
+No weak point, mouth, head, humanoid anatomy, stone golem or emission.
+```
+
+첫 v2 정면은 다리가 6개 생성되어 폐기하고, 안쪽 여분 다리 둘을 제거한 4사지
+수정본을 채택했다. 저장 위치: `colossus/v2/colossus-v2-0{1..4}-*.png`.
