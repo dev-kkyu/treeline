@@ -108,6 +108,12 @@ IMPORTANT: **레이어를 추가할 땐 자기 구간 안에서만 쓴다.** 그
 
 `Trigger` 와 `ViewModel` 은 **어느 마스크에도 들어가지 않는다.**
 
+세 개는 **공용** 마스크다. 한 컴포넌트만 쓰는 마스크는 `GameLayers` 에 올리지
+않고 그 자리에서 만든다. `Shared/` 변경은 셋의 합의가 필요한데, 쓰는 곳이 하나면
+합의할 것이 없기 때문이다. 지금 그런 것이 하나 있다 — `PlayerMotor` 가 웅크린 뒤
+일어설 수 있는지 볼 때 쓰는 천장 검사 마스크이며, `Player` · `ViewModel` ·
+`Trigger` 를 뺀 나머지다. 두 번째 담당이 같은 것을 필요로 하면 그때 올린다.
+
 URP 의 Rendering Layers 는 이것과 별개다. 손전등이 특정 물체만 비추게 하려면 그때
 따로 잡는다. 지금은 쓰지 않는다.
 
@@ -227,7 +233,7 @@ IMPORTANT: **A 는 `Player.prefab` 을 완성 전에 먼저 올린다.** 캡슐�
 | 컴포넌트 | 책임 |
 | --- | --- |
 | `PlayerInputReader` | 입력을 읽는 **유일한** 곳. 나머지는 여기만 참조한다 |
-| `PlayerMotor` | `CharacterController` 이동과 중력 |
+| `PlayerMotor` | 걷기 · 달리기 · 웅크리기 · 점프. 중력과 콜라이더 높이 |
 | `PlayerLook` | 좌우는 몸체, 상하는 카메라. 포인터 잠금도 여기 |
 | `PlayerHealth` | 체력 3칸. `IDamageable` 구현 |
 | `PlayerWeapon` | 권총. `GameLayers.Shot` 레이캐스트, 탄약 |
