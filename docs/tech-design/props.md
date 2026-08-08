@@ -1,131 +1,601 @@
-> 상태: 초안 · 최종 수정 2026-08-09
+> 상태: 목록 확정 대기 · 최종 수정 2026-08-09
 
-# 소품 목록
+# 소품 목록과 Meshy 프롬프트
 
-무엇을 Meshy 로 만들지 정한 목록이다. 조달 절차는
+무엇을 만들지 정한 목록과, Meshy 에 그대로 넣을 영문 프롬프트다. 조달 절차는
 [`/prop` 스킬](../../.claude/skills/prop/SKILL.md), 방침은
 [`world-assets.md`](world-assets.md) 에 있다.
 
-**맵은 단조롭게 두고 그 위를 꾸민다.** 벽 · 바닥 · 천장은 회색 박스 그대로 두고
-표면만 입히며, 눈을 붙잡는 일은 여기 적힌 소품이 한다. 산업 호러 게임의 복도도
-벽 자체는 대개 밋밋한 판이고 배관 · 케이블 트레이 · 배전함이 화면을 채운다.
+**맵은 단조롭게 두고 그 위를 꾸민다.** 눈을 붙잡는 일은 여기 적힌 소품이 한다.
 
-IMPORTANT: 벽을 Meshy 모델로 **바꾸지 않는다.** 생성물은 치수를 지키지 않아 4m
-칸에 안 맞고, 이어 붙이면 이음매가 보이고, 메시 콜라이더가 되어 NavMesh 가
-나빠지며, 폴리곤이 감당이 안 된다.
+## 정해진 것 — 벽은 바꾸지 않는다
 
----
+**벽 · 바닥 · 천장 · 계단 · 난간은 소품이 아니라 레벨이다.** 1 · 6 장과 똑같이
+**표면만 입힌다**(2-1b). 2장 복도 본체(`Ch2_CorridorSection.fbx`)도 여기 해당한다 —
+UV 가 제대로 있어서 `W_*` 텍스처를 그냥 입히면 되고 `SurfaceTiling` 도 필요 없다.
 
-## 0순위 — 플레이어가 들고 다니는 것
+IMPORTANT: 벽을 Meshy 모델로 바꾸는 것은 R&D 가 배제했다. 생성물은 치수를 안 지켜 4m
+칸에 안 맞고, 이어 붙이면 이음매가 보이고, 메시 콜라이더가 되어 NavMesh 가 나빠지며,
+폴리곤이 감당이 안 된다.
 
-**가장 먼저 만든다.** 1 인칭이라 매 프레임 화면에 있고, 지금은 `Player.prefab`
-안에서 큐브 8 · 실린더 3 · 캡슐 1 로 서 있다. 이 게임에서 제일 초라한 부분이다.
-[`plan.md`](../plan.md) 의 애니메이션 우선순위가 2 번을 「플레이어 손 · 무기」로
-둔 것도 같은 이유다.
+**그 외의 배치물은 전부 교체한다.** 1 · 2 · 6 장 공통이다.
 
-| | 소품 | 비고 |
+## 조사해서 확인한 것 (2026-08-09)
+
+**에셋스토어 에셋은 없다.** `ThirdParty/` 폴더가 없고, 2장 FBX 셋의 메타데이터가 전부
+`Blender (stable FBX IO) 5.2.0 LTS` 이며, `assets.md` 의 외부 에셋은 폰트 하나뿐이다.
+**라이선스 문제는 없다.**
+
+2장 구성은 이렇다. 처음에 「2장은 FBX 라 교체 대상이 아니다」로 적었는데 **FBX 는 복도
+본체 하나뿐**이고 나머지는 1 · 6 장과 같은 큐브였다.
+
+| | 무엇 | 교체 |
 | --- | --- | --- |
-| 1 | **손전등** | 1장에서 줍는다. 화면에 가장 오래 있다. R&D 로 만든 대역이 `World/Meshes/Flashlight.asset` 에 있다 |
-| 2 | **권총** | 3장. 슬라이드 · 탄창을 **나눠 뽑는다** |
-| 3 | **산탄총** | 5장. 펌프를 **나눠 뽑는다** |
-| 4 | 연료통 | 3장 · 6장. 양손으로 안는다. 들면 총을 못 쓴다 |
-| 5 | 배터리 | 줍는 것. 작고 여러 개 놓인다 |
-| 6 | 탄약 상자 | 줍는 것. 권총 · 산탄총 두 종 |
+| 복도 본체 | `Ch2_CorridorSection.fbx` 메시 1 개를 반복 배치 | 표면만 |
+| 골방 · 창고 · 세면장 · 문간 | 큐브 102 개 | 벽은 표면만, 소품은 교체 |
+| 씬 직접 배치 | 큐브 26 개 | 전부 교체 |
+| 사물함 · 이층침대 | `Ch2_LockerBank.fbx` · `Ch2_Bunk.fbx` | 교체 (소품이다) |
 
-IMPORTANT: **움직이는 부품은 나눠 뽑는다.** 통짜로 오면 못 나눈다. 슬라이드 후퇴와
-탄창 배출은 리깅 없이 트랜스폼만으로 되지만, 그것도 부품이 나뉘어 있어야 가능하다.
+IMPORTANT: **복도 FBX 를 만든 Blender 소스가 저장소에 없다.** `ModelSources/` 에는
+`Crawler` 뿐이라 `Crawler` 는 다시 뽑을 수 있어도 복도는 못 뽑는다. 벽을 안 바꾸기로
+했으므로 지금은 문제가 아니지만, **소스를 받아 두는 편이 안전하다.**
+
+죽은 프리팹 셋도 찾았다 — `CorridorSection_Base` · `_Bunks` · `_Lockers` 는 `Ch2`
+에서 참조가 0 회다. FBX 로 갈아엎으며 남은 껍데기라 여기 세지 않는다.
 
 ---
 
-## 1순위 — 공용
+## 한 세계로 보이게 하는 공통 규칙
 
-**한 번 만들어 전 장에 반복 배치한다.** 12 개로 여섯 장이 다 달라 보인다. 단조로움을
-가장 크게 푸는 것이 여기다.
+프롬프트마다 아래를 넣는다. 빠뜨리면 생성물마다 톤이 튀어 **한 건물로 안 보인다.**
 
-| | 소품 | 붙는 곳 |
+```
+Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+occlusion. No branding, no text, no decals. Worn matte grey-green industrial
+paint over steel, bare metal showing at the edges, light rust at seams.
+Neutral desaturated palette only.
+```
+
+| 넣는 말 | 왜 |
+| --- | --- |
+| `low-poly, game-ready, clean topology` | 폴리곤은 사후 감소가 안 된다 |
+| `no baked shadows, no baked ambient occlusion` | 알베도에 그림자가 구워지면 손전등과 싸운다 |
+| `no branding, no text, no decals` | 글자가 들어가면 시대 · 국적이 특정된다. 기획이 「현대 · 장소 불명」으로 못 박았다 |
+| `worn matte grey-green ... desaturated` | 색을 못 박지 않으면 생성물마다 튄다 |
+
+색이 튀는 것은 **소화기와 비상등 둘뿐**이다. 어둠 속에서 그 둘만 눈에 걸리게 한다.
+
+IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비율을 잡는 용도이고 실제
+크기는 임포트에서 맞춘다. 그래서 항목마다 **치수 · 축 · 피벗**을 적어 둔다 — 그 숫자가
+없으면 후처리에서 맞출 기준이 사라진다.
+
+---
+
+## 순서 — 화면에 오래 있는 것부터
+
+| 순위 | 무엇 | 개수 |
 | --- | --- | --- |
-| 1 | 배관 다발 (직선 · 엘보) | 벽 상단 · 천장 |
-| 2 | 케이블 트레이 (직선 · 코너) | 벽 · 천장 |
-| 3 | 벽면 배전함 · 정션박스 | 벽 |
-| 4 | 환기 덕트 · 벤트 그릴 | 천장 · 벽 |
-| 5 | 조명 하우징 (꺼진 형광등) | 천장 |
-| 6 | 소화기 · 소화전함 | 벽 |
-| 7 | 안전 표지판 · 방향 표지 | 벽 |
-| 8 | 드럼통 | 바닥 |
-| 9 | 금속 사물함 | 바닥 |
-| 10 | 앵글 선반 | 바닥 |
-| 11 | 밸브 휠 (배관에 붙는) | 벽 |
-| 12 | 잔해 더미 (콘크리트 파편) | 바닥 |
+| **0** | 1인칭 소지품 | 1 |
+| **1** | 2장 복도에 반복 배치 | 5 |
+| **2** | 세 장 공용 | 8 |
+| **3** | 조작하는 장치 | 7 |
+| **4** | 장 전용 분위기 | 9 |
 
-IMPORTANT: **1~5 번은 4m 단위 모듈로 뽑는다.** 복도 칸이 4m 라 거기 맞춰야 이어 붙일
-때 어긋나지 않는다. 프롬프트에 길이를 못 박는다.
-
-7 번 표지판은 **글자를 넣지 않는다.** 글자가 들어가면 시대 · 국적이 특정되고, 기획이
-「현대 · 장소 불명」으로 못 박아 두었다. 화살표와 픽토그램만 쓴다.
+**전부 30 개.** 자를 거면 4순위부터 자른다. 0 ~ 2 순위 열넷만 해도 세 장이 다 달라
+보인다.
 
 ---
 
-## 2순위 — 장치
+# 0순위 — 1인칭
 
-상호작용물이다. 기획서
-[`treeline.md`](../game-design/treeline.md) 의 「산과 중계소에서 나오는 장치」가 원본이다.
+### 1. 손전등 `Flashlight`
 
-| 장 | 장치 |
-| --- | --- |
-| 1 관제동 | 서치라이트, 관제 콘솔 |
-| 2 숙소동 | 히터 배전함, 비상 셔터 |
-| 3 연료 갱도 | 연료 탱크, 이송 펌프, 연료통 |
-| 4 발전동 | 디젤 발전기, 배전반, 차단기, 환기 팬, 축전지 랙 |
-| 5 외부 철탑 | 유도등, 로터리 제설기, 눈사태 제설포 |
-| 6 삭도 승강장 | 삭도 권양기, 곤돌라, 조작반 |
+    Rugged industrial handheld flashlight, cylindrical aluminium body with
+    three knurled grip rings, wider ribbed head, flat glass lens, side push
+    switch, lanyard lug at the tail. Worn matte grey-green paint with bare
+    metal showing at the edges, light rust at seams. Low-poly, game-ready,
+    clean topology. No baked shadows, no baked ambient occlusion. No branding,
+    no text, no decals. Neutral desaturated palette only.
 
-**각 장치는 두 번 쓰인다** — 처음엔 안전하게 배우고 마지막에 쫓기면서 다시 쓴다.
-그래서 6장에 처음 보는 장치는 하나도 없다. 모델도 재사용된다.
-
----
-
-## 3순위 — 장 전용 분위기
-
-| 장 | 소품 |
-| --- | --- |
-| 1 관제동 | 책상 · 의자, 무전기, 커피잔, 근무표 보드 |
-| 2 숙소동 | ~~이층 침대 · 사물함~~ **이미 있다** (`Ch2_Bunk.fbx` · `Ch2_LockerBank.fbx`). 매트리스, 세면대만 남음 |
-| 3 연료 갱도 | 갱도 지지 프레임, 손수레 |
-| 4 발전동 | 유기물 데코 (둥지 돌기 · 촉수) |
-| 5 외부 철탑 | 철탑 구조재, 안테나 접시, 눈 더미 |
-| 6 삭도 승강장 | 케이블 드럼, 승강장 난간 |
+- 치수: 길이 0.22m · 지름 0.05m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 손잡이 중앙
+- 바꿀 곳: `Player.prefab` 의 `Flashlight/Model`, `Ch1` 의 `Pickup_Flashlight`
+- 부품 분리: 불필요
+- 비고: **이 게임에서 화면에 가장 오래 있는 물건이다.** 1 · 2 · 6 을 관통하는 동안
+  손에 들리는 것은 이것 하나뿐이라 여기에 가장 공을 들인다. `World/Meshes/Flashlight.asset`
+  의 R&D 대역을 대체한다
 
 ---
 
-## 이어받는 세션이 먼저 할 일
+# 1순위 — 2장 복도에 반복 배치
 
-**이 목록을 그대로 쓰지 말고 다시 분석한다.** 기획서를 읽고 뽑은 초안이라 실제 씬을
-보지 않았고, 빠진 것이 더 있을 수 있다. 실제로 **손전등 · 무기 같은 플레이어 소지품이
-1 차 목록에서 통째로 빠져 있었다** — 벽과 바닥만 세다가 화면에 가장 오래 있는 것을
-놓쳤다.
+**2장이 가장 긴 장이고 복도가 반복된다.** 여기 다섯이 2장 화면의 대부분이다.
 
-확인할 것.
+### 2. 금속 사물함 `Locker`
 
-1. **씬을 열어 회색 박스를 센다.** `Ch1` · `Ch2` · `Ch6` 에 지금 큐브로 서 있는 것이
-   무엇인지 본다. 목록에 없는데 씬에 있으면 그것이 누락이다
-2. **`treeline.md` 의 각 장 시나리오를 다시 읽는다.** 문장 안에 소품이 숨어 있다 —
-   「커피가 아직 따뜻하다」, 「의자가 넘어져 있다」, 「바닥에 끌린 자국」
-3. **화면에 오래 있는 순서로 다시 정렬한다.** 1 인칭 소지품 > 복도에 반복 배치되는
-   것 > 한 번 지나가는 것. 우선순위는 개수가 아니라 노출 시간으로 정한다
-4. **3 · 4 · 5 장은 아직 회색 박스도 없다.** 그 장 소품은 레벨이 지어진 뒤에 정해도
-   늦지 않다. 지금은 1 · 2 · 6 에 필요한 것부터 뽑는다
-5. **이미 있는 것을 다시 만들지 않는다.** 2장 사물함 · 이층침대는 Blender FBX 로
-   이미 들어와 있고, `World/Meshes/Flashlight.asset` 은 R&D 에서 만든 대역이다.
-   각진 물건은 Unity 에서 조합하는 편이 싼 경우도 있다
-   (근거는 [`decisions.md`](decisions.md))
-6. **Meshy 만 길이 아니다.** 2장 복도와 그 소품은 **Blender** 로 만들어졌다
-   (`Ch2_CorridorSection.fbx`). 물건에 따라 어느 경로가 나은지 다르므로, 목록을
-   확정할 때 **조달 방법을 물건별로 적는다** — Meshy · Blender · Unity 조합
+    Bank of three tall steel personnel lockers standing side by side, each
+    with a vented slot panel near the top, a recessed handle with a hasp, a
+    piano hinge down one side, a shared plinth at the bottom. Worn matte
+    grey-green paint over steel, bare metal at the edges, light rust at seams.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
 
-목록이 확정되면 [`/prop`](../../.claude/skills/prop/SKILL.md) 의 ② 로 넘어간다.
+- 치수: 0.90 × 1.80 × 0.50m (3연장 기준)
+- 축: 문이 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Ch2_LockerBank.fbx`, `HideRoom` 의 `Locker_Standing` · `Locker_Fallen`
+- 부품 분리: **문 하나를 따로 뽑는다.** 열린 채로 둘 자리가 있다
+- 비고: 복도에 11 개가 늘어선다. **2장에서 화면에 가장 오래 있는 소품이다**
+
+### 3. 이층침대 `Bunk`
+
+    Steel two-tier bunk bed frame, tubular uprights and angle rails, flat
+    slatted deck on each level, a fixed ladder at one end, low guard rail on
+    the upper bunk. Worn matte grey-green paint over steel, bare metal at the
+    edges, light rust at the welds. Low-poly, game-ready, clean topology.
+    No baked shadows, no baked ambient occlusion. No branding, no text,
+    no decals. Neutral desaturated palette only.
+
+- 치수: 0.90 × 1.75 × 2.00m
+- 축: 머리맡 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Ch2_Bunk.fbx`, `HideRoom` 의 `Bunk_Frame` · `Bunk_Lower` · `Bunk_Upper`
+- 부품 분리: 불필요. 매트리스는 26 번으로 따로 얹는다
+
+### 4. 조명 하우징 `LightHousing`
+
+    Industrial fluorescent light fixture housing, long rectangular steel body
+    with a wire cage guard over the front, two end caps, mounting brackets on
+    top. The tube inside is dark and unlit. Worn matte grey-green paint over
+    steel, bare metal at the edges, light rust at seams. Low-poly, game-ready,
+    clean topology. No baked shadows, no baked ambient occlusion. No branding,
+    no text, no decals. Neutral desaturated palette only.
+
+- 치수: 길이 1.2m · 폭 0.16m · 높이 0.12m
+- 축: 길이 `+X` · 피벗: 천장에 닿는 윗면 중앙
+- 바꿀 곳: 복도 · 방 프리팹 전부의 `LightHousing` · `LightTube`
+- 부품 분리: **튜브를 따로 뽑는다.** 깜빡임을 머티리얼로 조절해야 한다
+- 비고: 모든 칸에 하나씩 들어간다. **꺼진 채로 있는 것이 기본**이고 켜지는 것은 4장이다
+
+### 5. 배관 다발 `PipeRun` — 직선 · 엘보
+
+    Bundle of four parallel industrial pipes of slightly different diameters
+    running side by side, held by two U-bolt brackets, flanged joints at both
+    ends, straight run. Worn matte grey-green paint over steel, bare metal at
+    the edges, light rust at seams. Low-poly, game-ready, clean topology.
+    No baked shadows, no baked ambient occlusion. No branding, no text,
+    no decals. Neutral desaturated palette only.
+
+엘보는 `straight run` 을 아래로 바꿔 한 번 더 뽑는다.
+
+    ... ninety degree elbow bend, flanged joints at both ends.
+
+- 치수: 직선 길이 4m · 단면 0.35 × 0.35m
+- 축: 길이 `+Z` · 피벗: **한쪽 끝 단면 중심** (이어 붙이려면 끝이 원점이어야 한다)
+- 바꿀 곳: 복도 · 문간 프리팹의 `Pipe_A` · `Pipe_B`
+- 부품 분리: 불필요
+- 비고: **4m 모듈이다.** Meshy 가 길이를 안 지키므로 임포트에서 **길이 축만** 늘려
+  맞춘다. 단면이 정사각형에 가까워야 늘려도 안 뭉개진다
+
+### 6. 케이블 트레이 `CableTray` — 직선 · 코너
+
+    Open steel cable tray, ladder type with evenly spaced rungs, carrying a
+    loose bundle of thick insulated cables secured with three zip ties,
+    straight run. Worn matte grey-green paint over steel, bare metal at the
+    edges, light rust at seams. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
+
+- 치수: 직선 길이 4m · 폭 0.3m · 높이 0.12m
+- 축: 길이 `+Z` · 피벗: 한쪽 끝
+- 바꿀 곳: `Ch2` 의 `CableRun_Up` · `CableRun_Down`, 그 밖의 벽 · 천장
+- 부품 분리: 불필요
+- 비고: 4m 모듈. 위와 같다
+
+---
+
+# 2순위 — 세 장 공용
+
+**한 번 만들어 1 · 2 · 6 에 흩뿌린다.** 단조로움을 가장 크게 푸는 자리다.
+
+### 7. 벽 레버 `WallLever`
+
+    Heavy industrial wall-mounted lever switch, cast steel base plate bolted
+    to the wall, a thick pivoting handle with a rounded grip end, a curved
+    slotted guide plate behind the handle, small hinge boss. Worn matte
+    grey-green paint over steel, bare metal worn shiny on the grip. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals. Neutral desaturated palette only.
+
+- 치수: 판 0.35 × 0.50m · 손잡이 길이 0.55m
+- 축: 앞 `-Z`, 손잡이가 `+Y` 로 선다 · 피벗: **손잡이 회전축**
+- 바꿀 곳: `Ch1/SearchlightSwitch`, `Ch2/ShutterLever`, `Ch6/HeaterLever` · `BoardLever`
+- 부품 분리: **손잡이를 따로 뽑는다.** `Lever` 가 55° 눕히므로 나뉘어야 한다
+- 비고: 넷의 씬 크기가 제각각이다(`0.35×1.6×0.25` ~ `0.24×0.6×0.45`). **하나를 만들어
+  스케일로 맞춘다** — 같은 물건이 반복되는 편이 세계에 일관성을 준다
+
+### 8. 벽면 배전함 `JunctionBox`
+
+    Wall-mounted industrial electrical junction box, rectangular steel
+    enclosure with a hinged front door, two heavy latches, a small round
+    indicator lamp, conduit stubs entering from the bottom. Worn matte
+    grey-green paint over steel, bare metal at the edges, light rust at seams.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
+
+- 치수: 0.30 × 0.90 × 0.62m (`Ch2` 의 `Breaker` 실측)
+- 축: 문이 `-Z` · 피벗: 벽에 닿는 뒷면 중앙
+- 바꿀 곳: `Ch2` 의 `Breaker` · `BrkHandle` · `BrkLed`
+- 부품 분리: **문을 따로 뽑는다**
+- 비고: 2장 히터 배전함이 이것이고, 4장 배전반으로 다시 나온다
+
+### 9. 철제 문 · 문틀 `SteelDoor`
+
+    Heavy industrial steel door in its frame, flush slab with a row of narrow
+    horizontal louvre slits near the top, a lever handle with a round
+    escutcheon, three barrel hinges down one side, a raised threshold plate at
+    the bottom, the frame slightly proud of the wall. Worn matte grey-green
+    paint over steel, bare metal at the edges, light rust at the hinges.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
+
+- 치수: 문짝 2.40 × 2.30 × 0.18m (`Ch2` 실측) · 문틀 포함 폭 2.7m
+- 축: 앞 `-Z` · 피벗: **경첩 쪽 세로축**
+- 바꿀 곳: `Ch2` 의 `FrozenDoor` · `DoorLouver_0`~`_5`,
+  `CorridorSection_Doorway` · `_DoorwayLeft` 의 `DoorJamb_*`
+- 부품 분리: **문짝 · 문틀 · 손잡이 셋.** 문짝만 돌아야 한다
+- 비고: **얼음은 모델에 넣지 않는다.** 서리 · 고드름은 VFX 와 반투명 셰이더로 간다
+
+### 10. 환기 벤트 그릴 `VentGrille`
+
+    Industrial wall vent grille, rectangular steel frame with fixed horizontal
+    louvre blades, four corner screws, slightly recessed into its frame. Worn
+    matte grey-green paint over steel, bare metal at the edges, light rust at
+    seams. Low-poly, game-ready, clean topology. No baked shadows, no baked
+    ambient occlusion. No branding, no text, no decals. Neutral desaturated
+    palette only.
+
+- 치수: 0.60 × 0.40 × 0.08m
+- 축: 앞 `-Z` · 피벗: 벽에 닿는 뒷면 중앙
+- 바꿀 곳: 없음 — **새로 놓는다.** 벽이 비어 보이는 자리에 붙인다
+- 부품 분리: 불필요
+- 비고: 4장 환기 팬의 예고이기도 하다
+
+### 11. 드럼통 `Drum`
+
+    Standard 200 litre steel industrial drum, two rolling ribs around the
+    body, raised rim at top and bottom, sealed lid with a small bung. Worn
+    matte grey-green paint over steel, bare metal at the edges, heavier rust
+    streaks running down from the top rim. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding,
+    no text, no decals. Neutral desaturated palette only.
+
+- 치수: 지름 0.58m · 높이 0.88m
+- 축: 위 `+Y` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Room_Store` 의 `Drum`
+- 부품 분리: 불필요
+- 비고: **6장 엄폐물 옆에 섞어 쌓는다.** 같은 기계 덩어리가 다섯이면 반복이 눈에
+  띄는데, 드럼과 상자를 섞으면 실루엣이 흐려진다
+
+### 12. 앵글 선반 `Shelf`
+
+    Industrial slotted-angle steel shelving unit, four uprights and three flat
+    shelf boards, open sides and back, diagonal cross brace at the rear. Worn
+    matte grey-green paint over steel, bare metal at the edges, light rust at
+    seams. Low-poly, game-ready, clean topology. No baked shadows, no baked
+    ambient occlusion. No branding, no text, no decals. Neutral desaturated
+    palette only.
+
+- 치수: 2.00 × 1.55 × 0.80m (`Ch1` 실측)
+- 축: 앞 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Ch1` 의 `Shelf`, `Room_Store` 의 `Shelf_*` · `ShelfPost_*` · `Shelf_Fallen`
+- 부품 분리: 불필요
+
+### 13. 소화기 `Extinguisher`
+
+    Wall-mounted fire extinguisher on a simple steel bracket, cylindrical
+    bottle with a rounded top, squeeze handle, short hose looped to the side,
+    pressure gauge on the neck. Dull red bottle, everything else worn matte
+    grey-green steel with bare metal at the edges. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding,
+    no text, no decals. Neutral desaturated palette otherwise.
+
+- 치수: 높이 0.55m · 지름 0.16m
+- 축: 앞 `-Z` · 피벗: 벽에 닿는 뒷면
+- 바꿀 곳: 없음 — 새로 놓는다
+- 부품 분리: 불필요
+- 비고: **색이 튀는 둘 중 하나다.** 어둠 속에서 눈이 걸린다
+
+### 14. 비상등 `EmergencyLight`
+
+    Wall-mounted industrial emergency light, a small steel bracket carrying
+    two round lamp heads side by side behind wire guards, a slim battery box
+    behind them, conduit entering from below. Dull red lamp lenses, everything
+    else worn matte grey-green steel with bare metal at the edges. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals. Neutral desaturated palette otherwise.
+
+- 치수: 0.32 × 0.18 × 0.14m
+- 축: 앞 `-Z` · 피벗: 벽에 닿는 뒷면 중앙
+- 바꿀 곳: `Ch2` 의 `EmergencyLight`
+- 부품 분리: 불필요. 렌즈만 머티리얼로 켠다
+- 비고: 색이 튀는 둘 중 둘째. 2장 정전 구간의 유일한 빛이다
+
+---
+
+# 3순위 — 조작하는 장치
+
+플레이어가 다가가 들여다보는 것들이라 **가까이서 버텨야 한다.**
+
+### 15. 서치라이트 `Searchlight`
+
+    Large industrial searchlight on a short mast, cylindrical drum housing
+    with a wide glass lens at the front, a ribbed cooling collar, side yoke
+    mount allowing tilt, a cable gland at the rear, mounted on a square base
+    plate. Worn matte grey-green paint over steel, bare metal at the edges,
+    light rust at seams. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
+
+- 치수: 마스트 0.40 × 1.40 × 0.40m · 헤드 1.00 × 0.80 × 1.00m (`Ch1` 실측)
+- 축: 빛이 `+Z` · 피벗: 마스트 바닥면 중앙
+- 바꿀 곳: `Ch1` 의 `SearchlightMast` · `SearchlightHead`
+- 부품 분리: **헤드를 따로 뽑는다.** 돌아가는 연출이 붙을 수 있다
+- 비고: 5장에서 같은 물건이 생존 수단이 된다
+
+### 16. 히터 유닛 `HeaterUnit`
+
+    Industrial cable heater control unit, a squat steel box with a finned heat
+    exchanger on one face, a thick armoured cable leaving the bottom through a
+    gland, two small dials and a round indicator lamp on the front, carry
+    handles on the sides. Worn matte grey-green paint over steel, bare metal
+    at the edges, light rust at seams. Low-poly, game-ready, clean topology.
+    No baked shadows, no baked ambient occlusion. No branding, no text,
+    no decals. Neutral desaturated palette only.
+
+- 치수: 1.00 × 1.00 × 1.00m (`Ch2` · `Ch6` 실측, 둘 다 같다)
+- 축: 앞 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Ch2/Heater` · `HeaterCable` · `HeaterGlow`, `Ch6/Heater`
+- 부품 분리: 불필요. 표시등만 머티리얼로 켠다
+- 비고: **2장에서 배우고 6장에서 쫓기며 다시 쓴다.** 기획의 「각 장치는 두 번 쓰인다」가
+  모델 재사용으로 그대로 떨어진다
+
+### 17. 비상 셔터 `Shutter`
+
+    Industrial roll-down emergency shutter, horizontal slat curtain with a
+    reinforced bottom rail, vertical guide channels at both sides, a roller
+    housing box across the top. Worn matte grey-green paint over steel, bare
+    metal at the edges, light rust running down the slats. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals. Neutral desaturated palette only.
+
+- 치수: 2.70 × 2.80 × 0.14m (`Ch2` 실측)
+- 축: 앞 `-Z`, 내려오는 방향 `-Y` · 피벗: **커튼 윗변**
+- 바꿀 곳: `Ch2` 의 `Shutter`
+- 부품 분리: **커튼 · 가이드 · 롤러함 셋.** 커튼만 내려와야 한다
+- 비고: 2장에서 살아남는 수단. 3장 이후 같은 물건이 무기가 된다
+
+### 18. 삭도 곤돌라 `CableCar`
+
+    Small aerial tramway gondola cabin for two people, riveted steel shell
+    with rounded corners, a large window on each side, a sliding door on one
+    side, a curved hanger arm on the roof ending in a grip clamp for the haul
+    rope. Worn matte grey-green paint over steel, bare metal at the edges,
+    light rust at seams. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
+
+- 치수: 1.60 × 2.00 × 2.40m (`Ch6` 의 `Body` 실측)
+- 축: 진행 방향 `+Z` · 피벗: **행어 그립 중심** (케이블에 매달린다)
+- 바꿀 곳: `Ch6` 의 `Body` · `Car` · `CableCar`
+- 부품 분리: **문을 따로 뽑는다**
+- 비고: 올라타면 화면이 뒤집힌다. **안이 보이므로 내부도 필요하다**
+
+### 19. 관제 콘솔 `ControlConsole`
+
+    Industrial control console desk, angled instrument panel with rows of
+    round analogue gauges, toggle switches and indicator lamps, a flat writing
+    surface below, boxed steel body with a kick plate at the floor, cable
+    conduit leaving the back. Worn matte grey-green paint over steel, bare
+    metal at the edges, light rust at seams. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding,
+    no text, no decals. Neutral desaturated palette only.
+
+- 치수: 4.00 × 1.00 × 1.20m (`Ch1` 실측)
+- 축: 앞 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Ch1` 의 `Console`
+- 부품 분리: 불필요. 계기 바늘은 지금 안 움직여도 된다
+- 비고: 기획의 「계기판이 돌아가고」가 이것이다
+
+### 20. 산업 기계 덩어리 `MachineBlock`
+
+    Large industrial machinery housing, a boxy steel cabinet with a ribbed
+    side panel, a raised motor cowling on top, heavy lifting eyes at the
+    corners, a bolted access hatch on the front, thick conduit leaving the
+    base. Worn matte grey-green paint over steel, bare metal at the edges,
+    light rust at seams. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
+
+- 치수: 3.00 × 3.00 × 3.00m
+- 축: 앞 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Ch6` 의 `Cover_N` · `Cover_E` · `Cover_S` · `Cover_W` · `Cover_SE`,
+  `Ch6` 의 `WatchStand`
+- 부품 분리: 불필요
+- 비고: **6장 화면의 절반을 차지한다.** 다섯이 같은 모델이면 반복이 보이므로 회전 ·
+  스케일을 달리 주고 드럼통 · 나무 상자를 섞는다
+
+### 21. 밸브 휠 `ValveWheel`
+
+    Industrial gate valve with a spoked hand wheel, five spokes and a raised
+    hub, rising stem above the bonnet, flanged valve body below, bolted
+    joints. Worn matte grey-green paint over steel, bare metal worn shiny on
+    the wheel rim, light rust at seams. Low-poly, game-ready, clean topology.
+    No baked shadows, no baked ambient occlusion. No branding, no text,
+    no decals. Neutral desaturated palette only.
+
+- 치수: 휠 지름 0.36m · 전체 높이 0.45m
+- 축: 휠 축이 `+Z` · 피벗: 배관에 닿는 밑면
+- 바꿀 곳: 없음 — 배관에 붙는 장식으로 새로 놓는다
+- 부품 분리: **휠을 따로 뽑는다.** 3 · 4장에서 돌리는 연출이 붙는다
+
+---
+
+# 4순위 — 장 전용 분위기
+
+한 번 지나가는 것들이다. 자를 거면 여기부터.
+
+### 22. 사무 책상 `Desk`
+
+    Plain steel office desk, flat top with a thin lip, a drawer pedestal on
+    one side, open knee space, angle-braced legs. Worn matte grey-green paint
+    over steel, bare metal at the edges, light rust at seams. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals. Neutral desaturated palette only.
+
+- 치수: 1.40 × 0.74 × 0.70m · 축: 앞 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `HideRoom` 의 `Desk` · `DeskLeg_A` · `DeskLeg_B`
+- 부품 분리: 불필요
+
+### 23. 사무 의자 `Chair`
+
+    Simple industrial swivel chair, round padded seat and a small padded
+    backrest, single central column, five-star base with castors. Worn matte
+    grey-green frame, dark grey padding, bare metal at the edges. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals. Neutral desaturated palette only.
+
+- 치수: 0.60 × 0.95 × 0.60m · 축: 앞 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `HideRoom` 의 `Chair_Toppled`, `Ch1` 관제실에 새로 놓기
+- 부품 분리: 불필요
+- 비고: **넘어진 것을 따로 뽑지 않는다.** 회전으로 눕힌다. 기획의 「의자가 넘어져
+  있고」가 이것이다
+
+### 24. 근무표 보드 `NoticeBoard`
+
+    Wall-mounted notice board, a shallow steel frame with a flat backing
+    panel, several loose sheets of paper pinned in a grid, one sheet curling
+    at a corner, a small clip at the top. Worn matte grey-green frame, pale
+    off-white paper, bare metal at the edges. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No printed words,
+    no readable text, no branding, no decals. Neutral desaturated palette only.
+
+- 치수: 0.10 × 1.00 × 1.40m (`Ch1` 실측) · 축: 앞 `-X` · 피벗: 벽에 닿는 뒷면 중앙
+- 바꿀 곳: `Ch1` 의 `DutyRoster`
+- 부품 분리: 불필요
+- 비고: **모델에 글자를 넣지 않는다.** 읽는 내용은 `Readable` 패널이 띄운다
+
+### 25. 무전 일지 `Logbook`
+
+    Open hardcover logbook lying flat, ruled pages with faint horizontal
+    lines, a pen resting in the gutter, cloth-bound spine, slightly curled
+    page corners. Dull dark green cover, pale off-white pages. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No printed words, no readable text, no branding, no decals. Neutral
+    desaturated palette only.
+
+- 치수: 0.70 × 0.06 × 0.50m (`Ch1` 실측) · 축: 위 `+Y` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Ch1` 의 `RadioLog`
+- 부품 분리: 불필요
+- 비고: **콜라이더는 지금 눈높이까지 키워 트리거로 두었다. 메시를 갈아도 그대로 둔다**
+  (근거는 `architecture.md` 의 「Readable」)
+
+### 26. 침대 매트리스 `Mattress`
+
+    Thin worn foam mattress lying flat, quilted surface with a seam piping
+    around the edge, one corner sagging, a few dark damp patches. Dull grey
+    ticking fabric, no pattern. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
+
+- 치수: 0.80 × 0.14 × 1.90m · 축: 위 `+Y` · 피벗: 바닥면 중앙
+- 바꿀 곳: `HideRoom` 의 `Mattress` · `Mattress_Dragged`,
+  복도 칸의 `Mattress_L_*`
+- 부품 분리: 불필요
+
+### 27. 세면대 `Basin`
+
+    Wall-hung industrial wash basin, plain rectangular ceramic bowl with a
+    rolled rim, exposed chrome trap and supply pipes below, a single lever tap
+    at the back. Dull off-white ceramic, dull steel pipework, light rust at
+    the wall brackets. Low-poly, game-ready, clean topology. No baked shadows,
+    no baked ambient occlusion. No branding, no text, no decals. Neutral
+    desaturated palette only.
+
+- 치수: 0.50 × 0.85 × 0.40m · 축: 앞 `-Z` · 피벗: 벽에 닿는 뒷면
+- 바꿀 곳: `Room_Wash` 의 `Basin_*` · `BasinPipe_*` · `Tap_*`
+- 부품 분리: 불필요 (수도꼭지 포함 통짜)
+
+### 28. 세면장 칸막이 `WashPartition`
+
+    Row of three shoulder-height washroom partition panels on slim steel
+    posts, plain flat panels with a rounded top edge, a long narrow mirror
+    strip fixed to the wall above, small shelf lip under the mirror. Worn
+    matte grey-green panels, dull steel posts, bare metal at the edges.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
+
+- 치수: 2.40 × 1.70 × 0.10m · 축: 앞 `-Z` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Room_Wash` 의 `Partition` · `MirrorStrip`
+- 부품 분리: 불필요
+
+### 29. 나무 상자 `Crate`
+
+    Rough wooden shipping crate, plank sides with visible nail heads, corner
+    battens, a lid with a slight gap at one edge. Weathered pale grey timber,
+    dull steel corner brackets, no pattern. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding,
+    no text, no decals. Neutral desaturated palette only.
+
+- 치수: 0.80 × 0.60 × 0.80m · 축: 위 `+Y` · 피벗: 바닥면 중앙
+- 바꿀 곳: `Room_Store` 의 `Crate_A` · `Crate_B` · `Crate_C`
+- 부품 분리: 불필요
+- 비고: 6장 엄폐물 옆에 쌓아 실루엣을 흐리는 데도 쓴다
+
+### 30. 커피잔 `Mug`
+
+    Simple ceramic mug with a plain round handle, slightly thick rim, a little
+    dark liquid left inside, a faint ring stain on the outside near the base.
+    Dull off-white ceramic. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
+
+- 치수: 0.09 × 0.10 × 0.12m · 축: 위 `+Y` · 피벗: 바닥면 중앙
+- 바꿀 곳: 없음 — **새로 놓는다**
+- 부품 분리: 불필요
+- 비고: 기획의 「커피가 아직 따뜻한데 사람이 없다」가 이것이다
+
+---
+
+## 후순위 — 그 장이 생긴 뒤에 만든다
+
+레벨이 없으면 크기도 배치도 정할 수 없다.
+
+| 소품 | 어느 장 | 왜 미루나 |
+| --- | --- | --- |
+| 권총 (슬라이드 · 탄창 분리) | 3장 | **지금 빌드에서 화면에 안 나온다** |
+| 산탄총 (펌프 분리) | 5장 | 같음 |
+| 연료통 | 3장 · 6장 | 이 단계의 6장에 연료 절차가 없다 |
+| 배터리 · 탄약 상자 | 3장~ | 지금 배치된 곳이 없다 |
+| 갱도 지지 프레임 · 손수레 | 3장 | 레벨 없음 |
+| 디젤 발전기 · 배전반 · 축전지 랙 · 환기 팬 | 4장 | 레벨 없음 |
+| 유기물 데코 (둥지) | 4장 | 레벨 없음 |
+| 철탑 구조재 · 안테나 접시 · 로터리 제설기 · 제설포 | 5장 | 레벨 없음 |
 
 ## 세지 않은 것
 
 - **적 3종** — [`enemy-sheets/`](../enemy-sheets/) 의 시트 방식으로 따로 간다
-- **벽 · 바닥 · 천장 · 계단** — 소품이 아니라 레벨이다. 표면만 입힌다
+- **벽 · 바닥 · 천장 · 계단 · 난간** — 레벨이다. 표면만 입힌다 (2-1b)
+- **걸레받이 · 배튼 · 레일** (`Skirting_*` · `Seam_*`) — 모서리를 살리려고 얇은 상자를
+  덧댄 벽 마감이다. 소품이 아니다
+- **얼음 · 서리 · 고드름** (`Icicle_*` · `Frost_*` · `CableIce` · `FrozenPuddle`) —
+  Meshy 로 뽑기 나쁜 형태다. 반투명 셰이더와 파티클로 가고, VFX 키트가 이미 있다
 - **UI · 아이콘** — 이미 들어와 있다
+
+## 2장을 손볼 때 순서
+
+1. **표면부터.** 2-1b 를 2장에 적용한다. 지오메트리를 안 건드려 되돌리기 쉽고,
+   **이것만으로 1장과 톤이 맞는지 먼저 본다**
+2. 그다음 소품을 교체한다. 위 표의 「바꿀 곳」을 따라 **메시만** 갈아끼운다
+3. **배치는 지금 구성을 그대로 둔다.** 관통이 검증된 레벨이다
+
+IMPORTANT: **1 번을 하고 2 번을 판단한다.** 표면을 안 입힌 채 소품만 바꾸면 새 모델이
+단색 벽 위에 떠 보인다.
