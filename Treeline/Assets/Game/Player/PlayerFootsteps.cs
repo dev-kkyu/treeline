@@ -105,6 +105,18 @@ namespace Treeline
 
         private void Update()
         {
+            // 실려 가는 동안은 걸음이 아니다. 삭도에 올라타면 콜라이더를 끄고 차체에
+            // 붙여 옮기는데, 그 이동이 그대로 쌓이면 가만히 서서 걷는 소리가 난다.
+            // 태우는 쪽마다 발소리를 따로 꺼주게 하지 않고 여기서 한 번 막는다.
+            if (!controller.enabled)
+            {
+                lastPosition = transform.position;
+                travelled = 0f;
+                airTime = 0f;
+                wasGrounded = true;
+                return;
+            }
+
             bool grounded = controller.isGrounded;
 
             // 수평 이동만 센다. 떨어지는 동안 쌓이면 착지하자마자 한 걸음이 터진다.

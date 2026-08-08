@@ -133,6 +133,47 @@ IMPORTANT: **`trim_silence.py --report` 는 이 넷을 전부 0~10ms 로 보고�
 `TimedDevice` 는 `Started` 이벤트와 `Progress` 가 이미 있으므로 시작 · 완료
 두 지점에 그대로 걸면 된다.
 
+### 장치와 레버 소리는 코드를 쓰지 않고 붙인다
+
+`Device` 에 이미 `started` · `activated` · `deactivated` 세 `UnityEvent` 가 있다.
+소리를 낼 오브젝트에 `AudioSource` 를 붙이고 그 이벤트에서 `AudioSource.Play` 를
+부르면 끝이고, **스크립트를 새로 쓰거나 남의 컴포넌트를 고칠 일이 없다.**
+
+6 장이 그렇게 되어 있다. 레버 자체에는 이벤트가 없지만, **레버가 미는 장치**의
+이벤트가 곧 당긴 시점이다.
+
+| 이벤트 | 부르는 것 | 소리 |
+| --- | --- | --- |
+| `Heater.started` | `HeaterLever` 의 `Play` | `lever-pull` — 당기는 순간이다 |
+| | `Heater/Snd_Start` 의 `Play` | `device-start` |
+| | `Heater/Snd_Hum` 의 `Play` | `heater-hum-loop` — 도는 동안 |
+| `Heater.activated` | `Heater/Snd_Complete` 의 `Play` | `ice-melt-crack` — 얼음이 깨진다 |
+| `CableCar.activated` | `BoardLever` 의 `Play` | `lever-pull` |
+| | `CableCar/Snd_Start` 의 `Play` | `generator-start` — 권양기가 돈다 |
+| | `CableCar/Snd_Run` 의 `Play` | `generator-rumble-loop` — 가는 동안 |
+
+**소리 하나에 오브젝트 하나**로 나눈다 (`Snd_<무엇>`). 한 오브젝트에 `AudioSource` 를
+여럿 붙이면 인스펙터에서 어느 이벤트가 어느 소리를 부르는지 읽히지 않는다. 레버 소리만
+레버 위에 둔다 — 소리가 나는 자리가 거기라서다.
+
+멈추는 것도 코드가 필요 없다. `AudioSource.Stop` 도 인자 없는 public 함수라 `activated`
+에 그대로 걸린다. **다만 6 장 히터는 안 멈춘다** — 다 녹은 뒤에도 계속 돈다. 켜 둔
+기계가 할 일을 마쳤다고 저절로 꺼지지는 않고, 소리가 사라지면 오히려 그 순간에 시선이
+간다. 얼음이 깨지는 소리가 「끝났다」를 알리는 몫을 한다.
+
+IMPORTANT: **삭도 소리 둘은 대역이다.** `generator-start` 와 `generator-rumble-loop` 는
+4 장 발전기용으로 만든 것인데, 삭도 권양기도 엔진이라 그럭저럭 맞아서 가져다 썼다.
+`cablecar-start` · `cablecar-loop` 를 따로 뽑으면 여기를 바꾼다.
+
+`CableCar/Snd_Run` 은 차체의 자식이라 **삭도와 같이 멀어지면서 저절로 작아진다.**
+`Stop` 을 걸지 않은 이유가 이것이다.
+
+IMPORTANT: **`EditorApplication.Step()` 으로 소리를 검증할 수 없다.** Step 은 에디터를
+일시정지 상태로 두는데, 그 상태에서 `AudioSource.Play()` 는 걸리지 않아 `isPlaying`
+이 계속 거짓이다. **소리가 안 나는 것처럼 보이지만 배선은 멀쩡하다.**
+`PlayOneShot` 은 정지 중에도 걸려서 이 차이가 더 헷갈린다. 재려면
+`EditorApplication.isPaused = false` 로 풀고 실제로 흐르게 둔 뒤에 본다.
+
 ### `Music/` — 배경음악 10 종
 
 장별 6 곡에 큐 2 개, 타이틀과 엔딩이다. 기획서의 「여섯 장소」를 그대로 따랐다.
