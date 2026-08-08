@@ -352,17 +352,25 @@ PROMPTS = [
      "Enormous animal standing still and breathing very slowly, deep "
      "subsonic inhale and exhale, huge frost cracked hide creaking under its "
      "own weight, close microphone, " + STEADY, 10.0, True),
+    # IMPORTANT: 거대함을 저역으로만 만들면 안 들린다. 무게중심이 88 Hz 였고
+     # step-01 은 29 Hz 라 노트북 스피커에서 사라졌다. 귀에 남는 것은 서브가
+     # 아니라 충격체와 부스러기다. 언 땅이 갈라지는 소리를 반드시 넣는다.
     ("Colossus", "colossus-walk-loop",
-     "Enormous four point knuckle walker moving slowly, massive hands and "
-     "feet pressing into packed snow, deep slow rhythm with hide groaning, "
-     + STEADY, 8.0, True),
+     "Enormous four point knuckle walker crossing frozen ground at a slow "
+     "pace. Every contact is a huge blunt thud you feel in the chest, the "
+     "body of the impact heavy and round, with the ice crust splitting and a "
+     "little grit scattering right after it. The thud dominates; the cracking "
+     "is only a detail on top. Recorded close, " + STEADY, 8.0, True),
     ("Colossus", "colossus-step-01",
-     "Single enormous hand slamming down onto frozen ground, deep low impact "
-     "with debris and a heavy weight shift, close microphone, no music",
-     2.0, False),
+     "One enormous hand slamming down onto frozen ground. The ice crust "
+     "splits with a hard cracking report, packed grit crunches under the "
+     "palm, and loose debris scatters afterward. Blunt and heavy but bright "
+     "enough to hear clearly, close microphone, no music", 2.0, False),
     ("Colossus", "colossus-step-02",
-     "Single enormous foot planting on packed snow, deep crushing impact "
-     "with a long low rumble after, close microphone, no music", 2.0, False),
+     "One enormous foot planting into packed snow over frozen ground. Snow "
+     "compresses with a dense crunch, the crust breaks underneath, and grit "
+     "shifts as the weight settles. Blunt and heavy but bright enough to hear "
+     "clearly, close microphone, no music", 2.0, False),
     # MODEL-SPEC 5. 애니메이션 — Push 20f 에 전방 밀기
     ("Colossus", "colossus-push",
      "Enormous creature shoving forward with both arms, huge mass "
@@ -387,6 +395,20 @@ PROMPTS = [
      "across a valley, ending abruptly. Vast, inhuman, no clear pitch. "
      "Not a lion, not a bear, not a mammal, no human voice, no music.",
      3.0, False),
+
+    # 즉사 장면. 기획의 「양손으로 붙들려 목이 뜯긴다」 다. Colossus 만 한다.
+    # 붙잡는 순간과 끝나는 순간을 나눈다 — 한 덩어리면 타이밍을 못 맞추고
+    # 「그 자리에서 끝난다」 의 갑작스러움도 안 산다.
+    ("Colossus", "colossus-grab",
+     "Two enormous hands slamming shut around a person: heavy impact on a "
+     "padded winter coat, fabric and gear crushing, the breath knocked out in "
+     "a short choked gasp, feet leaving the ground. Close microphone, "
+     "no music", 1.5, False),
+    ("Colossus", "colossus-kill",
+     "A short brutal end: wet tearing of flesh and cartilage in one motion, "
+     "a cut off gasp, then a body dropping onto frozen ground and one deep "
+     "settling weight. Ends abruptly, nothing after. Close microphone, "
+     "no music", 2.5, False),
 
     # 1장 창밖. 실물 없이 실루엣만 지나간다
     ("Colossus", "colossus-distant-loop",

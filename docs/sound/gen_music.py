@@ -39,45 +39,26 @@ TITLE_TAIL = (
 
 # (이름, 프롬프트, 초)
 TRACKS = [
-    # --- 시작 화면 후보 셋 (2026-08-09). 고르면 하나만 남기고 title-theme 이 된다.
+    # 시작 화면. 계속 떠 있으므로 루프다.
     #
-    # 레벨 시안의 원칙을 소리로 옮긴 것이다 —
-    #   「음산함은 전체 노출만 낮추는 방식으로 만들지 않았다. 진행 장치의 작은
-    #    광원은 남기고, 그 빛이 닿지 않는 공간을 크게 두었다.」
-    # 즉 다 지워서 어둡게 만들지 않고, 작고 연약한 것 하나를 남기고 둘레를 비운다.
-    # 셋의 차이는 「남기는 작은 것」이 무엇이냐다.
+    # 레벨 시안의 원칙을 소리로 옮겼다 — 「음산함은 전체 노출만 낮추는 방식으로
+    # 만들지 않았다. 진행 장치의 작은 광원은 남기고, 그 빛이 닿지 않는 공간을
+    # 크게 두었다.」 다 지워서 어둡게 만들지 않고 작고 연약한 것 하나를 남긴 뒤
+    # 둘레를 비운다. 여기서 남긴 것은 **두고 간 피아노**다.
     #
-    # 미술 방향의 제약도 넣었다. 현대 국적 불명 산악 중계소이고 미래 SF ·
-    # 사이버펑크 · 군사물이 아니다. 안 막으면 신스웨이브로 샌다.
+    # 미술 방향의 「미래 SF · 사이버펑크 아님」 도 프롬프트에 넣는다. 안 막으면
+    # 신스웨이브로 샌다.
     #
-    # 실측(음량 정규화 후):
-    #   지금 title-theme  저역 81.1%  무게중심 131 Hz  소리구간 84%
-    #   A                저역 83.1%  무게중심  82 Hz  소리구간 83%  ← 실패. 신호음이
-    #                    안 들어왔다(고역 0.0%). 기존 것과 거의 같다
-    #   B                저역 24.8%  무게중심 309 Hz  소리구간 77%
-    #   C                저역 27.3%  무게중심 393 Hz  소리구간 64%  ← 원칙에 가장 가깝다
-    ("title-A",
-     "A cold empty mountain radio relay station at night. A very quiet room "
-     "tone of concrete and distant machinery underneath, and above it one thin "
-     "repeating signal tone, like a beacon still transmitting to nobody, "
-     "slightly detuned and lonely. Vast dark space around a single small "
-     "sound. " + TITLE_TAIL, 48),
-    ("title-B",
+    # IMPORTANT: 생성 뒤 두 단계를 거쳐야 한다. 음악 API 에는 loop 파라미터가 없다.
+    #   1. make_loop.py --crossfade 4.0   (48s -> 44s)
+    #   2. 루프 안 음량 기울기 펴기(원형 이동 RMS 의 역수, ±3 dB 로 세 번).
+    #      원본은 15.3 dB 차이라 한 바퀴마다 부풀었다 꺼진다. 2.7 dB 까지 폈다.
+    #   3. normalize.py 로 -18 LUFS
+    ("title-theme",
      "A cold abandoned facility high above the treeline. Long low wind-like "
      "drone with almost nothing in it, and a few fragile detuned piano notes "
      "left hanging in the air, far apart, unresolved. The feeling of a place "
      "someone left in a hurry. " + TITLE_TAIL, 48),
-    ("title-C",
-     "Standing above the treeline in thin freezing air. High airy sustained "
-     "tone with a very deep quiet weight far below it and a wide gap of "
-     "silence between them, slowly sinking downward as if pulled toward the "
-     "valley. Cold, vast, no comfort. " + TITLE_TAIL, 48),
-
-    ("title-theme",
-     "Slow ominous orchestral drone for a horror game title screen. Low "
-     "sustained strings, distant metallic resonance, a few sparse piano "
-     "notes. Cold and vast, a mountain above the treeline. " + INSTRUMENTAL,
-     60),
 
     # 1장 관제동 — 아무도 없다. 위협이 아직 없고 부재만 있다
     ("ch1-control-room",
@@ -138,11 +119,33 @@ TRACKS = [
     # 음악 API 로도 뽑아 봤지만(당시 A 안) 관현악 쪽으로 흘렀다.
 
     # 엔딩. 탈출했지만 그것은 죽지 않았다
+    # 엔딩. 계속 떠 있으므로 루프다.
+    #
+    # 해결되면 안 된다. 기획의 마지막이 「그것은 죽지 않는다. 밀려나고 묻힐 뿐이다.
+    # 화면이 뒤집힌다. 그것의 시점에서, 삭도가 멀어지는 것이 보인다」 이고,
+    # 음악이 안도로 닫으면 「죽지 않는 것이 있다」 는 규칙이 소리에서만 깨진다.
+    #
+    # IMPORTANT: **이 트랙은 두 생성물을 겹친 것이다.** 생성기가 「아래에 묻힌
+    # 무게 + 위로 멀어지는 기계 소리 + 빈 공간」 셋을 동시에 못 준다. 따로 뽑으니
+    # 마침 다른 대역에 있어서(A 저역 0%/3490 Hz, C 저역 97%/46 Hz) 겹칠 수 있었다.
+    # A 를 +4 dB, C 를 -14 dB 로 섞었다. C 를 그대로 쓰면 92% 를 채워 공간이 사라진다.
+    # 다시 만들려면 아래 둘을 각각 뽑아 같은 비율로 섞고, make_loop 와 음량 기울기
+    # 펴기를 거친다.
+    #
+    #   A: "Riding a cable car down a mountain away from a facility. A slow
+    #       mechanical rhythm of steel rope over rollers, distant and getting
+    #       further, with thin freezing air above it and a wide cold emptiness
+    #       around. Something heavy still sits far below, unresolved."
+    #   C: "Heard from underneath a collapsed mass of snow: everything muffled
+    #       and far away, a deep slow breathing weight close to the listener,
+    #       and above it the faint receding sound of machinery leaving.
+    #       Buried but not gone, patient, still there."
     ("ending-descent",
-     "Cold melancholic outro. Slow descending strings under a fragile solo "
-     "cello, relief undercut by unease, thin mountain wind quality. "
-     + INSTRUMENTAL,
-     60),
+     "Riding a cable car down a mountain away from a facility, heard with a "
+     "deep buried breathing weight underneath. Slow mechanical rhythm of "
+     "steel rope over rollers receding into thin freezing air, wide cold "
+     "emptiness around it, and something heavy still there below. Nothing "
+     "resolves. " + TITLE_TAIL, 48),
 ]
 
 
