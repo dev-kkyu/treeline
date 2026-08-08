@@ -21,6 +21,8 @@ NHN GAME X AI HACKATHON (NAN2026) **사전 과제** 프로젝트다. 본선 프�
 - 팀원 담당은 2026-08-08 에 A · B · C 로 배정했다. **A 이정범**(플레이어·전투),
   **B 김도한**(적·에셋), **C 임성규**(상호작용·레벨·진행). 단계별 범위와 담당
   장은 `docs/roles.md`, 구조 규칙은 `docs/tech-design/architecture.md` 참고.
+- 무엇을 어떤 순서로 만드는지는 `docs/plan.md`. 단계와 차수, 각 차수의 완료
+  기준, 장을 가로지르는 연결이 거기 있다. 다음에 뭘 할지 헷갈리면 여기를 본다.
 
 ## 기술 스택
 
@@ -56,7 +58,7 @@ IMPORTANT: 이 경계를 지킨다. 훅·규칙·로깅처럼 AI 환경에 관�
 `docs/ai/setup.md`에 적는다. `docs/tech-design/`는 게임 자체의 기술만 다룬다.
 
 세 축 어디에도 속하지 않는 문서는 `docs/` 바로 아래에 둔다. 축을 가로지르거나
-(`team-setup.md`) 어느 쪽도 아닌 것들이다 (`assets.md`, `roles.md`,
+(`team-setup.md`, `plan.md`) 어느 쪽도 아닌 것들이다 (`assets.md`, `roles.md`,
 `meetings/`). 억지로 축에 밀어넣지 않는다.
 
 할 일 목록은 저장소에서 공유하지 않는다. 각자 `docs/backlog.local.md`에 둔다.
