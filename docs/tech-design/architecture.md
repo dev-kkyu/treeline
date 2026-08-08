@@ -293,9 +293,25 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | `PlayerMotor` | 걷기 · 달리기 · 웅크리기 · 점프. 중력과 콜라이더 높이 |
 | `PlayerLook` | 좌우는 몸체, 상하는 카메라. 포인터 잠금도 여기 |
 | `PlayerHealth` | 체력 3칸. `IDamageable` 구현 |
-| `PlayerWeapon` | 권총. `GameLayers.Shot` 레이캐스트, 탄약 |
+| `WeaponSwitcher` | 어느 총을 드는가. 양손 운반 중 총 잠금 |
+| `PlayerWeapon` | 총 한 자루. `GameLayers.Shot` 레이캐스트, 탄약, 반동 |
 | `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
 | `Flashlight` | 조명 토글과 배터리 소모 |
+
+`PlayerWeapon` 만 루트가 아니라 `Camera` 밑에 **총마다 하나씩** 붙는다
+(`Camera/Pistol` · `Camera/Shotgun`). 권총과 산탄총은 클래스가 아니라 **값만
+다르다** — 산탄총은 탄자 수를 늘리고 퍼짐을 벌린 것이다. 장치를 세 패턴으로
+수렴시킨 것과 같은 기준이고, 세 번째 총이 생겨도 값만 채우면 된다.
+
+전환은 `WeaponSwitcher` 가 `PlayerWeapon` 컴포넌트를 켜고 끄는 것으로 한다. 꺼진
+무기는 `Update` 가 돌지 않아 입력을 보지 않으므로, 총마다 "내가 장착됐나" 를
+확인하는 분기가 없다. 사망 처리가 입력 컴포넌트 하나만 끄는 것과 같은 방식이다.
+
+반동은 무기가 직접 카메라를 돌리지 않고 `PlayerLook.AddRecoil` 로 값만 넘긴다.
+카메라 회전을 만지는 곳이 둘이 되면 매 프레임 서로 덮어쓴다.
+
+`TestDamageTarget` 은 A 의 사격 검증용 표적 대역이고 **적이 아니다.** 적은 B 가
+`Enemy/` 에 만든다. `Crawler.prefab` 이 오면 지워도 된다.
 
 입력을 한 곳으로 모은 이유는 **사망 처리 때문**이다. `PlayerHealth` 가 죽을 때
 `PlayerInputReader` 하나만 끄면 액션 맵이 꺼지고, 나머지 컴포넌트는 전부 0 을
@@ -363,8 +379,14 @@ PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구�
 | 부르는 쪽 | 무엇 |
 | --- | --- |
 | 적 (B) | `PlayerHealth.TakeDamage` |
-| 획득물 (C) | `PlayerWeapon.AddAmmo` · `Flashlight.AddBattery` |
+| 획득물 (C) | `WeaponSwitcher.AddAmmo(종류, 발수)` · `Flashlight.AddBattery` |
+| 총 획득 (C) | `WeaponSwitcher.Equip(종류)` — 권총 3장, 산탄총 5장 |
+| 양손 운반 (C) | `WeaponSwitcher.SetCarrying(true/false)` |
 | 진행 (C) | `PlayerHealth.Died` 구독, 장 전환 시 `PlayerHealth.Restore` |
+
+IMPORTANT: 「무거운 것을 들면 총을 못 쓴다」 는 **운반 쪽이 총을 끄는 것이 아니라**
+`SetCarrying` 을 부르는 것으로 한다. 내려놓으면 들고 있던 총으로 알아서 돌아오므로
+운반 쪽이 무엇을 들고 있었는지 기억하지 않아도 된다.
 
 **의존은 한 방향이다.** `Progress` 가 `Player` 를 찾아가고, `Player` 는
 `Progress` 를 모른다. 그래야 A 가 자기 작업만으로 완결된다.

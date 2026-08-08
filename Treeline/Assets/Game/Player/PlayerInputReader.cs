@@ -30,6 +30,8 @@ namespace Treeline
         private InputAction sprint;
         private InputAction jump;
         private InputAction crouch;
+        private InputAction weapon1;
+        private InputAction weapon2;
 
         /// <summary>이동 입력. x 는 좌우, y 는 앞뒤다. 이미 정규화돼 있지 않다.</summary>
         public Vector2 Move => move != null ? move.ReadValue<Vector2>() : Vector2.zero;
@@ -50,6 +52,10 @@ namespace Treeline
 
         /// <summary>누르고 있는 동안 참. 뗐을 때 천장이 막혀 있으면 못 일어서므로 토글로 두지 않는다.</summary>
         public bool CrouchHeld => crouch != null && crouch.IsPressed();
+
+        public bool Weapon1Pressed => weapon1 != null && weapon1.WasPressedThisFrame();
+
+        public bool Weapon2Pressed => weapon2 != null && weapon2.WasPressedThisFrame();
 
         private void Awake()
         {
@@ -77,6 +83,8 @@ namespace Treeline
             sprint = Find("Sprint");
             jump = Find("Jump");
             crouch = Find("Crouch");
+            weapon1 = Find("Weapon1");
+            weapon2 = Find("Weapon2");
         }
 
         private InputAction Find(string actionName)

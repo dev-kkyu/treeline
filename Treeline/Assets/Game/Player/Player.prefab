@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 1000011}
   - component: {fileID: 1000012}
   - component: {fileID: 1000013}
-  - component: {fileID: 1000014}
   - component: {fileID: 1000015}
   - component: {fileID: 1000016}
+  - component: {fileID: 5316144467640077334}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -118,6 +118,10 @@ MonoBehaviour:
   cameraPivot: {fileID: 1200001}
   sensitivity: 0.08
   pitchLimit: 85
+  idleSwayDegrees: 0.25
+  moveSwayDegrees: 0.8
+  swayFrequency: 1.6
+  recoilRecovery: 8
 --- !u!114 &1000013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -133,25 +137,6 @@ MonoBehaviour:
   maxHealth: 3
   invulnerableSeconds: 0.8
   input: {fileID: 1000010}
---- !u!114 &1000014
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a2c95f80b7d43e19c48d3a61f05b7e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  input: {fileID: 1000010}
-  muzzle: {fileID: 1200001}
-  damagePerShot: 1
-  range: 40
-  shotsPerSecond: 2
-  startingAmmo: 0
-  maxAmmo: 24
 --- !u!114 &1000015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,6 +167,24 @@ MonoBehaviour:
   input: {fileID: 1000010}
   beam: {fileID: 1300002}
   batteryCapacitySeconds: 240
+--- !u!114 &5316144467640077334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ec81b04a75d4f629d0a1b83c6742e95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Treeline.WeaponSwitcher
+  input: {fileID: 1000010}
+  weapons:
+  - {fileID: 4261399646895787605}
+  - {fileID: 1592540805705413607}
+  startingKind: 0
+  startsUnarmed: 1
 --- !u!1 &1100000
 GameObject:
   m_ObjectHideFlags: 0
@@ -305,6 +308,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1300001}
+  - {fileID: 2916727586210487724}
+  - {fileID: 8958968875687714560}
   m_Father: {fileID: 1000001}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!20 &1200002
@@ -537,3 +542,117 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &3641564304092239003
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2916727586210487724}
+  - component: {fileID: 4261399646895787605}
+  m_Layer: 9
+  m_Name: Pistol
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2916727586210487724
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3641564304092239003}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1200001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4261399646895787605
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3641564304092239003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a2c95f80b7d43e19c48d3a61f05b7e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Treeline.PlayerWeapon
+  kind: 0
+  input: {fileID: 1000010}
+  muzzle: {fileID: 1200001}
+  look: {fileID: 1000012}
+  pelletsPerShot: 1
+  spreadDegrees: 0.6
+  damagePerPellet: 1
+  range: 40
+  shotsPerSecond: 2
+  startingAmmo: 0
+  maxAmmo: 24
+  recoilUpDegrees: 1.6
+  recoilSideDegrees: 0.6
+--- !u!1 &6724093041563624709
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8958968875687714560}
+  - component: {fileID: 1592540805705413607}
+  m_Layer: 9
+  m_Name: Shotgun
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8958968875687714560
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6724093041563624709}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1200001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1592540805705413607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6724093041563624709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a2c95f80b7d43e19c48d3a61f05b7e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Treeline.PlayerWeapon
+  kind: 1
+  input: {fileID: 1000010}
+  muzzle: {fileID: 1200001}
+  look: {fileID: 1000012}
+  pelletsPerShot: 8
+  spreadDegrees: 4.5
+  damagePerPellet: 1
+  range: 25
+  shotsPerSecond: 0.9
+  startingAmmo: 0
+  maxAmmo: 12
+  recoilUpDegrees: 3.4
+  recoilSideDegrees: 1.2
