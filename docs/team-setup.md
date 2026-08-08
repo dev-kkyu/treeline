@@ -13,6 +13,40 @@
 git pull --rebase --autostash
 ```
 
+### 2026-08-09 · 청각이 두 벌이다 — 셋이 정할 것 (A 가 알림)
+
+**`Crawler` 와 `Colossus` 가 서로 다른 규칙으로 소리를 듣는다.** 지금 터지지는
+않지만, **발소리가 두 벌이었던 것과 같은 모양**이다 — 파일이 달라서 git 이 조용히
+합쳐준다. 스텔스 밸런스를 고칠 때 두 군데를 고쳐야 하고 한쪽을 빠뜨린다.
+
+| | `Colossus` (A) | `Crawler` (B) |
+| --- | --- | --- |
+| 소리 크기를 정하는 쪽 | **내는 쪽** — `PlayerMotor.NoiseRadius` | **듣는 쪽** — `hearRange` 13m 고정 |
+| 조용함의 기준 | 웅크림 4 · 걷기 9 · 달리기 16m | `playerSpeed >= hearSpeed`(2.6) |
+| 듣고 나서 | 즉시 추격 + 포효 | `Investigate` — 가서 본다 |
+
+IMPORTANT: [`tech-design/architecture.md`](tech-design/architecture.md) 는
+「적(B)은 `PlayerMotor.NoiseRadius` 를 읽어 청각 판정」이라고 **계약으로** 적어
+두었는데 지금 그게 사실이 아니다. 문서가 틀린 채로 있으면 다음 사람이 그 전제로
+짠다.
+
+수치도 어긋난다. **걷기 2.8 m/s 가 `hearSpeed` 2.6 을 넘어 `Crawler` 에게는 걷는
+것도 들린다.** 걷기 9m · 달리기 16m 로 갈라둔 것은 「뛰면 위험하다」를 가르치려는
+장치인데, 2장에서는 그 규칙이 성립하지 않는다.
+
+**A 의 제안 — 크기는 `NoiseRadius` 로 통일하고 반응은 적마다 다르게 둔다.**
+`Crawler` 는 듣고 `Investigate`, `Colossus` 는 듣고 추격. 스텔스 수치가 한 곳에
+모이고 성격은 갈린다. `Investigate` 를 거치는 것 자체는 A 쪽보다 나은 설계라
+그건 그대로 두자는 뜻이다.
+
+**정하는 것은 B 다.** `Crawler.cs` 는 B 소유이고, 위는 A 가 6장을 붙이다 발견한
+것을 옮긴 것뿐이다. 정해지면 진 쪽을 지우고 `architecture.md` 를 같이 고친다.
+
+곁다리로 둘 더 — **`ChaseMusic` 이 `Crawler[] hunters` 라 `Colossus` 를 못 받는다.**
+그래서 2장은 페이드와 더킹이 있고 6장은 생으로 켜고 끈다. 인터페이스로 열면 6장도
+같은 방식이 된다. 그리고 **`colossus-roar.wav`(2.36초)는 아직 아무 데도 안 걸려
+있다.** `Colossus.noticed` 에 `Play` 한 줄이면 되고 코드 수정은 없다.
+
 ### 2026-08-09 · NavMesh 에이전트 타입이 둘이 되었다 (A)
 
 `ProjectSettings/NavMeshAreas.asset` 에 **`Colossus` 타입**(ID `-1372625422`,

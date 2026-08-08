@@ -552,6 +552,12 @@ IMPORTANT: 이 제약은 **`IInteractable.Prompt` 에도 걸린다.** 그 문구
 | --- | --- |
 | 적 (B) | `PlayerMotor.NoiseRadius` 를 읽어 청각 판정 |
 
+IMPORTANT: **2026-08-09 기준 이 계약은 절반만 지켜지고 있다.** `Colossus` 는 이
+값을 읽지만 **`Crawler` 는 자기 안에서 `hearRange`(13m)와 `hearSpeed`(2.6)로 다시
+만들었다.** 즉 청각이 두 벌이다. 어느 쪽으로 통일할지는 B 가 정하며, 정해질
+때까지 **이 표를 사실로 읽지 않는다.** 자세한 것은
+[`team-setup.md`](../team-setup.md) 의 「청각이 두 벌이다」.
+
 IMPORTANT: **청각은 벽을 통과한다.** 시야와 다른 점이 이것이고, 「보이지 않는 곳에
 있으면 안전하다」를 깨는 것이 이 값이 있는 이유다. 여기에 레이캐스트를 걸면 청각이
 시야의 복사본이 된다. 근거는 [`decisions.md`](decisions.md) 의 「적은 소리로도
