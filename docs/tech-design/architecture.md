@@ -253,7 +253,7 @@ IMPORTANT: **A 는 `Player.prefab` 을 완성 전에 먼저 올린다.** 캡슐�
 | Enemy | 추격 · 공격 · 피격 · 사망. NavMesh 기반 | 1단계 구현됨 |
 | Interaction | 바라보는 대상과의 상호작용, 획득, 양손 운반 | 미구현 |
 | Devices | 장치 발동. 세 패턴으로 수렴 | 미구현 |
-| Progress | 씬 전환 · 체크포인트 · 사망 · 재시작 | 미구현 |
+| Progress | 씬 전환 · 체크포인트 · 사망 · 재시작 | 1단계 구현됨 |
 | UI | 타이틀 · 설정 · 엔딩 · 최소 HUD · WebGL 로딩 | 미구현 |
 
 ### Player
@@ -298,6 +298,24 @@ IMPORTANT: 입력 액션은 프리팹에 참조를 끼우지 않고 **프로젝�
 
 등 뒤에서 맞으면 추격을 시작한다. 안 그러면 뒤에서 쏘는 것이 무위험 행동이 되어
 기획의 「빠르지만 약하다」가 성립하지 않는다.
+### Progress
+
+| 파일 | 하는 일 |
+| --- | --- |
+| `Chapters` | 장 씬 이름과 진행 순서. **장을 추가할 때 고칠 곳은 여기 하나다** |
+| `GameFlow` | 장 전환 · 재시작 · 체크포인트 보관. 게임에 하나 |
+| `SpawnPoint` | 장이 시작될 때 플레이어가 서는 자리 |
+| `Checkpoint` | 지나가면 다시 시작할 자리가 바뀐다 |
+| `ChapterExit` | 장의 끝. 들어오면 다음 장으로 |
+| `PlayerDeathWatcher` | 플레이어가 죽는 것을 보고 재시작을 건다 |
+
+`GameFlow` 는 **씬에 배치하지 않는다.** 첫 접근 때 스스로 생기고 씬이 바뀌어도
+살아남는다. 씬에 두면 세 장 모두에 같은 오브젝트를 넣어야 하고, 고칠 일이 생길
+때마다 병합할 수 없는 파일을 세 개씩 건드리게 된다.
+
+다음 장이 어디인지는 `Chapters.Order` 만 안다. `ChapterExit` 에 다음 장 이름을
+적지 않는 이유는, 적어두면 3 · 4 · 5 를 끼워 넣을 때 씬을 열어 고쳐야 하기
+때문이다.
 
 ## 시스템 간 관계
 
@@ -322,3 +340,26 @@ PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구�
 | 적 (B) | `PlayerHealth.TakeDamage` |
 | 획득물 (C) | `PlayerWeapon.AddAmmo` · `Flashlight.AddBattery` |
 | 진행 (C) | `PlayerHealth.Died` 구독, 장 전환 시 `PlayerHealth.Restore` |
+
+**의존은 한 방향이다.** `Progress` 가 `Player` 를 찾아가고, `Player` 는
+`Progress` 를 모른다. 그래야 A 가 자기 작업만으로 완결된다.
+
+```
+Progress ──찾는다──▶ "Player" 태그        (GameObject.FindWithTag)
+Progress ──읽는다──▶ IDamageable.IsAlive  (죽었는지)
+Progress ──옮긴다──▶ CharacterController  (스폰 · 체크포인트로 순간이동)
+```
+
+### 플레이어의 죽음을 진행 쪽이 어떻게 아는가
+
+체력은 A 가 갖고 있고 재시작은 C 가 한다. 둘을 잇는 데 **새 인터페이스를 만들지
+않고 이미 합의된 `IDamageable.IsAlive` 를 보는 쪽**을 골랐다. 죽음 알림용
+인터페이스를 `Shared/` 에 추가하는 것은 셋의 합의가 필요한 일인데, 그것 없이도
+진행할 수 있다.
+
+A 가 나중에 이벤트로 밀어주는 편을 원하면 `PlayerDeathWatcher` 만 지우면 된다.
+나머지는 전부 `GameFlow.OnPlayerDied()` 하나만 보고 있다.
+
+IMPORTANT: `CharacterController` 가 붙은 오브젝트는 `transform` 만 옮기면 다음
+프레임에 되돌아온다. 컨트롤러를 껐다 옮기고 다시 켜야 한다. `GameFlow.Teleport`
+가 그렇게 한다.
