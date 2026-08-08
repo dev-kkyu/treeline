@@ -24,6 +24,7 @@ namespace Treeline
         private Vector3 checkpointPosition;
         private Quaternion checkpointRotation;
         private bool isTransitioning;
+        private PlayerHealth watchedHealth;
 
         public static GameFlow Instance
         {
@@ -158,6 +159,39 @@ namespace Treeline
             }
 
             PlacePlayer();
+            WatchPlayerDeath();
+        }
+
+        /// <summary>
+        /// 새 장의 플레이어가 죽는 것을 듣는다.
+        /// </summary>
+        /// <remarks>
+        /// 매 프레임 <c>IsAlive</c> 를 보던 것을 A 가 만든 <see cref="PlayerHealth.Died"/>
+        /// 구독으로 바꿨다. 폴링은 A 의 구현을 기다리지 않으려고 쓴 임시 방편이었고,
+        /// 이제 이벤트가 있으므로 그럴 이유가 없다.
+        /// <para>
+        /// 씬마다 <c>PlayerHealth</c> 가 새로 생기므로 장이 바뀔 때마다 다시 건다.
+        /// 이전 것은 씬과 함께 사라져 따로 해제할 필요가 없지만, 같은 인스턴스에
+        /// 두 번 걸리는 것을 막으려고 빼고 넣는다.
+        /// </para>
+        /// </remarks>
+        private void WatchPlayerDeath()
+        {
+            if (watchedHealth != null)
+            {
+                watchedHealth.Died -= OnPlayerDied;
+            }
+
+            GameObject player = GameObject.FindWithTag("Player");
+            watchedHealth = player != null ? player.GetComponent<PlayerHealth>() : null;
+
+            if (watchedHealth == null)
+            {
+                // A 의 Player.prefab 이 아직 안 놓인 씬이다. 관통 확인에는 지장이 없다.
+                return;
+            }
+
+            watchedHealth.Died += OnPlayerDied;
         }
 
         /// <summary>

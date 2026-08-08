@@ -238,16 +238,7 @@ IMPORTANT: **A 는 `Player.prefab` 을 완성 전에 먼저 올린다.** 캡슐�
 4. `Chapters.Order` 에 넣고 빌드 씬 목록에도 등록한다. 둘 중 하나만 하면 조용히
    어긋난다
 
-장 씬에 들어가는 것은 이렇다. `Ch1` · `Ch2` · `Ch6` 이 이 구성이다.
-
-| 오브젝트 | 무엇 |
-| --- | --- |
-| `SpawnPoint` | 장이 시작될 때 플레이어가 서는 자리. 방향까지 맞춘다 |
-| `ChapterExit` | 장의 끝. 트리거 콜라이더, 레이어 `Trigger` |
-| `[Progress]` | `PlayerDeathWatcher` 를 붙여 둔 빈 오브젝트 |
-| `Directional Light` | |
-| 바닥 · 벽 | 회색 박스 |
-| `TEMP_Camera` | **임시다.** A 의 `Player.prefab` 이 카메라를 갖고 오면 지운다 |
+씬에 무엇을 두는지는 아래 「Progress」 절의 표를 따른다.
 
 IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.** MCP 로
 컴포넌트를 붙이면서 준 `size` 가 반영되지 않고 `(1,1,1)` 로 남는 일이 있었다.
@@ -333,11 +324,10 @@ IMPORTANT: 입력 액션은 프리팹에 참조를 끼우지 않고 **프로젝�
 | 파일 | 하는 일 |
 | --- | --- |
 | `Chapters` | 장 씬 이름과 진행 순서. **장을 추가할 때 고칠 곳은 여기 하나다** |
-| `GameFlow` | 장 전환 · 재시작 · 체크포인트 보관. 게임에 하나 |
+| `GameFlow` | 장 전환 · 재시작 · 체크포인트 보관 · 죽음 구독. 게임에 하나 |
 | `SpawnPoint` | 장이 시작될 때 플레이어가 서는 자리 |
 | `Checkpoint` | 지나가면 다시 시작할 자리가 바뀐다 |
 | `ChapterExit` | 장의 끝. 들어오면 다음 장으로 |
-| `PlayerDeathWatcher` | 플레이어가 죽는 것을 보고 재시작을 건다 |
 
 `GameFlow` 는 **씬에 배치하지 않는다.** 첫 접근 때 스스로 생기고 씬이 바뀌어도
 살아남는다. 씬에 두면 세 장 모두에 같은 오브젝트를 넣어야 하고, 고칠 일이 생길
@@ -376,20 +366,32 @@ PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구�
 
 ```
 Progress ──찾는다──▶ "Player" 태그        (GameObject.FindWithTag)
-Progress ──읽는다──▶ IDamageable.IsAlive  (죽었는지)
+Progress ──구독──▶ PlayerHealth.Died      (죽었을 때 재시작)
 Progress ──옮긴다──▶ CharacterController  (스폰 · 체크포인트로 순간이동)
 ```
 
-### 플레이어의 죽음을 진행 쪽이 어떻게 아는가
+`GameFlow` 는 장이 로드될 때마다 그 씬의 `PlayerHealth` 를 찾아 `Died` 를 다시
+건다. 씬이 바뀌면 `PlayerHealth` 도 새로 생기기 때문이다.
 
-체력은 A 가 갖고 있고 재시작은 C 가 한다. 둘을 잇는 데 **새 인터페이스를 만들지
-않고 이미 합의된 `IDamageable.IsAlive` 를 보는 쪽**을 골랐다. 죽음 알림용
-인터페이스를 `Shared/` 에 추가하는 것은 셋의 합의가 필요한 일인데, 그것 없이도
-진행할 수 있다.
-
-A 가 나중에 이벤트로 밀어주는 편을 원하면 `PlayerDeathWatcher` 만 지우면 된다.
-나머지는 전부 `GameFlow.OnPlayerDied()` 하나만 보고 있다.
+한동안은 매 프레임 `IDamageable.IsAlive` 를 보는 방식이었다. A 의 구현을 기다리지
+않으려고 쓴 임시 방편이었고, `Died` 가 생기면서 걷어냈다. 그 폴링을 담고 있던
+`PlayerDeathWatcher` 와 씬마다 두던 `[Progress]` 오브젝트도 함께 사라졌다.
 
 IMPORTANT: `CharacterController` 가 붙은 오브젝트는 `transform` 만 옮기면 다음
 프레임에 되돌아온다. 컨트롤러를 껐다 옮기고 다시 켜야 한다. `GameFlow.Teleport`
 가 그렇게 한다.
+
+### 장 씬에 두는 것
+
+`Ch1` · `Ch2` · `Ch6` 이 이 구성이다.
+
+| 오브젝트 | 무엇 |
+| --- | --- |
+| `Player` | A 의 `Player/Player.prefab` 을 배치. 카메라와 체력을 들고 온다 |
+| `SpawnPoint` | 장이 시작될 때 서는 자리 |
+| `ChapterExit` | 장의 끝. 트리거 콜라이더, 레이어 `Trigger` |
+| `Directional Light` | |
+| 바닥 · 벽 | 회색 박스 |
+
+진행용 오브젝트를 따로 두지 않는다. `GameFlow` 는 스스로 생기고 죽음 구독도
+자기가 한다.
