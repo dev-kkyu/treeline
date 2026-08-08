@@ -135,22 +135,31 @@ IMPORTANT: **`Player/TestDamageTarget.cs` 와 `TestTarget.prefab` 을 지울 때
 | | 만드는 것 | 누가 기다리나 | |
 | --- | --- | --- | --- |
 | **C** | 장치 3패턴 컴포넌트 — 즉시 발동 / 시간 발동 / 지속 상태. `IDeviceTrigger` | A · B 가 파라미터만 바꿔 쓴다 | ✅ |
-| **C** | 양손 운반 (들면 총을 못 쓴다) | A 의 6장 권양기 | 남음 |
-| **C** | 손전등 배터리 소모 · 줍기 | 2장의 어둠이 성립한다 | 남음 |
+| **C** | 양손 운반 (들면 총을 못 쓴다) | A 의 6장 권양기 | ✅ |
+| **C** | 손전등 배터리 소모 · 줍기 | 2장의 어둠이 성립한다 | ✅ |
 | **A** | 달리기 스태미너 소모 · 회복 대기 · HUD 연결 | 2장과 6장의 도망 구간 | ✅ `b4761e0` |
 | **B** | `Colossus.prefab` — 죽지 않고 밀려나기만 한다 | A 의 6장 | ✅ `9bb6a1c` |
 
 **완료 기준:** A 와 B 가 새 스크립트를 쓰지 않고 자기 장에 장치를 놓을 수 있다.
 
-**장치 3패턴이 들어와 2-2 를 막던 것이 풀렸다.** `InstantDevice` · `TimedDevice` ·
-`SustainedDevice` 셋이고, 빈 오브젝트에 붙여 `enables` · `disables` 만 채우면 된다.
-쓰는 법은 [`tech-design/architecture.md`](tech-design/architecture.md) 의 「새 장치」.
+**2-1 이 닫혔다. 2-2 를 병렬로 시작할 수 있다.** 부품은 다섯이고 전부 빈 오브젝트에
+붙여 인스펙터만 채운다. 쓰는 법은
+[`tech-design/architecture.md`](tech-design/architecture.md) 의 「새 장치」와
+「새 획득물 · 운반물」.
 
-- B 의 2장 — 얼어붙은 문은 `TimedDevice`, 비상 셔터는 `InstantDevice`
-- A 의 6장 — 케이블 히터는 `TimedDevice`
-- C 의 1장 — 서치라이트는 `SustainedDevice` + `oneShot` 을 끈 `Lever`
+| 자기 장에 필요한 것 | 붙일 것 |
+| --- | --- |
+| B · 2장 얼어붙은 문 | `TimedDevice` |
+| B · 2장 비상 셔터 | `InstantDevice` |
+| A · 6장 케이블 히터 | `TimedDevice` |
+| A · 6장 권양기 연료 | `Carriable` + 받는 쪽에서 `Drop()` |
+| C · 1장 서치라이트 | `SustainedDevice` + `oneShot` 을 끈 `Lever` |
+| 어디든 · 손전등 · 배터리 · 총 · 탄약 | `Pickup` |
 
-남은 둘(양손 운반 · 손전등 배터리)은 C 몫이지만 **남을 막지 않는다.**
+IMPORTANT: **`E` 로 내려놓는 경로는 아직 사람이 눌러본 적이 없다.** 에디터에서 키
+입력을 흉내 낼 수 없어(게임 뷰에 포커스가 없으면 큐에 넣은 입력 이벤트가 처리되지
+않는다) 들고 · 내리는 동작 자체와 총 잠금 · 복구까지만 확인했다. **2-2 에서 운반물을
+처음 놓을 때 직접 눌러본다.**
 
 계약 두 개는 **둘 다 정해졌다.** 둘 다 C 가 만드는데 효과는 A 의 코드에서 나므로
 정하지 않으면 양쪽이 각자 만들어 두 벌이 되는 자리였다.

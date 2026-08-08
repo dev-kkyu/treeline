@@ -347,9 +347,15 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 
 자세한 것은 [시스템 목록의 Devices](#devices).
 
+### 새 획득물 · 운반물
+
+새 스크립트를 만들지 않는다. 빈 오브젝트에 `Pickup` 이나 `Carriable` 을 붙이고 값만
+채운다. 자세한 것은 [시스템 목록의 Interaction](#interaction).
+
 ### 새 상호작용 대상
 
-`IInteractable` 을 구현하면 플레이어 쪽 수정 없이 붙는다.
+위 셋으로 안 되는 것만 `IInteractable` 을 직접 구현한다. 구현하면 플레이어 쪽 수정
+없이 붙는다.
 
 ---
 
@@ -361,7 +367,7 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | --- | --- | --- |
 | Player | 1인칭 이동 · 카메라 · 손전등 · 체력 · 무기 | 1단계 구현됨 |
 | Enemy | 추격 · 공격 · 피격 · 사망. NavMesh 기반 | `Crawler` · `Colossus` 회색 박스 |
-| Interaction | 바라보는 대상과의 상호작용, 획득, 양손 운반 | 1단계 구현됨 |
+| Interaction | 바라보는 대상과의 상호작용, 획득, 양손 운반 | 2-1 까지 구현됨 |
 | Devices | 장치 발동. 세 패턴으로 수렴 | 2-1 구현됨 |
 | Progress | 씬 전환 · 체크포인트 · 사망 · 재시작 | 1단계 구현됨 |
 | UI | 타이틀 · 설정 · 엔딩 · 최소 HUD · WebGL 로딩 | 미구현 |
@@ -544,8 +550,15 @@ IMPORTANT: 크기를 **Transform 스케일로 만들지 않는다.** 스케일�
 
 ### Interaction
 
-`Assets/Game/Interaction/`. `Lever` 하나다. `IInteractable` 의 첫 구현체이고,
-6장 삭도 기동이 이것이다.
+`Assets/Game/Interaction/`. 셋이고 전부 `IInteractable` 이다.
+
+| 컴포넌트 | 무엇 | 레이어 |
+| --- | --- | --- |
+| `Lever` | 장치를 발동시키는 손잡이 | `Interactable`(16) |
+| `Carriable` | 두 손으로 드는 물건. 들면 총을 못 쓴다 | `Carriable`(17) |
+| `Pickup` | 주우면 무언가를 주는 물건 | `Interactable`(16) |
+
+#### Lever
 
 **레버는 조작부일 뿐이고 무슨 일이 일어나는지는 장치가 정한다.** `devices` 에 넣은
 `Device` 들을 발동시킨다. 1단계에는 여는 대상을 직접 들고 있었는데, 장치 시스템이
@@ -563,13 +576,51 @@ IMPORTANT: **각도가 되돌아오는 것은 「다시 당길 수 있다」는 
 아무리 달라도 플레이어는 계속 눌러본다. 문구도 같다 — `promptWhenOn` 은 스위치일
 때만 채운다.
 
+#### Carriable
+
+기획이 늘린 규칙은 이것 하나다 — 「무거운 것을 들면 총을 못 쓴다」. 연료통과 축전지가
+이 컴포넌트다.
+
+들면 눈(`MainCamera` 태그가 붙은 카메라)에 붙고 콜라이더가 꺼진다. 총을 잠그는 것은
+`WeaponSwitcher.SetCarrying(true)` 이고, 내려놓으면 들고 있던 총으로 돌아온다.
+
+IMPORTANT: **내려놓기는 조준한 것이 없을 때만 걸린다.** 들고 있는 동안에도 다른 것과
+상호작용할 수 있어야 하기 때문이다 — 6장에서 연료통을 들고 권양기 앞에 서서 누르는
+것이 그 자리다. 같은 `E` 를 나눠 쓰되 **조준한 것이 있으면 그쪽이 먼저**고, 허공을
+보고 눌렀을 때만 내려놓는다. 장치가 운반물을 받을 때는 `Carriable.Drop()` 을 바깥에서
+부른다.
+
+#### Pickup
+
+주우면 플레이어에게 무언가를 준다. **획득물마다 클래스를 만들지 않는다** — 종류의
+차이는 A 의 어느 함수를 부르는가뿐이다.
+
+| `kind` | 부르는 것 | `amount` |
+| --- | --- | --- |
+| `Flashlight` | `Flashlight.PickUp()` | 안 봄 |
+| `Battery` | `Flashlight.AddBattery(초)` | **초** |
+| `Pistol` · `Shotgun` | `WeaponSwitcher.PickUp(종류)` | 안 봄 |
+| `PistolAmmo` · `ShotgunAmmo` | `WeaponSwitcher.AddAmmo(종류, 발수)` | **발수** |
+
+**총과 탄약은 따로다.** 총을 안 주웠어도 탄약은 쌓이므로 「탄약만 먼저 발견」 같은
+배치가 된다. 탄약이 가득 차 한 발도 안 들어가면 **획득물이 사라지지 않는다.** 쓰고
+와서 다시 주우면 된다.
+
+#### 놓을 때 지킬 것
+
 IMPORTANT: **상호작용 대상은 눈높이에 둔다.** A 의 조준 광선은 카메라에서 나가고
-1인칭 눈높이는 바닥에서 `y≈1.73` 이다. 허리 높이에 두면 광선이 위로 지나가 아무리
-가까이 가도 안 잡힌다. 콜라이더 세로 범위가 그 높이를 지나야 한다.
+서 있을 때 눈높이는 바닥에서 **`y = 1.65`** 다(실측). 허리 높이에 두면 광선이 위로
+지나가 아무리 가까이 가도 안 잡힌다. **콜라이더 세로 범위가 그 높이를 지나야 한다** —
+윗면이 `1.60` 이면 5cm 차이로 안 잡히고, 증상은 「상호작용이 고장났다」로 보인다.
+받침대 윗면을 `1.40` 쯤에 두고 그 위에 올리면 된다.
 
 IMPORTANT: **동선 위에 두지 않는다.** 상호작용 대상은 보통 막는 콜라이더라
 통로 한가운데 두면 플레이어가 거기서 걸린다. 6장 레버를 출구 통로(`x -3~3`)
 바깥인 `x=4` 에 둔 것이 그 이유다.
+
+IMPORTANT: **`RequireComponent` 에 `Collider` 를 적지 않는다.** 추상 클래스라 Unity 가
+붙이지 못하고 `AddComponent` 가 **조용히 `null` 을 돌려준다.** 빈 오브젝트에 컴포넌트를
+붙일 때 그대로 밟는다. `BoxCollider` 처럼 구체 타입을 적는다.
 
 ### Devices
 
@@ -630,6 +681,8 @@ IMPORTANT: **`Device.Awake` 가 시작 모습을 강제로 맞춘다.** `enables
 PlayerWeapon ──레이캐스트(Shot)──▶ IDamageable   (적: B)
 PlayerInteractor ──레이캐스트(Interaction)──▶ IInteractable   (문·레버: C)
 Lever ──Activate/Deactivate──▶ Device   (장치: C)
+Carriable ──SetCarrying──▶ WeaponSwitcher   (무기: A)
+Pickup ──PickUp/AddAmmo/AddBattery──▶ WeaponSwitcher · Flashlight   (A)
 Enemy ──▶ IDamageable   (PlayerHealth: A)
 PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구독자 없음)
 ```
