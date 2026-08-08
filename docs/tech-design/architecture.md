@@ -2,8 +2,8 @@
 
 # 게임 시스템 구조
 
-아직 코드가 없다. 지금 적혀 있는 것은 **세 사람이 동시에 붙기 위해 먼저 합의해야
-하는 것**뿐이다. 시스템 내부는 첫 구현이 들어올 때부터 채운다.
+대부분은 아직 **세 사람이 동시에 붙기 위해 먼저 합의한 것**이다. 시스템 내부는
+구현이 들어올 때부터 채우며, 2026-08-08 에 Player 가 첫 번째로 들어왔다.
 
 무엇을 만드는지는 [`docs/game-design/treeline.md`](../game-design/treeline.md),
 왜 이 순서인지는 [`decisions.md`](decisions.md), 누가 무엇을 맡는지는
@@ -208,21 +208,60 @@ IMPORTANT: **A 는 `Player.prefab` 을 완성 전에 먼저 올린다.** 캡슐�
 
 ## 시스템 목록
 
-기획의 「만들 시스템」과 같다. **아직 구현된 것은 없다.** 하나씩 들어올 때마다
-책임과 관계를 여기에 적는다.
+기획의 「만들 시스템」과 같다. 하나씩 들어올 때마다 책임과 관계를 여기에 적는다.
 
-| 시스템 | 책임 |
+| 시스템 | 책임 | 상태 |
+| --- | --- | --- |
+| Player | 1인칭 이동 · 카메라 · 손전등 · 체력 · 무기 | 1단계 구현됨 |
+| Enemy | 추격 · 공격 · 피격 · 사망. NavMesh 기반 | 미구현 |
+| Interaction | 바라보는 대상과의 상호작용, 획득, 양손 운반 | 미구현 |
+| Devices | 장치 발동. 세 패턴으로 수렴 | 미구현 |
+| Progress | 씬 전환 · 체크포인트 · 사망 · 재시작 | 미구현 |
+| UI | 타이틀 · 설정 · 엔딩 · 최소 HUD · WebGL 로딩 | 미구현 |
+
+### Player
+
+`Assets/Game/Player/`. 컴포넌트를 하나씩 나눠 `Player.prefab` 루트에 모두 붙였다.
+하나가 커지면 그때 쪼갠다.
+
+| 컴포넌트 | 책임 |
 | --- | --- |
-| Player | 1인칭 이동 · 카메라 · 손전등 · 체력 · 무기 |
-| Enemy | 추격 · 공격 · 피격 · 사망. NavMesh 기반 |
-| Interaction | 바라보는 대상과의 상호작용, 획득, 양손 운반 |
-| Devices | 장치 발동. 세 패턴으로 수렴 |
-| Progress | 씬 전환 · 체크포인트 · 사망 · 재시작 |
-| UI | 타이틀 · 설정 · 엔딩 · 최소 HUD · WebGL 로딩 |
+| `PlayerInputReader` | 입력을 읽는 **유일한** 곳. 나머지는 여기만 참조한다 |
+| `PlayerMotor` | `CharacterController` 이동과 중력 |
+| `PlayerLook` | 좌우는 몸체, 상하는 카메라. 포인터 잠금도 여기 |
+| `PlayerHealth` | 체력 3칸. `IDamageable` 구현 |
+| `PlayerWeapon` | 권총. `GameLayers.Shot` 레이캐스트, 탄약 |
+| `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
+| `Flashlight` | 조명 토글과 배터리 소모 |
+
+입력을 한 곳으로 모은 이유는 **사망 처리 때문**이다. `PlayerHealth` 가 죽을 때
+`PlayerInputReader` 하나만 끄면 액션 맵이 꺼지고, 나머지 컴포넌트는 전부 0 을
+읽는다. 각자 "죽었는지" 를 확인하는 분기를 두지 않아도 된다.
+
+IMPORTANT: 입력 액션은 프리팹에 참조를 끼우지 않고 **프로젝트 전역 에셋**
+(`InputSystem.actions`) 을 쓴다. 프리팹마다 끼우면 하나 빠뜨렸을 때 그 프리팹만
+조용히 입력을 못 받는다.
 
 ## 시스템 간 관계
 
-<!--
-구현이 들어오면 채운다. 누가 누구를 호출하고 데이터가 어디로 흐르는지,
-의존 방향이 드러나야 한다. 지금 쓰면 상상이 된다.
--->
+지금 존재하는 관계는 이것뿐이다. 시스템이 들어올 때마다 여기에 더한다.
+
+```
+PlayerWeapon ──레이캐스트(Shot)──▶ IDamageable   (적: B)
+PlayerInteractor ──레이캐스트(Interaction)──▶ IInteractable   (문·레버: C)
+Enemy ──▶ IDamageable   (PlayerHealth: A)
+PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구독자 없음)
+```
+
+**Player 는 Enemy 와 Interaction 의 타입을 하나도 모른다.** 전부
+`Shared/` 의 인터페이스를 통해서만 닿는다. 그래서 A 는 B 와 C 의 구현을 기다리지
+않고, 반대로 B 와 C 도 A 를 기다리지 않는다.
+
+바깥에서 Player 를 부르는 자리는 아래 셋이다. 다른 곳에서 부를 일이 생기면 여기에
+적고 나서 부른다.
+
+| 부르는 쪽 | 무엇 |
+| --- | --- |
+| 적 (B) | `PlayerHealth.TakeDamage` |
+| 획득물 (C) | `PlayerWeapon.AddAmmo` · `Flashlight.AddBattery` |
+| 진행 (C) | `PlayerHealth.Died` 구독, 장 전환 시 `PlayerHealth.Restore` |
