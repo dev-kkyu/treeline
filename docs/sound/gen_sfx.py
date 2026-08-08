@@ -40,8 +40,9 @@ PROMPTS = [
      "Blizzard wind heard from inside a concrete building, muffled through "
      "thick walls, low rumble with distant whistling, " + STEADY, 15.0, True),
     ("Ambience", "room-tone-loop",
-     "Empty cold concrete room tone, very quiet low frequency hum with faint "
-     "air movement, almost silent, " + STEADY, 15.0, True),
+     "Air handling unit noise filling a concrete corridor, steady broadband "
+     "rush of forced air with a low rumble underneath, recorded close to the "
+     "vent, " + STEADY, 15.0, True),
     ("Ambience", "heater-hum-loop",
      "Old industrial heater humming and vibrating, steady low mechanical "
      "drone with a faint metallic rattle, " + STEADY, 15.0, True),
@@ -52,16 +53,16 @@ PROMPTS = [
      "Diesel generator running in an adjacent room, low chugging rumble "
      "through a wall, " + STEADY, 15.0, True),
     ("Ambience", "fluorescent-buzz-loop",
-     "Fluorescent tube light buzzing overhead in a quiet corridor, thin "
-     "electrical hum, " + STEADY, 12.0, True),
+     "Fluorescent tube light buzzing loudly right overhead, strong electrical "
+     "hum and ballast rattle, close microphone, " + STEADY, 12.0, True),
     ("Ambience", "radio-static-loop",
      "Dead analog shortwave radio static hiss with faint intermittent "
      "squelch pops, no voices, " + STEADY, 12.0, True),
 
     # --- 발소리. 표면별로 나눈다 ------------------------------------------
     ("Footsteps", "footstep-metal-grate-01",
-     "Single heavy boot step on a cold metal grating floor, sharp clang, "
-     "short reverb tail, dry recording", 1.5, False),
+     "Single heavy boot stamping on a cold metal grating floor, loud sharp "
+     "clang, short reverb tail, close microphone", 1.5, False),
     ("Footsteps", "footstep-metal-grate-02",
      "Single boot scuffing then landing on metal grating, gritty scrape into "
      "a dull metallic ring", 1.5, False),
@@ -69,14 +70,14 @@ PROMPTS = [
      "Single boot step on loose metal grating, panel rattles slightly under "
      "the weight", 1.5, False),
     ("Footsteps", "footstep-concrete-01",
-     "Single heavy boot step on bare concrete floor in an empty corridor, "
-     "dull thud with room reverb", 1.5, False),
+     "Foley recording of one footstep on a concrete floor, shoe hitting the "
+     "microphone level, loud dry percussive hit, no reverb tail", 1.5, False),
     ("Footsteps", "footstep-concrete-02",
-     "Single boot step on gritty concrete, sand and grit crunching under the "
-     "sole", 1.5, False),
+     "Single boot step grinding on gritty concrete, loud sand and grit "
+     "crunching under the sole, close microphone", 1.5, False),
     ("Footsteps", "footstep-concrete-03",
-     "Single soft boot step on concrete, quiet careful footfall, minimal "
-     "reverb", 1.5, False),
+     "Single deliberate boot step on concrete, firm heel strike then toe, "
+     "tight dry recording, close microphone", 1.5, False),
     ("Footsteps", "footstep-snow-01",
      "Single boot step into deep fresh snow, dry squeaky crunch", 1.5, False),
     ("Footsteps", "footstep-snow-02",
@@ -92,7 +93,7 @@ PROMPTS = [
      "Single boot step on a loose wooden plank, long groaning creak under "
      "weight", 1.5, False),
     ("Footsteps", "footstep-wood-03",
-     "Single quiet boot step on dry wood, soft hollow tap", 1.5, False),
+     "Single boot step on dry wood, sharp hollow knock, close microphone", 1.5, False),
 
     # --- 건물. 문 · 계단 · 창 --------------------------------------------
     ("Structure", "door-steel-open",
@@ -108,11 +109,11 @@ PROMPTS = [
      "Weight shifting on an old metal staircase, structural creak and faint "
      "bolt groan", 3.0, False),
     ("Structure", "window-wind-rattle",
-     "Wind gust rattling a loose window pane in its frame, glass buzzing, "
-     "wind whistling through the gap", 4.0, False),
+     "Strong wind gust violently rattling a loose window pane in its frame, "
+     "glass buzzing hard, wind whistling through the gap, close microphone", 4.0, False),
     ("Structure", "pipe-clank",
-     "Water pipe knocking inside a wall, two sharp metallic clanks fading "
-     "into a hollow ring", 2.0, False),
+     "Water pipe hammering inside a wall, two loud sharp metallic clanks "
+     "ringing hollow, close microphone", 2.0, False),
     ("Structure", "roof-snow-shift",
      "Mass of packed snow sliding off a metal roof and thudding onto the "
      "ground outside", 4.0, False),
