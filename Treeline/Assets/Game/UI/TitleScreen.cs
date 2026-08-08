@@ -257,7 +257,7 @@ namespace Treeline
             text.fontSize = size;
             text.color = color;
             text.alignment = alignment;
-            text.enableWordWrapping = false;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
             text.overflowMode = TextOverflowModes.Overflow;
             if (topLeft)
             {

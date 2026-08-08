@@ -1,17 +1,53 @@
 # Treeline UI 에셋
 
-> 상태: HUD 13개 연결 완료, 메뉴 · 튜토리얼 미연결 · 최종 수정 2026-08-08
+> 상태: HUD 13개 및 설원 타이틀 메뉴 연결 완료, 튜토리얼 미연결 · 최종 수정 2026-08-09
 
 확정 기획 [`../game-design/treeline.md`](../game-design/treeline.md)과 적 모델링의
 `Frost-pressure anatomy` 규격을 바탕으로 만든 Unity UI 시안이다. 런타임 PNG는
 [`Treeline/Assets/Game/UI/Art`](../../Treeline/Assets/Game/UI/Art)에 Sprite로
-임포트했다. HUD 13개는 `Player.prefab` 의 `HUD` 캔버스에 붙였고(A 이정범), 메뉴와
-튜토리얼은 아직 붙이지 않았다. 크기와 대비는 에디터 플레이 모드에서만 봤으므로
+임포트했다. HUD 13개는 `Player.prefab` 의 `HUD` 캔버스에 붙였고(A 이정범), 메뉴는
+`Title.unity`의 설원 렌더 위에 연결했다. 튜토리얼은 아직 붙이지 않았다. 크기와 대비는 에디터 플레이 모드에서만 봤으므로
 1920×1080 WebGL 빌드에서 다시 확인해야 한다.
 
 ![HUD 배치 시안](previews/hud-mockup-1920x1080.jpg)
 
 ![튜토리얼 조작 안내 시안](previews/tutorial-controls-mockup-1920x1080.jpg)
+
+![설원 타이틀 메뉴](previews/title-menu-mockup-1920x1080.jpg)
+
+![사운드 설정 메뉴](previews/title-sound-options-mockup-1920x1080.jpg)
+
+![엔딩 메뉴](previews/ending-menu-mockup-1920x1080.jpg)
+
+![Ch1 기록지 읽기 UI](previews/reading-panel-mockup-1920x1080.jpg)
+
+## 설원 타이틀 메뉴 동작
+
+- 화면 왼쪽 650px 폭에 메뉴를 고정해 설원·철탑·눈보라 렌더의 중심부를 가리지 않는다.
+- `게임 시작`은 0.22초 페이드 뒤 `GameFlow.StartNewGame()`을 호출한다.
+- `사운드 설정`은 전체 음량 슬라이더, 음소거, 뒤로 가기를 제공한다.
+- 음량은 체감 변화가 자연스럽게 제곱 곡선으로 `AudioListener.volume`에 적용된다.
+- 값은 `PlayerPrefs`의 `Treeline.Audio.MasterVolume`에 저장되어 WebGL 재접속 후에도 유지된다.
+- 키보드·게임패드 UI 선택을 지원하며 사운드 화면에서는 `Esc`로 돌아간다.
+- WebGL에서 동작하지 않는 종료 버튼은 표시하지 않는다.
+
+## 엔딩 메뉴 동작
+
+- 마지막 케이블카·눈보라 장면을 보존하기 위해 타이틀과 반대인 화면 오른쪽에 배치한다.
+- 성공을 단정하는 문구 대신 `신호 종료`를 사용해 기획의 시점 전환과 불길한 여운을 유지한다.
+- `다시 하기`는 체크포인트를 버리고 `GameFlow.StartNewGame()`으로 첫 장부터 시작한다.
+- `타이틀로`는 `GameFlow.ReturnToTitle()`을 호출한다.
+- 사운드 설정은 타이틀과 같은 저장 키와 제곱 음량 곡선을 사용한다.
+- 중복 입력을 막고 0.28초 페이드 뒤 씬을 전환한다.
+
+## Ch1 기록지 읽기 UI
+
+- `DutyRoster`의 근무표와 `RadioLog`의 무전 일지가 하나의 공용 기록지 UI를 사용한다.
+- 밝은 흰 종이 대신 바랜 회갈색 용지, 중계소 클립보드, 적색 보존 도장을 사용해 암순응을 깨지 않는다.
+- 긴 본문은 마우스 휠 또는 `Page Up / Page Down`으로 스크롤한다.
+- 열었던 `E` 입력이 같은 프레임에 닫기까지 실행되지 않도록 기존 프레임 가드를 유지한다.
+- `E`와 `Esc`로 닫을 수 있으며 읽는 동안에도 플레이어 이동은 빼앗지 않는다.
+- 열기·닫기에 0.16초 페이드와 미세한 스케일 전환을 적용한다.
 
 ## 아트 디렉션
 
@@ -215,6 +251,10 @@ python docs/ui-assets/tools/build_assets.py
 
 - [`previews/hud-mockup-1920x1080.jpg`](previews/hud-mockup-1920x1080.jpg)
 - [`previews/title-menu-mockup-1920x1080.jpg`](previews/title-menu-mockup-1920x1080.jpg)
+- [`previews/title-sound-options-mockup-1920x1080.jpg`](previews/title-sound-options-mockup-1920x1080.jpg)
+- [`previews/ending-menu-mockup-1920x1080.jpg`](previews/ending-menu-mockup-1920x1080.jpg)
+- [`previews/ending-sound-options-mockup-1920x1080.jpg`](previews/ending-sound-options-mockup-1920x1080.jpg)
+- [`previews/reading-panel-mockup-1920x1080.jpg`](previews/reading-panel-mockup-1920x1080.jpg)
 - [`previews/tutorial-controls-mockup-1920x1080.jpg`](previews/tutorial-controls-mockup-1920x1080.jpg)
 - [`previews/asset-contact-sheet.jpg`](previews/asset-contact-sheet.jpg)
 
