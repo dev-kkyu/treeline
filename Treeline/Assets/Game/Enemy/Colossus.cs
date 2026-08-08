@@ -80,6 +80,12 @@ namespace Treeline
         [Tooltip("8f 재검사에서 봐주는 여유(m). 0 이면 딱 사거리로 자른다.")]
         [SerializeField] private float grabLockSlack = 0.6f;
 
+        [Tooltip("붙잡히는 순간과 무는 순간 화면이 흔들리는 크기(도).")]
+        [SerializeField] private float grabShakeDegrees = 4.5f;
+
+        [Tooltip("흔들림이 잦아드는 시간.")]
+        [SerializeField] private float grabShakeSeconds = 0.5f;
+
         [Header("발각 — 돌아보고 포효한 뒤에 온다")]
         [Tooltip("알아채고 이만큼 멈춰 서서 플레이어를 본다. Colossus_Roar 클립 길이(1.17초)에 맞춘 값이다.")]
         [SerializeField] private float roarSeconds = 1.2f;
@@ -98,6 +104,12 @@ namespace Treeline
 
         [Tooltip("위협 클립 25f. 아직 소리가 없다.")]
         [SerializeField] private UnityEvent threatSound;
+
+        [Tooltip("붙잡는 순간(8f). 놓쳤을 때는 울리지 않는다.")]
+        [SerializeField] private UnityEvent grabSound;
+
+        [Tooltip("무는 순간(90f). 화면이 닫히는 것과 같은 프레임이다.")]
+        [SerializeField] private UnityEvent killSound;
 
         [Header("공격")]
         [Tooltip("팔이 무릎을 지나 바닥에 닿는다. 사거리가 길다.")]
@@ -154,6 +166,7 @@ namespace Treeline
         private GameObject grabbed;
         private Transform grabbedEye;
         private Coroutine grabRoutine;
+        private float grabShakeStart = float.NegativeInfinity;
 
         /// <summary>
         /// **항상 참이다.** 총으로 죽일 수 없다는 것이 이 적의 정체다.
@@ -523,18 +536,26 @@ namespace Treeline
             }
 
             CapturePlayer();
+
+            // 잡힌 뒤에만 울린다. 헛손질에는 아무 소리도 안 나야 「빠져나왔다」가 읽힌다.
+            grabSound?.Invoke();
+            grabShakeStart = Time.time;
         }
 
         /// <summary>클립 90f — 턱이 닫힌다. **여기서 죽는다.**</summary>
         public void AE_GrabKill()
         {
-            // 화면을 먼저 닫는다. 104f 의 흔드는 동작은 검은 화면 뒤의 일이다.
+            killSound?.Invoke();
+            grabShakeStart = Time.time;
+
+            // 화면을 닫는 것이 무는 것과 같은 프레임이다. 페이드로 넘기면 「서서히
+            // 죽는다」가 되고, 이 적은 그런 식으로 죽이지 않는다.
             if (grabbed != null)
             {
                 PlayerHud hud = grabbed.GetComponentInChildren<PlayerHud>(true);
                 if (hud != null)
                 {
-                    hud.Blackout(0.12f);
+                    hud.Blackout(0.05f);
                 }
             }
 
@@ -639,6 +660,21 @@ namespace Treeline
                         grabbedEye.rotation = Quaternion.RotateTowards(
                             grabbedEye.rotation, target, grabTurnSpeed * Time.deltaTime);
                     }
+                }
+
+                // 붙잡힌 순간과 무는 순간에만 흔든다. 계속 흔들면 멀미가 나고,
+                // 무엇보다 그 두 지점이 사건이라는 것이 흐려진다. 롤(z)을 같이 섞는
+                // 것이 핵심이다 — 목을 잡혀 흔들리는 느낌은 좌우가 아니라 기울기에서 온다.
+                float since = Time.time - grabShakeStart;
+                if (since >= 0f && since < grabShakeSeconds && grabShakeSeconds > 0f)
+                {
+                    float left = 1f - since / grabShakeSeconds;
+                    float amount = grabShakeDegrees * left * left;
+                    float t = Time.time * 34f;
+                    grabbedEye.rotation *= Quaternion.Euler(
+                        Mathf.Sin(t * 1.7f) * amount,
+                        Mathf.Sin(t) * amount,
+                        Mathf.Sin(t * 2.3f) * amount * 0.7f);
                 }
 
                 yield return null;
