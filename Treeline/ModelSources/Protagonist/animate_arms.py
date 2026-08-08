@@ -44,12 +44,14 @@ NEAR_CLIP = 0.03        # 00-rigging.md
 PISTOL_IDLE = dict(loc=Vector((0.10, -0.35, -0.12)),
                    muzzle=Vector((0.0, -0.9925, -0.1219)),   # 7 deg below level
                    roll=0.0)
-# found by find_stance.py: of 486 candidates, 274 are holdable two-handed and
-# this one shows the most gun - 83% of the shotgun and all of the pump inside an
-# 80 degree frame, worst wrist 34.7 of 35.
-SHOTGUN_IDLE = dict(loc=Vector((0.06, -0.22, -0.18)),
-                    muzzle=Vector((-0.70, -1.00, -0.40)),
-                    roll=45.0)
+# found by find_stance.py: of 486 candidates 274 are holdable two-handed, and
+# this one shows the most gun with the most wrist to spare - 83% of the shotgun
+# and all of the pump inside an 80 degree frame at 19.7 degrees of wrist.
+# Scoring on visibility alone first picked a stance sitting at 34.7 of the 35
+# limit, which had nowhere to go the moment the clip rolled the gun.
+SHOTGUN_IDLE = dict(loc=Vector((0.12, -0.22, -0.18)),
+                    muzzle=Vector((-0.50, -1.00, -0.40)),
+                    roll=25.0)
 
 POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
 
@@ -78,8 +80,9 @@ def delta(name):
 def reset_pose():
     for pb in arm.pose.bones:
         pb.location = (0, 0, 0)
-        pb.rotation_mode = 'QUATERNION' if pb.name in CTRLS else 'XYZ'
-        if pb.name in CTRLS:
+        pb.rotation_mode = ('QUATERNION' if pb.name in CTRLS or pb.name in PARTS
+                            else 'XYZ')
+        if pb.rotation_mode == 'QUATERNION':
             pb.rotation_quaternion = (1, 0, 0, 0)
         else:
             pb.rotation_euler = (0, 0, 0)
@@ -154,6 +157,43 @@ def part_frame(name):
     pb.location = save
     bpy.context.view_layer.update()
     return Matrix(cols).transposed(), origin
+
+
+def part_rot_frame(name):
+    """World rotation this bone has with no rotation of its own.
+
+    Same trap as part_frame: a child of a posed WeaponRoot cannot be given a
+    world rotation through its rest matrix. Read the frame instead of composing
+    it - set the basis to identity and see which way the bone points.
+    """
+    pb = arm.pose.bones[name]
+    save = pb.rotation_quaternion.copy()
+    pb.rotation_quaternion = (1, 0, 0, 0)
+    bpy.context.view_layer.update()
+    m = pb.matrix.to_3x3().normalized()
+    pb.rotation_quaternion = save
+    bpy.context.view_layer.update()
+    return m
+
+
+def set_part_rot(name, world_rot):
+    m = part_rot_frame(name)
+    arm.pose.bones[name].rotation_quaternion =         (m.inverted() @ world_rot).to_quaternion()
+    bpy.context.view_layer.update()
+
+
+def align_shell(u):
+    """Turn the shell from hand-held to gun-aligned as it travels to the port.
+
+    Shell hangs off WeaponRoot, so in the pouch it inherits the gun's 97 degree
+    roll and the left hand gets asked to hold a cartridge lying the way the gun
+    lies. That put the wrist at 77.6 degrees. A shell in a pouch is oriented by
+    the hand that picks it up and only lines up with the barrel on the way in.
+    u 0 is rest orientation, u 1 is whatever the gun is doing.
+    """
+    gun = part_rot_frame("Shell").to_quaternion()
+    rest = arm.data.bones["Shell"].matrix_local.to_3x3().normalized().to_quaternion()
+    set_part_rot("Shell", rest.slerp(gun, u).to_matrix())
 
 
 def place_part(name, world_pos):
@@ -266,6 +306,44 @@ def grip(pose, drift=None, span=25.0):
     set_hand(side, grip_w - palm_w.normalized() * off, R @ Vector(fwd), palm_w,
              twist, span=span)
     set_fingers(side, pose)
+
+
+def grip_around(pose, drift=None):
+    """Grip a cylinder, choosing where around it the hand sits.
+
+    For a shell or a pump the free parameter is not the twist about the palm
+    normal - it is the angle around the cylinder's own axis. Every angle wraps
+    the fingers equally well and they put the wrist in very different places.
+    Pinning the hand to the one angle the pose library happened to solve left
+    the left wrist at 82 degrees at the loading port, because the shell is
+    gun-aligned there and the gun is rolled over.
+    """
+    side, bone, g, fwd, palm, twist, off = HP.FRAMES[pose]
+    D = delta(bone)
+    R = D.to_3x3()
+    axis = (R @ Vector((0, -1, 0))).normalized()      # the cylinder's long axis
+
+    def frame(theta):
+        Rt = Matrix.Rotation(math.radians(theta), 3, axis)
+        gw = D @ (rest_head(bone) + Rt @ Vector(g))
+        if drift:
+            gw = gw + Vector(drift)
+        pw = Rt @ (R @ Vector(palm))
+        fw = Rt @ (R @ Vector(fwd))
+        return gw - pw.normalized() * off, fw, pw
+
+    def score(theta):
+        t, fw, pw = frame(theta)
+        want = _apply_hand(side, t, Vector(fw).normalized(), _ortho(pw, fw), twist)
+        return wrist_bend(side) + 2000.0 * (arm.pose.bones["Hand." + side].head
+                                            - want).length
+
+    best = min(range(-180, 181, 10), key=score)
+    best = min([best + i * 2 for i in range(-5, 6)], key=score)
+    t, fw, pw = frame(best)
+    set_hand(side, t, fw, pw, twist, span=20.0)
+    set_fingers(side, pose)
+    return best
 
 
 def free_hand(side, pos, fwd, palm, pose):
@@ -477,7 +555,9 @@ def build_shotgun_reload():
     key(1)
 
     # 12 - rolled inboard, port exposed, left hand off the pump
-    gun(roll=52, lift=0.04, inboard=0.03)
+    # the stance is already rolled 45 degrees, which is most of what exposing
+    # the port needs. Another 20 on top put the right wrist at 50 degrees.
+    gun(roll=6, lift=0.02, inboard=0.012)
     set_part("Shell", (0, 0, 0))
     grip("ShotgunGrip")
     free_hand("L", POUCH + Vector((0, 0.04, 0.06)), Vector((0, -0.5, -0.87)),
@@ -492,21 +572,25 @@ def build_shotgun_reload():
         for f in range(seat - 10, seat + 1):
             u = (f - (seat - 10)) / 10.0
             place_part("Shell", POUCH.lerp(port_w, u))
-            # a shell is a cylinder, so the hand may roll further around it than
-            # a pistol grip allows before the fingers stop wrapping. At the
-            # library's +/-25 the wrist hit 90 degrees at the loading port.
-            grip("ShellHold", span=90.0)
+            # only most of the way to gun-aligned while the hand still has it.
+            # A shell is thumbed into the port at a slight angle; forcing it
+            # parallel to the barrel while the fingers are still wrapped left
+            # the left wrist at 47 degrees with nowhere to go.
+            align_shell(min(u, 0.7))
+            grip_around("ShellHold")
             key(f)
 
         # gone into the tube; hand drops back for the next one
+        align_shell(1.0)
         set_part("Shell", PORT + Vector((0, -0.09, 0.01)))
         free_hand("L", POUCH + Vector((0.04, -0.02, 0.10)), Vector((0, -0.5, -0.87)),
                   Vector((1, 0, 0)), "Hand_Relax")
         key(seat + 4)
 
     # 68 - tube closed, hand coming back to the pump
+    align_shell(1.0)
     place_part("Shell", OFFSCREEN)
-    gun(roll=26, lift=0.02, inboard=0.015)
+    gun(roll=3, lift=0.02, inboard=0.015)
     grip("ShotgunGrip")
     free_hand("L", Vector((-0.12, -0.42, -0.34)), Vector((1, -0.2, 0)),
               Vector((0, 0, 1)), "Hand_Relax")
@@ -568,14 +652,14 @@ def wrist_bend(side):
 def scan(act):
     """Worst wrist bend and closest approach to the camera over the whole clip."""
     dg = bpy.context.evaluated_depsgraph_get()
-    worst_w, worst_f, near, near_f = 0.0, 0, 1e9, 0
+    worst_w, worst_f, worst_s, near, near_f = 0.0, 0, "", 1e9, 0
     f = int(act.frame_start)
     while f <= int(act.frame_end):
         at(act, f)
         for side in ("R", "L"):
             w = wrist_bend(side)
             if w > worst_w:
-                worst_w, worst_f = w, f
+                worst_w, worst_f, worst_s = w, f, side
         ev = arms_mesh.evaluated_get(bpy.context.evaluated_depsgraph_get())
         me = ev.to_mesh()
         for v in me.vertices:
@@ -583,7 +667,7 @@ def scan(act):
                 near, near_f = v.co.length, f
         ev.to_mesh_clear()
         f += 1
-    return worst_w, worst_f, near, near_f
+    return worst_w, worst_f, worst_s, near, near_f
 
 
 def part_track(act, bone, frames):
@@ -650,10 +734,10 @@ def main():
         gap, where = pose_gap(act, *ends)
         print("LOOP  %-20s f%d vs f%d  %.3f mm (%s)"
               % (act.name, ends[0], ends[1], gap * 1000, where))
-        w, wf, near, nf = scan(act)
-        print("SCAN  %-20s worst wrist %5.1f at f%d (limit %.0f)  "
+        w, wf, ws, near, nf = scan(act)
+        print("SCAN  %-20s worst wrist %5.1f on %s at f%d (limit %.0f)  "
               "nearest %.4f m at f%d (near clip %.2f)"
-              % (act.name, w, wf, WRIST_LIMIT, near, nf, NEAR_CLIP))
+              % (act.name, w, ws, wf, WRIST_LIMIT, near, nf, NEAR_CLIP))
         for f, name in EVENTS[act.name]:
             print("EVENT %-20s f%-3d %s" % (act.name, f, name))
 

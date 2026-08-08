@@ -133,9 +133,8 @@ IMPORTANT: **제작용 IK 와 런타임 IK 는 다른 것이다.** 초판 명세
 6. 맨손 → 운반 → 권총 → 산탄총 → 피격·사망 순으로 팔 17종.
    **재장전 둘을 먼저 만들었다** — 제일 어려운 것이 통과하면 나머지는 기계적이다.
    `Arms_PistolReload` 끝 (2026-08-09, 이음새 0.000 mm · 최악 손목 29.4°).
-   `Arms_ShotgunReload` 는 78f 로 서고 이음새 0.000 mm · 총이 화면에 83 % 들어오지만,
-   **탄을 집는 구간에서 왼손목이 77.6°** 다 (상한 35). 원인과 고칠 방법은
-   [`07-shotgun.md`](07-shotgun.md) 「아직 남은 것」 참고.
+   `Arms_ShotgunReload` 도 끝 (2026-08-09, 이음새 0.000 mm · 최악 손목 31.2° ·
+   총이 화면에 83 % · 펌프 100 %).
 7. 전신 3종.
 8. [`unity-integration.md`](unity-integration.md) 와 [`qa-checklist.md`](qa-checklist.md)
    로 검수한다.

@@ -208,7 +208,11 @@ def main():
                             if miss > 0.002:
                                 continue
                             ok_n += 1
-                            s = vis + 0.5 * pvis - 0.02 * max(0.0, w - WRIST_LIMIT)
+                            # prefer slack, not merely passing: a stance that
+                            # sits at 34.7 of 35 has nowhere to go once the
+                            # clip rolls the gun, and the reload went over on
+                            # the third frame.
+                            s = vis + 0.5 * pvis - 0.03 * max(0.0, w - 22.0)
                             if best is None or s > best[0]:
                                 best = (s, (gx, gy, gz), tuple(m), roll, vis,
                                         pvis, w, miss)
