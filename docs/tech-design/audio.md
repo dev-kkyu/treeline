@@ -214,25 +214,20 @@ IMPORTANT: **같은 장치에 클립과 이벤트를 둘 다 걸면 소리가 �
 | | `Heater/Snd_Start` 의 `Play` | `device-start` |
 | | `Heater/Snd_Hum` 의 `Play` | `heater-hum-loop` — 도는 동안 |
 | `Heater.activated` | `Heater/Snd_Complete` 의 `Play` | `ice-melt-crack` — 얼음이 깨진다 |
-| `Colossus.noticed` | `Cue_Chase` 의 `Play` | `chase-dread-loop` — 추격이 이어지는 동안 |
+| `Colossus.noticed` | `Colossus/Snd_Roar` 의 `Play` | `colossus-roar` — 알아채는 순간 |
 | | `Player` 의 `PlayerLook.Shake` | 화면이 짧게 떨린다 |
-| `Colossus.lost` | `Cue_Chase` 의 **`Stop`** | 놓치면 음악이 걷힌다 |
 | `CableCar.activated` | `BoardLever` 의 `Play` | `lever-pull` |
 | | `CableCar/Snd_Start` 의 `Play` | `generator-start` — 권양기가 돈다 |
 | | `CableCar/Snd_Run` 의 `Play` | `generator-rumble-loop` — 가는 동안 |
 
-`Cue_Chase` 에 `chase-dread-loop` 을 걸었다 (2026-08-09). 원래 있던 `chase-stinger` 를
-사운드 담당이 기획에 안 맞는다고 버렸는데, 6 장은 다른 사람 씬이라 빈 채로 남겨둔
-것을 씬 소유자가 받아 채웠다.
-
-IMPORTANT: **그것은 스팅어가 아니라 22 초 루프다.** 켜는 자리만 두면 영영 안 꺼진다.
-그래서 `Colossus` 에 `lost` 이벤트를 더해 `noticed` 와 짝을 맞췄다 — 놓치면 `Stop` 이
-불려 음악이 걷힌다. **켜는 쪽과 끄는 쪽을 같은 모양으로 둔 것**은 붙이는 사람이
-한쪽을 빠뜨리지 않게 하려는 것이다.
+IMPORTANT: **추격 음악은 이 표에 없다.** `noticed` · `lost` 에 걸어 두었다가
+`ChaseMusic` 으로 옮겼다 (2026-08-09). 아래 「6 장 음악은 `ChaseMusic` 이 몬다」 참고.
+**이벤트에 남긴 둘은 음악이 아니라 사건 표시**다 — 한 번 치고 끝나는 것이라
+페이드가 필요 없다.
 
 발각되는 순간에 칠 소리는 **`colossus-roar`** 다 (2026-08-09). 기획이 「멈춰 서서
-돌아보고 포효한 뒤 온다」 고 못박은 그 2 초를 위한 것이다. `Colossus.noticed` 에
-`Cue_Chase` 와 **함께** 건다 — 포효가 사건을 찍고, 루프가 그 뒤를 받는다.
+돌아보고 포효한 뒤 온다」 고 못박은 그 2 초를 위한 것이다. 포효가 사건을 찍고
+추격 루프가 그 뒤를 받는다.
 
 **2026-08-09 에 2.36 초를 정확히 2.000 초로 잘랐다.** `roarSeconds` 가 2 이므로
 소리가 0.36 초 더 남으면 이미 달려오고 있는데 포효가 이어진다. 자를 때 두 가지를
@@ -250,6 +245,34 @@ IMPORTANT: **길이를 소리에 맞추지 않고 소리를 길이에 맞췄다.
 씬에는 `Colossus/Snd_Roar` 로 걸었다 (3D · linear · 8~70m). **`Colossus.prefab` 이
 아니라 `Ch6` 인스턴스에 붙였다** — 프리팹은 B 소유이고 이 적이 나오는 씬이 아직
 6 장 하나뿐이다. 다른 장에 놓이면 그때 프리팹으로 올린다.
+
+#### 6 장 음악은 `ChaseMusic` 이 몬다 (2026-08-09)
+
+처음에는 `Colossus.noticed` → `Play`, `lost` → `Stop` 으로 생으로 켜고 껐다.
+2 장에는 `ChaseMusic` 이 있었지만 그때는 `Crawler[]` 를 들고 있어 `Colossus` 를
+받지 못했기 때문이다. 사운드 담당이 `IHunter` 로 열어 준 뒤 6 장도 같은 방식으로
+바꿨다. **2 장과 같은 값을 그대로 쓴다.**
+
+```
+_Audio
+ ├ ChaseMusic   chaseLoop=Mus_Chase  chapterLoop=Mus_Ch6
+ │              chapterDuck 0.35  fadeSeconds 1.4  rescanInterval 2
+ ├ Mus_Chase    chase-dread-loop   루프 · playOnAwake 끔 · 0.50 · 2D
+ ├ Mus_Ch6      ch6-colossus       루프 · playOnAwake 켬 · 0.35 · 2D
+ └ Ambience_Blizzard
+```
+
+실측 — 발각에 추격 루프가 1.4 초에 걸쳐 `0 → 0.500` 으로 차오르고 장 음악이
+`0.350 → 0.123`(= 0.35 × 0.35)으로 눌린다. 추격이 끝나면 반대로 빠지고 루프가
+`Stop` 된다.
+
+IMPORTANT: **바꾸면서 `noticed` · `lost` 의 생배선을 지웠다.** 안 지우면
+`ChaseMusic` 이 볼륨을 올리는 동안 이벤트가 `Stop` 을 때려 둘이 싸운다. 이벤트에
+남긴 `Snd_Roar.Play` 와 `Player.Shake` 는 한 번 치고 끝나는 것이라 그대로 둔다.
+
+IMPORTANT: **6 장에는 장 음악이 아예 없었다.** `Music/ch6-colossus`(67 초)가
+만들어져 있는데 씬에 안 놓여 있었다. 1~5 장은 다 도는데 6 장만 눈보라 앰비언스
+뿐이었다. 흩어져 있던 소리 오브젝트도 이때 `_Audio` 아래로 모았다.
 
 IMPORTANT: `roar` 를 쓰면서 `not a lion, not a bear` 를 넣지 않으면 사자가 온다.
 울음 계열 금지어와 같은 이유다. 나온 것의 플랫니스는 0.19 로 형제 범위 안이다.
@@ -426,7 +449,7 @@ IMPORTANT: **사망 소리가 없다.** 명세에 `Death` 클립이 없고 `IsAl
 | `Grip_Cable` | `colossus-grip-cable` | 6 장 삭도 케이블 파지 |
 | `Stagger` | `colossus-stagger` | 누적 임계로 2.50 m 밀릴 때 |
 | `Buried` | `colossus-buried` | 사면에 묻힌 뒤. **계속 들린다** |
-| 알아채는 순간 | `colossus-roar` | `Colossus.noticed`. `Cue_Chase` 와 함께 |
+| 알아채는 순간 | `colossus-roar` | `Colossus.noticed` 의 `Snd_Roar`. 2.000 초로 잘랐다 |
 | 1 장 창밖 | `colossus-distant-loop` | 루프. 실물 없이 실루엣만 |
 
 `colossus-buried` 를 엔딩에서 **끊지 않는 것**이 이 적의 마지막 규칙이다. 묻힌
@@ -539,8 +562,9 @@ IMPORTANT: **이 게임의 공포는 소리에서 나오고 그 소리는 `Ambie
 
 - `power-restored` — 4 장에서 조명이 켜지는 순간. 기획서가 이 장의 핵심으로
   꼽은 지점이고, 장 전체에 깔린 음악으로는 이 순간이 안 만들어진다
-`chase-dread-loop` 은 큐가 아니라 **추격 중에 깔아 두는 루프**다. 발각 순간에
-치는 짧은 소리는 지금 없다 — 아래 「6 장 `Cue_Chase`」 참고.
+`chase-dread-loop` 은 큐가 아니라 **추격 중에 깔아 두는 루프**다. 켜고 끄는 것은
+`ChaseMusic` 이 페이드로 한다. 발각 순간에 치는 짧은 소리는 `colossus-roar` 이며,
+위 「6 장 음악은 `ChaseMusic` 이 몬다」 참고.
 
 ### 장이 넘어갈 때
 

@@ -69,10 +69,16 @@ A 안을 그대로 받았다. `Crawler` 의 `hearRange` · `hearSpeed` 를 지�
 마지막 120ms 에 페이드를 걸었다. **원본 wav 를 덮어썼으니 다시 뽑을 때 길이를
 2 초로 맞춘다.**
 
-남은 것은 **6장에 `ChaseMusic` 을 놓는 일**이다. A 가 한다. `Cue_Chase` 를 생으로
-켜고 끄는 배선(`noticed` → `Play`, `lost` → `Stop`)을 지우고 `_Audio` 에
-`ChaseMusic` 을 놓는다. `noticed` 에 걸린 `Snd_Roar.Play` 와 `Player.Shake` 는
-음악이 아니라 사건 표시라 그대로 둔다.
+**6장에도 `ChaseMusic` 을 놓았다 (A, 같은 날).** 2장과 같은 값 그대로다 —
+`chapterDuck` 0.35 · `fadeSeconds` 1.4 · `rescanInterval` 2. 생배선
+(`noticed` → `Play`, `lost` → `Stop`)은 지웠다. 안 지우면 `ChaseMusic` 이 볼륨을
+올리는 동안 이벤트가 `Stop` 을 때려 둘이 싸운다. `noticed` 에 남은
+`Snd_Roar.Play` 와 `Player.Shake` 는 음악이 아니라 사건 표시라 그대로 둔다.
+
+붙이다 알게 된 것 — **6장에는 장 음악이 아예 없었다.** `Music/ch6-colossus`(67초)가
+만들어져 있는데 씬에 안 놓여 있었다. 1~5장은 다 도는데 6장만 눈보라 앰비언스
+뿐이었다. `Mus_Ch6` 로 놓았고 값은 2장 `Mus_Ch2` 와 같다(루프 · `playOnAwake` 켬 ·
+0.35 · 2D).
 
 ### 2026-08-09 · NavMesh 에이전트 타입이 둘이 되었다 (A)
 

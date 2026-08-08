@@ -281,7 +281,7 @@ IMPORTANT: **적 모델이 늦어도 2-2 는 진행한다.** 1단계에서 캡�
 | `Music/ch<번호>` · `title-theme` · `ending-descent` | 장이 로드될 때 진행이 튼다 | **지금** | C |
 | `Ambience` 8종 루프 | 씬에 `AudioSource` 로 놓는다 | 2-2 각자 장 | 장 소유자 |
 | `Music/power-restored` | 그 사건이 벌어지는 자리에 큐로 | 2-2 · 3단계 | 그 장 소유자 |
-| `Music/chase-dread-loop` | **루프다.** 발각에 켜고 놓치면 끈다 | ✅ 6장 | 그 장 소유자 |
+| `Music/chase-dread-loop` | **루프다.** `ChaseMusic` 이 페이드로 켜고 끄며 장 음악을 0.35배로 누른다 | ✅ 2장 · 6장 | 그 장 소유자 |
 | `Structure` 나머지(지붕 눈 · 창 바람) | 씬에 연출로 | 2-2 각자 장 | 장 소유자 |
 
 IMPORTANT: **위 네 줄은 컴포넌트에 붙이므로 한 번 하면 세 장 전부에 적용된다.**
