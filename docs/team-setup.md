@@ -399,14 +399,23 @@ IMPORTANT: **애니메이션 이벤트는 Animator 가 붙은 GameObject 의 컴
 | `AE_GrabLock` | `Grab_Execute` 8f | 신호만 — **판정은 아직 없다** |
 | `AE_GrabKill` | `Grab_Execute` 90f | 신호만 — **즉사 처리 아직 없다** |
 
-**6 장 `Colossus.prefab` 은 아직 Animator 가 없어서(회색 박스) 지금은 안 터진다.
-모델을 붙이는 순간 같은 오류가 난다.** 그때 이 컴포넌트를 Animator 와 같은
-오브젝트에 같이 붙이면 된다.
+#### 6 장 프리팹에는 이 중계기가 필요 없다 (확인함)
 
-**포획 둘은 구독만 하면 된다.** 마침 `colossus-grab.wav` · `colossus-kill.wav` 를
-만들고 있는 것 같은데, 그 둘이 걸릴 자리가 정확히 `GrabLock` · `GrabKill` 이다.
-8f 에서 사거리를 다시 재고 벗어났으면 `Grab_Miss` 로 보내는 규칙은
-`docs/enemy-sheets/.../12-grab-execute.md` 에 있다.
+내가 이 글을 쓴 뒤에 A 가 `Colossus.prefab` 에 모델과 애니메이션을 붙이면서
+**Animator 를 루트에 뒀다.** `Colossus.cs` 와 같은 오브젝트이므로 거기 있는
+`AE_` 함수 넷이 정상으로 불린다 — 프리팹을 열어 확인했다. **6 장은 그대로 두면
+된다.**
+
+그래서 같은 계약을 구현한 것이 둘이 되었지만 **겹쳐서 두 번 울리지는 않는다.**
+쓰는 자리가 갈린다.
+
+| | 받는 쪽 | 왜 |
+| --- | --- | --- |
+| 6 장 `Colossus.prefab` | `Colossus.cs` 의 `AE_*` | Animator 가 루트에 있고 게임 로직도 거기 있다 |
+| 타이틀 배경 실루엣 | `ColossusAnimationEvents` | Animator 가 모델 자식에 있고 `Colossus` 컴포넌트가 없다 (AI 를 배경에 끌어들일 이유가 없다) |
+
+**새로 붙일 때 판단 기준** — Animator 와 같은 오브젝트에 `Colossus` 가 있으면
+중계기가 필요 없고, 없으면 필요하다.
 
 소리 칸은 **비워 두어도 된다.** 타이틀은 `TitleApparition` 이 포효음을 내고
 있어서 비워 뒀다 — 두 군데서 내면 두 번 울린다.
