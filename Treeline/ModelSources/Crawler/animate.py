@@ -20,6 +20,42 @@ FEET = ["CTRL_FootIK.FL", "CTRL_FootIK.FR", "CTRL_FootIK.HL", "CTRL_FootIK.HR"]
 BODY = "DEF_BodyRoot"
 ROT_BONES = ["DEF_BodyRoot", "DEF_SpineFront", "DEF_HeadPlate", "DEF_Mouth",
              "DEF_Tail01", "DEF_Tail02", "DEF_Tail03", "DEF_Tail04"]
+LEG_BONES = [n + s for s in (".L", ".R") for n in
+             ("DEF_FrontUpper", "DEF_FrontLower", "DEF_FrontFoot",
+              "DEF_HindThigh", "DEF_HindShin", "DEF_HindAnkle", "DEF_HindFoot")]
+
+
+def ik_constraints():
+    out = []
+    for pb in arm.pose.bones:
+        for c in pb.constraints:
+            if c.type in ('IK', 'COPY_ROTATION'):
+                out.append(c)
+    return out
+
+
+def set_ik(value):
+    for c in ik_constraints():
+        c.influence = value
+
+
+def key_ik(frame):
+    for pb in arm.pose.bones:
+        for i, c in enumerate(pb.constraints):
+            if c.type in ('IK', 'COPY_ROTATION'):
+                c.keyframe_insert("influence", frame=frame)
+
+
+def wobble(seed, t, a=1.0):
+    """Deterministic smooth noise in roughly -1..1.
+
+    Irrational frequency ratios so the three terms never line up into a beat --
+    a repeating wobble reads as a machine, not a body losing control.
+    """
+    p = seed * 1.7137
+    return a * (0.55 * math.sin(2 * math.pi * (3.0 * t + p))
+                + 0.30 * math.sin(2 * math.pi * (7.13 * t + p * 2.3))
+                + 0.15 * math.sin(2 * math.pi * (11.71 * t + p * 3.7)))
 
 for pb in arm.pose.bones:
     pb.rotation_mode = 'XYZ'
@@ -34,6 +70,25 @@ def wloc(name, dx, dy, dz):
     """Set a pose bone's translation from a world-space delta."""
     _world_delta[name] = Vector((dx, dy, dz))
     arm.pose.bones[name].location = _basis[name] @ Vector((dx, dy, dz))
+
+
+def ground_settle(limit=0.0005):
+    """Drop *or* lift the body until the mesh just touches the floor.
+
+    ground_clamp only ever lifts, which is right while the feet carry the body.
+    Once the creature rolls over there is nothing holding it up, so the body has
+    to fall onto whatever surface is now facing down.
+    """
+    zmin = 0.0
+    for _ in range(4):
+        bpy.context.view_layer.update()
+        ev = mesh.evaluated_get(bpy.context.evaluated_depsgraph_get())
+        zmin = min((mesh.matrix_world @ v.co).z for v in ev.data.vertices)
+        if abs(zmin) <= limit:
+            return zmin
+        d = _world_delta.get(BODY, Vector((0, 0, 0)))
+        wloc(BODY, d.x, d.y, d.z - zmin)
+    return zmin
 
 
 def ground_clamp(limit=0.0005):
@@ -125,47 +180,72 @@ def new_action(name):
 def gait(u, duty, stride, lift):
     """Foot offset (dy, dz) for cycle phase u in [0,1).
 
-    Stance runs backward (+y) at constant speed so a planted foot never slides;
-    swing carries it forward again on a sine arc.
+    Stance runs backward (+y) at constant speed so a planted foot never slides.
+    The swing is deliberately not a sine: the foot whips forward in the first
+    third and then hangs, so the leg reads as thrown rather than swung. A smooth
+    sine here is the single thing that made the whole creature look like a dog.
     """
     u = u % 1.0
     if u < duty:
         s = u / duty
         return stride * (s - 0.5), 0.0
     s = (u - duty) / (1.0 - duty)
-    return stride * (0.5 - s), lift * math.sin(math.pi * s)
+    whip = s ** 0.5                      # forward travel front-loaded
+    arc = math.sin(math.pi * (s ** 0.75))  # peak early, then drop onto the floor
+    return stride * (0.5 - whip), lift * arc
 
 
-def build_locomotion(name, frames, phases, duty, stride_f, stride_h, lift_f, lift_h,
-                     body_drop, bob, pitch, roll, tail_swing, head_counter):
+def slam(t, per_cycle=2):
+    """Body height curve: fast drop on impact, slow climb back. Range -1..0."""
+    s = (t * per_cycle) % 1.0
+    if s < 0.14:
+        return -((s / 0.14) ** 0.55)
+    r = (s - 0.14) / 0.86
+    return -((1.0 - r) ** 2.2)
+
+
+def build_locomotion(name, frames, feet, duty, stride_f, stride_h, lift_f, lift_h,
+                     body_drop, bob, pitch, lurch, yaw, tail_swing, neck_counter,
+                     mouth_open, head_sweep):
+    """feet: {bone: (phase, stride_mult, lift_mult, duty_mult)}
+
+    The per-foot multipliers break left/right symmetry. A trot with matched
+    limbs reads as a healthy animal no matter how large the motion is.
+    """
     act = new_action(name)
     period = frames  # frame 1 and frame frames+1 hold the same pose
     for f in range(1, frames + 2):
         t = (f - 1) / period
         reset_pose()
-        for foot, ph in phases.items():
-            stride = stride_f if ".F" in foot else stride_h
-            lift = lift_f if ".F" in foot else lift_h
-            dy, dz = gait(t - ph, duty, stride, lift)
+        for foot, cfg in feet.items():
+            ph, sm, lm, dm = cfg
+            stride = (stride_f if ".F" in foot else stride_h) * sm
+            lift = (lift_f if ".F" in foot else lift_h) * lm
+            dy, dz = gait(t - ph, min(duty * dm, 0.9), stride, lift)
             wloc(foot, 0.0, dy, dz)
             # keep the sole roughly flat: tip the foot up as it leaves the ground
-            arm.pose.bones[foot].rotation_euler = (math.radians(-18.0 * (dz / max(lift, 1e-6))), 0, 0)
-        bz = -body_drop + bob * math.sin(4 * math.pi * t)
-        by = 0.012 * math.sin(2 * math.pi * t)
-        wloc(BODY, 0.0, by, bz)
-        body_pitch = pitch * math.sin(4 * math.pi * t)
-        rot(BODY, body_pitch, 0, 0)
-        # the neck cancels the body pitch so the head keeps aiming at the floor
-        # instead of swinging its 1.5 m lever arm through it
-        rot("DEF_SpineFront", -body_pitch, 0, roll * math.sin(2 * math.pi * t))
-        rot("DEF_HeadPlate", -head_counter * 0.3 * math.sin(4 * math.pi * t), 0,
-            -roll * 0.6 * math.sin(2 * math.pi * t))
-        rot("DEF_Mouth", 1.2 + 1.0 * math.sin(4 * math.pi * t), 0, 0)
+            arm.pose.bones[foot].rotation_euler = (math.radians(-24.0 * (dz / max(lift, 1e-6))), 0, 0)
+
+        impact = slam(t)                       # -1 at touchdown, 0 at full extension
+        wloc(BODY, lurch * 0.5 * math.sin(2 * math.pi * t + 1.1),
+             0.02 * slam(t, 1), -body_drop + bob * impact)
+        body_pitch = pitch * impact
+        # yaw runs at 1.5x the gait so head and legs never settle into a rhythm
+        body_yaw = yaw * math.sin(3 * math.pi * t)
+        rot(BODY, body_pitch, lurch * 22 * math.sin(2 * math.pi * t), body_yaw)
+        # the neck now only partly cancels the body pitch; a perfectly levelled
+        # head is what made it look like it was politely watching the floor
+        rot("DEF_SpineFront", -body_pitch * neck_counter, lurch * 14,
+            -body_yaw * 0.4 + head_sweep * 0.5 * math.sin(3 * math.pi * t + 2.0))
+        rot("DEF_HeadPlate", -pitch * 0.35 * impact, 0,
+            head_sweep * math.sin(3 * math.pi * t + 2.6))
+        rot("DEF_Mouth", mouth_open + mouth_open * 0.45 * impact, 0, 0)
         for i in range(4):
-            lag = 0.10 * (i + 1)
+            lag = 0.13 * (i + 1)
+            amp = tail_swing * (0.5 + 0.5 * i)
             rot("DEF_Tail0%d" % (i + 1),
-                -1.5 - 1.0 * (i + 1) * math.sin(2 * math.pi * (t - lag)), 0,
-                tail_swing * (i + 1) * 0.55 * math.sin(2 * math.pi * (t - lag)))
+                -3.0 - 2.0 * (i + 1) * math.sin(2 * math.pi * (t - lag)), 0,
+                amp * math.sin(2 * math.pi * (t - lag)))
         ground_clamp()
         key(f)
     for fc in action_fcurves(act):
@@ -204,15 +284,19 @@ def build_idle():
     for f in range(1, 47):
         t = (f - 1) / 45.0
         reset_pose()
-        wloc(BODY, 0.0, 0.0, -0.004 * math.sin(2 * math.pi * t))
-        rot("DEF_SpineFront", 0, 0, 1.5 * math.sin(2 * math.pi * t))
-        rot("DEF_HeadPlate", 0.6 * math.sin(2 * math.pi * t), 0,
-            -0.9 * math.sin(2 * math.pi * t))
-        rot("DEF_Mouth", 0.5 + 0.5 * math.sin(2 * math.pi * t), 0, 0)
+        # idle is the one clip that must stay nearly still, so the threat comes
+        # from the head hunting sideways and the jaw hanging open, not from size
+        sweep = math.sin(2 * math.pi * t)
+        hunt = math.sin(6 * math.pi * t + 0.7)
+        wloc(BODY, 0.012 * sweep, 0.0, -0.012 * abs(hunt))
+        rot(BODY, 0, 2.5 * sweep, 3.0 * sweep)
+        rot("DEF_SpineFront", 1.5 * hunt, 3.0 * sweep, -7.0 * sweep)
+        rot("DEF_HeadPlate", 2.0 * hunt, 0, -11.0 * math.sin(2 * math.pi * t + 1.3))
+        rot("DEF_Mouth", 14.0 + 5.0 * hunt, 0, 0)
         for i in range(4):
-            lag = 0.06 * (i + 1)
-            rot("DEF_Tail0%d" % (i + 1), 0, 0,
-                (2 + i) * 0.5 * math.sin(2 * math.pi * (t - lag)))
+            lag = 0.09 * (i + 1)
+            rot("DEF_Tail0%d" % (i + 1), -2.0, 0,
+                (5 + 4 * i) * math.sin(2 * math.pi * (t - lag)))
         ground_clamp()
         key(f)
     act.frame_start, act.frame_end = 1, 46
@@ -224,89 +308,155 @@ F, H = "CTRL_FootIK.F", "CTRL_FootIK.H"
 
 
 def build_attack():
+    # The old version eased from anticipation into the strike at roughly one
+    # speed, which is why it read as a lunge and not a snap. Now 4..9 holds a
+    # coiled pose almost still and 9..13 covers the whole distance.
+    coil = {
+        BODY: dict(dy=0.11, dz=-0.02, rx=-3, ry=4),
+        "DEF_Mouth": dict(rx=34), "DEF_HeadPlate": dict(rx=3, rz=-9),
+        "DEF_SpineFront": dict(rx=1, ry=6, rz=7),
+        F + "L": dict(dx=-0.09, dy=0.05), F + "R": dict(dx=0.09, dy=0.05),
+        "DEF_Tail01": dict(rx=-14, rz=18), "DEF_Tail02": dict(rx=-14, rz=22),
+        "DEF_Tail03": dict(rx=-10, rz=20), "DEF_Tail04": dict(rz=14),
+    }
+    strike = {
+        BODY: dict(dy=-0.17, dz=0.03, rx=-2, ry=-3),
+        "DEF_Mouth": dict(rx=72), "DEF_HeadPlate": dict(rx=-11, rz=5),
+        "DEF_SpineFront": dict(rx=-7, ry=-4, rz=-5),
+        H + "L": dict(dz=0.06, dy=0.04), H + "R": dict(dz=0.06, dy=0.04),
+        "DEF_Tail01": dict(rx=6, rz=-16), "DEF_Tail02": dict(rx=8, rz=-22),
+        "DEF_Tail03": dict(rx=6, rz=-18), "DEF_Tail04": dict(rz=-12),
+    }
     return build_oneshot("Crawler_Attack_Underbite", 22, {
-        1: {BODY: dict(dz=-0.02), "DEF_Mouth": dict(rx=1)},
-        4: {BODY: dict(dy=0.035, dz=-0.015), "DEF_Mouth": dict(rx=5),
-            F + "L": dict(dx=-0.04, dy=0.02), F + "R": dict(dx=0.04, dy=0.02),
-            "DEF_HeadPlate": dict(rx=2), "DEF_Tail01": dict(rx=-6),
-            "DEF_Tail02": dict(rx=-6), "DEF_Tail03": dict(rx=-5)},
-        # spec asks for 6 deg of head-plate dip here; this mesh only clears the
-        # floor by 65 mm so the dip is split 3/1 between plate and neck
-        8: {BODY: dict(dy=0.045, dz=-0.02), "DEF_Mouth": dict(rx=12),
-            F + "L": dict(dx=-0.04, dy=0.02), F + "R": dict(dx=0.04, dy=0.02),
-            "DEF_HeadPlate": dict(rx=3), "DEF_SpineFront": dict(rx=1),
-            "DEF_Tail01": dict(rx=-8), "DEF_Tail02": dict(rx=-8), "DEF_Tail03": dict(rx=-6)},
-        11: {BODY: dict(dy=-0.055, dz=0.01), "DEF_Mouth": dict(rx=28),
-             H + "L": dict(dz=0.02), H + "R": dict(dz=0.02),
-             "DEF_HeadPlate": dict(rx=-2), "DEF_SpineFront": dict(rx=-3),
-             "DEF_Tail01": dict(rx=-2)},
-        13: {BODY: dict(dy=-0.080, dz=0.02), "DEF_Mouth": dict(rx=38),
-             H + "L": dict(dz=0.035), H + "R": dict(dz=0.035),
-             "DEF_HeadPlate": dict(rx=-8), "DEF_SpineFront": dict(rx=-6),
-             "DEF_Tail01": dict(rx=2), "DEF_Tail02": dict(rx=3)},
-        14: {BODY: dict(dy=-0.080, dz=0.02), "DEF_Mouth": dict(rx=38),
-             H + "L": dict(dz=0.035), H + "R": dict(dz=0.035),
-             "DEF_HeadPlate": dict(rx=-8), "DEF_SpineFront": dict(rx=-6),
-             "DEF_Tail01": dict(rx=2), "DEF_Tail02": dict(rx=3)},
-        15: {BODY: dict(dy=-0.05, dz=-0.03), "DEF_Mouth": dict(rx=18),
-             "DEF_HeadPlate": dict(rx=-3), "DEF_SpineFront": dict(rx=-2)},
-        18: {BODY: dict(dy=-0.01, dz=-0.01), "DEF_Mouth": dict(rx=4)},
-        22: {BODY: dict(), "DEF_Mouth": dict(rx=1)},
+        1: {BODY: dict(dz=-0.02), "DEF_Mouth": dict(rx=6)},
+        4: {BODY: dict(dy=0.09, dz=-0.02, rx=-2, ry=3), "DEF_Mouth": dict(rx=22),
+            F + "L": dict(dx=-0.08, dy=0.04), F + "R": dict(dx=0.08, dy=0.04),
+            "DEF_HeadPlate": dict(rx=3, rz=-6), "DEF_SpineFront": dict(ry=4, rz=5),
+            "DEF_Tail01": dict(rx=-12, rz=14), "DEF_Tail02": dict(rx=-12, rz=18),
+            "DEF_Tail03": dict(rx=-9, rz=16)},
+        7: coil,
+        9: coil,
+        11: {BODY: dict(dy=-0.06, dz=0.01), "DEF_Mouth": dict(rx=58),
+             H + "L": dict(dz=0.04), H + "R": dict(dz=0.04),
+             "DEF_HeadPlate": dict(rx=-6, rz=-2), "DEF_SpineFront": dict(rx=-4),
+             "DEF_Tail01": dict(rx=-2, rz=4), "DEF_Tail02": dict(rz=2)},
+        13: strike,
+        14: strike,
+        16: {BODY: dict(dy=-0.07, dz=-0.04, ry=-2), "DEF_Mouth": dict(rx=20),
+             "DEF_HeadPlate": dict(rx=-2, rz=3), "DEF_SpineFront": dict(rx=-2),
+             "DEF_Tail01": dict(rz=-8), "DEF_Tail02": dict(rz=-10)},
+        18: {BODY: dict(dy=-0.02, dz=-0.01), "DEF_Mouth": dict(rx=11),
+             "DEF_Tail01": dict(rz=4), "DEF_Tail02": dict(rz=6)},
+        22: {BODY: dict(), "DEF_Mouth": dict(rx=7)},
     })
 
 
 # --------------------------------------------------------------------- 5 hit
 def build_hit():
+    # 0.4 s is not much room, so all of it goes into one violent whip: the head
+    # snaps away from the impact and comes back aimed at whatever shot it.
     return build_oneshot("Crawler_Hit", 12, {
-        1: {BODY: dict(), "DEF_Mouth": dict(rx=1)},
-        3: {BODY: dict(dx=-0.035, dz=-0.02), "DEF_SpineFront": dict(ry=5),
-            "DEF_Mouth": dict(rx=4), "DEF_HeadPlate": dict(rz=4),
-            F + "R": dict(dx=-0.02), H + "R": dict(dx=-0.02)},
-        5: {BODY: dict(dx=-0.055, dz=-0.03), "DEF_SpineFront": dict(ry=5, rz=-3),
-            "DEF_Mouth": dict(rx=4), "DEF_HeadPlate": dict(rz=6, ry=-3),
-            F + "L": dict(dx=-0.03, dz=0.01), H + "L": dict(dx=-0.025),
-            "DEF_Tail01": dict(rz=-8), "DEF_Tail02": dict(rz=-10),
-            "DEF_Tail03": dict(rz=-8)},
-        8: {BODY: dict(dx=-0.016, dz=-0.008), "DEF_SpineFront": dict(ry=1.5),
-            "DEF_HeadPlate": dict(rz=1.5), "DEF_Tail01": dict(rz=4),
-            "DEF_Tail02": dict(rz=6), "DEF_Tail03": dict(rz=5)},
-        12: {BODY: dict(), "DEF_Mouth": dict(rx=1)},
+        1: {BODY: dict(), "DEF_Mouth": dict(rx=8)},
+        3: {BODY: dict(dx=-0.09, dz=-0.04, ry=-13, rz=6),
+            "DEF_SpineFront": dict(ry=14, rz=17), "DEF_Mouth": dict(rx=34),
+            "DEF_HeadPlate": dict(rz=22, ry=-9),
+            F + "R": dict(dx=-0.05), H + "R": dict(dx=-0.04)},
+        5: {BODY: dict(dx=-0.13, dz=-0.06, ry=-17, rz=9),
+            "DEF_SpineFront": dict(ry=17, rz=21), "DEF_Mouth": dict(rx=40),
+            "DEF_HeadPlate": dict(rz=26, ry=-12),
+            F + "L": dict(dx=-0.07, dz=0.03), H + "L": dict(dx=-0.06),
+            "DEF_Tail01": dict(rz=-24), "DEF_Tail02": dict(rz=-30),
+            "DEF_Tail03": dict(rz=-26), "DEF_Tail04": dict(rz=-18)},
+        8: {BODY: dict(dx=-0.03, dz=-0.015, ry=-4, rz=-3),
+            "DEF_SpineFront": dict(ry=4, rz=-6), "DEF_Mouth": dict(rx=22),
+            "DEF_HeadPlate": dict(rz=-8), "DEF_Tail01": dict(rz=14),
+            "DEF_Tail02": dict(rz=20), "DEF_Tail03": dict(rz=16)},
+        12: {BODY: dict(), "DEF_Mouth": dict(rx=9)},
     })
 
 
 # ------------------------------------------------------------------- 6 death
 def build_death():
-    # The hips are the tallest part (0.78 m) and the jaw already sits 65 mm off
-    # the floor, so the collapse is authored as "hips fall, head stays down":
-    # every drop of the body is paired with a nose-up pitch on DEF_BodyRoot.
-    settled = {
-        BODY: dict(dz=-0.24, dx=-0.03, rx=-8, ry=6),
-        "DEF_SpineFront": dict(rx=5, rz=-5), "DEF_HeadPlate": dict(rx=2, rz=-3),
-        "DEF_Mouth": dict(rx=6),
-        F + "L": dict(dx=0.13, dy=0.20), F + "R": dict(dx=-0.12, dy=0.18),
-        H + "L": dict(dx=0.12, dy=-0.17), H + "R": dict(dx=-0.10, dy=-0.19),
-        "DEF_Tail01": dict(rz=-4), "DEF_Tail02": dict(rz=-8),
-        "DEF_Tail03": dict(rz=-6), "DEF_Tail04": dict(rz=4),
-    }
-    return build_oneshot("Crawler_Death", 30, {
-        1: {BODY: dict(), "DEF_Mouth": dict(rx=3)},
-        5: {BODY: dict(dz=-0.05, dx=-0.01, rx=-2), "DEF_Mouth": dict(rx=5),
-            F + "L": dict(dy=0.05, dz=0.01), H + "R": dict(dy=-0.04),
-            "DEF_SpineFront": dict(rx=1)},
-        10: {BODY: dict(dz=-0.13, dx=-0.02, rx=-5, ry=2), "DEF_Mouth": dict(rx=7),
-             F + "L": dict(dx=0.10, dy=0.14), F + "R": dict(dx=-0.09, dy=0.12),
-             H + "R": dict(dy=-0.06), "DEF_SpineFront": dict(rx=4, rz=-3),
-             "DEF_HeadPlate": dict(rx=3), "DEF_Tail01": dict(rz=10),
-             "DEF_Tail02": dict(rz=12)},
-        16: {BODY: dict(dz=-0.20, dx=-0.03, rx=-7, ry=5), "DEF_Mouth": dict(rx=8),
-             F + "L": dict(dx=0.12, dy=0.18), F + "R": dict(dx=-0.11, dy=0.16),
-             H + "L": dict(dx=0.10, dy=-0.14), H + "R": dict(dx=-0.08, dy=-0.16),
-             "DEF_SpineFront": dict(rx=6, rz=-5), "DEF_HeadPlate": dict(rx=2, rz=-3),
-             "DEF_Tail01": dict(rz=6), "DEF_Tail02": dict(rz=-6), "DEF_Tail03": dict(rz=-10)},
-        23: settled,
-        26: settled,
-        30: settled,
-    })
+    """30 f. The creature rolls onto its back while the whole body writhes.
+
+    Two things make this clip different from the others. It rolls past the point
+    where the legs can hold it, so the IK is faded out at 6..10 f and the limbs
+    finish on FK -- otherwise the feet stay welded to the floor and the legs tear
+    off the body. And with nothing holding it up, the body has to be settled onto
+    the floor every frame rather than only pushed out of it.
+    """
+    act = new_action("Crawler_Death")
+    ROLL_END = -184.0
+    FREEZE = 26
+
+    for f in range(1, 31):
+        fr = min(f, FREEZE)               # 26..30 hold one pose exactly
+        t = (fr - 1) / 29.0
+        reset_pose()
+
+        # roll: slow tip, then it goes over all at once, then a small rock back
+        r = max(0.0, min(1.0, (fr - 3) / 17.0))
+        roll = ROLL_END * (r ** 1.6) * (1.0 + 0.06 * math.sin(math.pi * r) )
+        if fr > 20:
+            roll = ROLL_END + 7.0 * math.exp(-(fr - 20) / 2.2) * math.cos((fr - 20) * 1.9)
+
+        # how hard it is still fighting: peaks at 8 f, gone by 26 f
+        if fr < 6:
+            fight = fr / 6.0
+        else:
+            fight = max(0.0, 1.0 - ((fr - 6) / 19.0) ** 1.4)
+
+        ik = 1.0 if fr <= 6 else max(0.0, 1.0 - (fr - 6) / 4.0)
+        set_ik(ik)
+
+        wloc(BODY, 0.10 * fight * wobble(1, t) - 0.04 * r,
+             0.06 * fight * wobble(2, t), 0.0)
+        rot(BODY,
+            -6.0 * r + 9.0 * fight * wobble(3, t),
+            roll,
+            11.0 * fight * wobble(4, t))
+
+        # spine and head twist against the roll, then give up
+        rot("DEF_SpineFront", 7.0 * fight * wobble(5, t) + 4.0 * r,
+            -14.0 * fight * wobble(6, t), 17.0 * fight * wobble(7, t) - 6.0 * r)
+        rot("DEF_HeadPlate", 9.0 * fight * wobble(8, t), 0.0,
+            21.0 * fight * wobble(9, t) - 5.0 * r)
+        rot("DEF_Mouth", 26.0 + 34.0 * fight * abs(wobble(10, t)))
+
+        # The roll axis runs along the body and tips upward toward the tail, so
+        # 180 deg of roll throws the 1.5 m tail into the air. The droop has to
+        # flip with the roll to keep pointing at the floor in world space.
+        droop = 17.0 * r * (-math.cos(math.radians(roll)))
+        for i in range(4):
+            lag = 0.05 * (i + 1)
+            amp = (7.0 + 6.0 * i)
+            rot("DEF_Tail0%d" % (i + 1),
+                droop + 0.5 * amp * fight * wobble(20 + i, t - lag), 0.0,
+                amp * fight * wobble(30 + i, t - lag) - 5.0 * r * (i + 1) * 0.4)
+
+        # once the IK lets go the legs curl in on themselves, still twitching
+        curl = max(0.0, min(1.0, (fr - 6) / 8.0))
+        for side, sgn in ((".L", 1.0), (".R", -1.0)):
+            rot("DEF_FrontUpper" + side, 26 * curl + 16 * fight * wobble(41 * sgn, t), 0,
+                13 * curl * sgn)
+            rot("DEF_FrontLower" + side, 62 * curl + 22 * fight * wobble(43 * sgn, t))
+            rot("DEF_FrontFoot" + side, -34 * curl + 14 * fight * wobble(45 * sgn, t))
+            rot("DEF_HindThigh" + side, -24 * curl + 15 * fight * wobble(47 * sgn, t), 0,
+                -11 * curl * sgn)
+            rot("DEF_HindShin" + side, -58 * curl + 24 * fight * wobble(49 * sgn, t))
+            rot("DEF_HindAnkle" + side, 42 * curl + 18 * fight * wobble(51 * sgn, t))
+            rot("DEF_HindFoot" + side, -20 * curl + 10 * fight * wobble(53 * sgn, t))
+
+        ground_settle()
+        key(f, FEET + ROT_BONES + LEG_BONES)
+        key_ik(f)
+
+    set_ik(1.0)
+    for fc in action_fcurves(act):
+        for kp in fc.keyframe_points:
+            kp.interpolation = 'LINEAR'
+    act.frame_start, act.frame_end = 1, 30
+    return act
 
 
 def main():
@@ -316,21 +466,29 @@ def main():
     actions = []
     actions.append(build_idle())
 
-    SK = dict(frames=24, duty=0.55, stride_f=0.40, stride_h=0.34,
-              lift_f=0.06, lift_h=0.09, body_drop=0.020, bob=0.015,
-              pitch=1.5, roll=2.5, tail_swing=4.0, head_counter=1.8)
+    # phase / stride / lift / duty multipliers per foot. The right side leads and
+    # the left hind drags, so no two limbs repeat the same arc.
+    SK = dict(frames=24, duty=0.52, stride_f=0.44, stride_h=0.38,
+              lift_f=0.13, lift_h=0.17, body_drop=0.015, bob=0.055,
+              pitch=5.0, lurch=0.055, yaw=7.0, tail_swing=26.0,
+              neck_counter=0.45, mouth_open=9.0, head_sweep=13.0)
     actions.append(build_locomotion(
         "Crawler_Skitter",
-        phases={"CTRL_FootIK.FL": 0.0, "CTRL_FootIK.HR": 0.0,
-                "CTRL_FootIK.FR": 0.5, "CTRL_FootIK.HL": 0.5}, **SK))
+        feet={"CTRL_FootIK.FL": (0.00, 1.00, 1.00, 1.00),
+              "CTRL_FootIK.HR": (0.07, 1.15, 0.85, 0.92),
+              "CTRL_FootIK.FR": (0.47, 0.78, 1.30, 1.10),
+              "CTRL_FootIK.HL": (0.61, 0.88, 1.15, 0.84)}, **SK))
 
-    SP = dict(frames=18, duty=0.34, stride_f=0.46, stride_h=0.40,
-              lift_f=0.10, lift_h=0.13, body_drop=0.0, bob=0.025,
-              pitch=3.0, roll=1.5, tail_swing=3.0, head_counter=3.0)
+    SP = dict(frames=18, duty=0.30, stride_f=0.50, stride_h=0.44,
+              lift_f=0.19, lift_h=0.23, body_drop=0.0, bob=0.085,
+              pitch=8.0, lurch=0.045, yaw=5.0, tail_swing=20.0,
+              neck_counter=0.35, mouth_open=12.0, head_sweep=9.0)
     actions.append(build_locomotion(
         "Crawler_Sprint",
-        phases={"CTRL_FootIK.HR": 0.0, "CTRL_FootIK.HL": 0.055,
-                "CTRL_FootIK.FR": 0.42, "CTRL_FootIK.FL": 0.475}, **SP))
+        feet={"CTRL_FootIK.HR": (0.00, 1.10, 1.00, 1.00),
+              "CTRL_FootIK.HL": (0.09, 0.86, 1.25, 0.88),
+              "CTRL_FootIK.FR": (0.40, 1.00, 1.15, 1.05),
+              "CTRL_FootIK.FL": (0.50, 0.82, 0.90, 0.90)}, **SP))
 
     actions.append(build_attack())
     actions.append(build_hit())
@@ -343,10 +501,14 @@ def main():
 
     # bake control rig down onto the deform bones
     for act in actions:
+        # only Death animates constraint influence; without this reset the value
+        # it left behind leaks into whichever action is evaluated next
+        set_ik(1.0)
         print("SETTLE %-26s worst dip %7.4f" % (act.name, settle_action(act)))
 
     bpy.ops.pose.select_all(action='SELECT')
     for act in actions:
+        set_ik(1.0)
         arm.animation_data.action = act
         bpy.ops.nla.bake(frame_start=int(act.frame_start), frame_end=int(act.frame_end),
                          only_selected=True, visual_keying=True, clear_constraints=False,
