@@ -221,6 +221,7 @@ namespace Treeline
             Vector3 velocity = direction * speed;
             velocity.y += verticalVelocity;
             controller.Move(velocity * Time.deltaTime);
+
             UpdateNoise();
         }
 

@@ -267,7 +267,7 @@ Assets/Game/VFX/
 ```
 Assets/Game/Audio/
 ├── Ambience/     지속 배경음. 파일명이 -loop 로 끝나면 이음매 없이 반복된다
-├── Footsteps/    표면별 발소리. 표면당 3종
+├── Footsteps/    표면별 발소리. 표면당 2종
 ├── Structure/    문 · 계단 · 창 · 배관
 ├── Electrical/   조명 · 차단기 · 정전과 복구
 ├── Interaction/  레버 · 밸브 · 획득 · 운반
@@ -555,12 +555,17 @@ IMPORTANT: **밟고 있는 바닥이 무엇인지는 레벨을 만든 쪽만 안
 `PlayerFootsteps.surface` 를 덮어쓴다. 처음부터 표면 판정을 만들면 회색 박스에 쓸 데가
 없다. 한 장 안에서 갈라야 할 때가 오면 그때 만든다.
 
-| 장 | 표면 |
-| --- | --- |
-| 1장 관제동 | `Concrete` |
-| 2장 숙소동 | `Wood` |
-| 6장 승강장 | `MetalGrate` |
-| 5장 외부 철탑 | `Snow` |
+| 장 | 표면 | |
+| --- | --- | --- |
+| 1장 관제동 | `Concrete` | 프리팹 기본값이라 손댈 것이 없다 |
+| 2장 숙소동 | `Wood` | **씬에서 바꿔야 한다** |
+| 6장 승강장 | `MetalGrate` | ✅ |
+| 5장 외부 철탑 | `Snow` | 그 장이 생길 때 |
+
+IMPORTANT: `PlayerMotor` 에도 같은 것을 만들었다가 걷어냈다 (2026-08-09). 같은 날
+두 사람이 각자 만들어 **발소리가 두 번 났다.** 발소리를 손볼 때는 `PlayerFootsteps`
+하나만 본다. 근거는 [`decisions.md`](decisions.md) 의 「발소리는 `PlayerFootsteps`
+하나로 간다」.
 
 `TestDamageTarget` 과 `TestTarget.prefab` 은 **지웠다** (2026-08-08). A 가 B 의 적을
 기다리지 않으려고 만든 사격 검증용 대역이었고, `1901d85` 에서 실제 `Crawler` 로

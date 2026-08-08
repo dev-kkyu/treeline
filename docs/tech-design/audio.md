@@ -390,7 +390,7 @@ private void PlayStep(AudioSource source)
 
 IMPORTANT: `UnityEngine.Random` 을 **끝까지 적는다.** 그냥 `Random` 으로 쓰면
 `using System;` 이 있는 파일에서 `System.Random` 과 충돌해 `CS0104` 로 컴파일이
-깨진다. `PlayerMotor.cs` 가 그런 파일이다.
+깨진다. `PlayerFootsteps.cs` 와 `PlayerMotor.cs` 가 그런 파일이다.
 
 ### 음악은 낮게 깔고 큐에서 올린다
 
