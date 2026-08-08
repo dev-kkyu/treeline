@@ -17,6 +17,8 @@ GameObject:
   - component: {fileID: 1000015}
   - component: {fileID: 1000016}
   - component: {fileID: 5316144467640077334}
+  - component: {fileID: 3109807203231790113}
+  - component: {fileID: 4818734706104805275}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -191,6 +193,148 @@ MonoBehaviour:
   - {fileID: 4261399646895787605}
   - {fileID: 1592540805705413607}
   startingKind: 0
+--- !u!82 &3109807203231790113
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 0
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &4818734706104805275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afaf8f8ac88102f45bc5fddaebcc066c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Treeline.PlayerFootsteps
+  motor: {fileID: 1000011}
+  source: {fileID: 3109807203231790113}
+  surface: 0
+  library:
+  - surface: 0
+    clips:
+    - {fileID: 8300000, guid: 70be54dfc609e384b88f750445120ec3, type: 3}
+    - {fileID: 8300000, guid: fcc2b0a30a3e20846ba885d8ab62a081, type: 3}
+    - {fileID: 8300000, guid: 6760b3cd17c6e1b47aeb9314a55a4d68, type: 3}
+  - surface: 1
+    clips:
+    - {fileID: 8300000, guid: 1f188742685c0f64381061478b6bf6ca, type: 3}
+    - {fileID: 8300000, guid: 0810e9e6d20029c40a360ad3c81458ce, type: 3}
+    - {fileID: 8300000, guid: ab66ea75bb387bc4ca6754cd42265172, type: 3}
+  - surface: 2
+    clips:
+    - {fileID: 8300000, guid: 369a5b0ea0c9e1e4d94d0d3fd4683b78, type: 3}
+    - {fileID: 8300000, guid: 143ef6d3c74a5ed4196ce15e7a939fd6, type: 3}
+    - {fileID: 8300000, guid: 984d8a7d4fbaecd41a3bb43a082ea057, type: 3}
+  - surface: 3
+    clips:
+    - {fileID: 8300000, guid: 77a78c43f71eedf449aaf55fedeb5168, type: 3}
+    - {fileID: 8300000, guid: e450111e9d423c541aac404b7d8151ae, type: 3}
+    - {fileID: 8300000, guid: d4ec7f4ffc5ae374b97f1f6760f1938e, type: 3}
+  walkStride: 0.85
+  sprintStride: 1.15
+  crouchStride: 0.7
+  walkVolume: 0.6
+  sprintVolume: 0.85
+  crouchVolume: 0.25
+  landVolume: 0.9
+  pitchJitter: 0.06
+  minAirTimeForLanding: 0.2
 --- !u!1 &1100000
 GameObject:
   m_ObjectHideFlags: 0

@@ -185,6 +185,7 @@ IMPORTANT: 씬은 **인덱스가 아니라 이름으로** 로드한다 (`LoadSce
 Assets/Game/
 ├── _Sandbox/         각자 실험용 씬. 소유자 외 접근 금지
 ├── Levels/           장별 씬. Ch1 · Ch2 · Ch6 (그 뒤 Ch3 · Ch4 · Ch5)
+│   └── Ch6/          그 장에서만 쓰는 스크립트. 씬 옆에 둔다
 ├── Player/           이동 · 카메라 · 손전등 · 체력 · 무기
 ├── Enemy/            적 · NavMesh · 상태 머신
 ├── Interaction/      문 · 레버 · 밸브 · 획득 · 운반
@@ -197,6 +198,15 @@ Assets/Game/
 
 `Assets/ThirdParty/` 는 제3자 에셋 원본 자리이고 저장소에서 제외된다.
 정책은 `CLAUDE.md` 참고.
+
+### 한 장에서만 쓰는 스크립트는 씬 옆에 둔다
+
+`Levels/<장>/` 이 그 자리다. 처음 생긴 것은 `Levels/Ch6/CableCarDeparture.cs` 다.
+
+시스템 폴더(`Player/` · `Devices/` · `Progress/`)는 **여러 장이 함께 쓰는 것**만 담는다.
+장 하나의 마지막 연출을 거기에 넣으면 다음 사람이 「이건 어디서 쓰나」를 찾게 되고,
+담당 폴더 규칙(한 폴더에 한 사람)도 장 담당과 어긋난다. 두 번째 장이 같은 것을
+필요로 하면 그때 시스템 폴더로 올린다.
 
 ### AI 로 만든 에셋은 담당 폴더에 둔다
 
@@ -372,6 +382,7 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | `PlayerWeapon` | 총 한 자루. `GameLayers.Shot` 레이캐스트, 탄창 · 재장전, 반동 |
 | `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
 | `Flashlight` | 조명 토글과 배터리 소모 |
+| `PlayerFootsteps` | 발소리. 이동 거리로 내고 표면은 장마다 정한다 |
 | `PlayerHud` | 체력 · 탄약 · 배터리 · 스태미너 · 조준점 · 상호작용 문구 · 피격 오버레이 |
 
 프리팹 구조는 이렇다.
@@ -477,9 +488,27 @@ IMPORTANT: 이 제약은 **`IInteractable.Prompt` 에도 걸린다.** 그 문구
 담당(C)이 정하고 HUD 는 받아서 찍기만 하는데, 한글이면 화면에서 깨지는 것은 여기다.
 지금 있는 `Lever` 는 `Pull lever` 라 문제가 없다.
 
-`TestDamageTarget` 은 A 의 사격 검증용 표적 대역이고 **적이 아니다.** 적은 B 가
-`Enemy/` 에 만든다. `Crawler.prefab` 이 왔으므로 사격 감각을 맞추는 용도로만 남기고,
-필요 없어지면 지운다.
+**발소리는 시간이 아니라 이동 거리로 낸다.** `PlayerFootsteps` 가 수평 이동을 쌓다가
+보폭을 넘으면 한 번 낸다. 걷기 · 달리기 · 웅크리기의 간격이 속도에서 저절로 따라오고,
+벽에 붙어 제자리걸음 할 때 소리가 나지 않는다. 타이머로 하면 속도를 고칠 때마다 간격도
+같이 고쳐야 한다. 떠 있는 동안은 쌓지 않는다 — 쌓으면 착지하자마자 한 걸음이 터진다.
+
+IMPORTANT: **밟고 있는 바닥이 무엇인지는 레벨을 만든 쪽만 안다.** 회색 박스에는 재질이
+없으므로 장마다 기본 표면 하나를 정하고, 씬에 놓인 `Player` 인스턴스에서
+`PlayerFootsteps.surface` 를 덮어쓴다. 처음부터 표면 판정을 만들면 회색 박스에 쓸 데가
+없다. 한 장 안에서 갈라야 할 때가 오면 그때 만든다.
+
+| 장 | 표면 |
+| --- | --- |
+| 1장 관제동 | `Concrete` |
+| 2장 숙소동 | `Wood` |
+| 6장 승강장 | `MetalGrate` |
+| 5장 외부 철탑 | `Snow` |
+
+`TestDamageTarget` 과 `TestTarget.prefab` 은 **지웠다** (2026-08-08). A 가 B 의 적을
+기다리지 않으려고 만든 사격 검증용 대역이었고, `1901d85` 에서 실제 `Crawler` 로
+양방향 확인이 끝나 역할이 없어졌다. 만들 때 「`Crawler.prefab` 이 오면 지운다」고
+적어둔 대로다.
 
 입력을 한 곳으로 모은 이유는 **사망 처리 때문**이다. `PlayerHealth` 가 죽을 때
 `PlayerInputReader` 하나만 끄면 액션 맵이 꺼지고, 나머지 컴포넌트는 전부 0 을
