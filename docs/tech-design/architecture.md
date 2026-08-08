@@ -243,6 +243,21 @@ Unity 는 임포트 설정에 따라 텍스처를 압축하고 메시를 최적�
 압축 포맷이다. WebGL 이라 빌드 용량이 곧 심사자의 첫 로딩 시간이므로, 배포 전에
 한 번 보는 것으로 충분하다.
 
+### 여러 장이 함께 쓰는 파티클은 `VFX/`에 둔다
+
+눈보라 · 서리 먼지 · 총구 섬광 · 화염 · 스파크 · 폭발은 여러 담당자의 장에
+재등장하므로 특정 장 폴더에 두지 않는다.
+
+```text
+Assets/Game/VFX/
+├── Textures/    알파 PNG
+├── Materials/   URP Particles/Unlit
+└── Prefabs/     PS_<효과이름>.prefab
+```
+
+각 프리팹의 쓰임과 WebGL 예산은 [`../vfx-assets/README.md`](../vfx-assets/README.md)에
+있다. 씬 소유자는 원본 프리팹을 복제하지 않고 인스턴스의 Shape 크기만 조절한다.
+
 ### 사운드는 `Audio/` 에 카테고리로 나눠 둔다 → [`audio.md`](audio.md)
 
 사운드만 예외로 담당 폴더에 넣지 않는다. 눈보라 · 발소리 · 셔터 소리는 특정
