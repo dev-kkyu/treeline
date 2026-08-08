@@ -27,6 +27,7 @@
 | `generation-prompts.md` | 이미지/3D 생성용 프롬프트와 금지어 |
 | [`colossus/final/MODEL-SPEC.md`](colossus/final/MODEL-SPEC.md) | Colossus Final 치수·메시·리그·충돌·머터리얼 확정표 |
 | [`clinger/final/MODEL-SPEC.md`](clinger/final/MODEL-SPEC.md) | Clinger Final 전개·접힘 치수와 제작 규격 확정표 |
+| [`clinger/final/animation/`](clinger/final/animation/README.md) | Clinger Final 26본 리그와 8종 클립의 프레임별 제작·Unity 연결 명세 |
 | [`crawler/animation/`](crawler/animation/README.md) | Crawler 22본 리그와 6종 클립의 프레임별 제작·Unity 연결 명세 |
 | [`../비교.md`](../비교.md) | Claude 본문과 Codex 후속 검토를 합친 비교 보고서 |
 
