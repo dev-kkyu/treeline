@@ -1,12 +1,13 @@
 # Treeline UI 에셋
 
-> 상태: Unity 리소스 임포트 완료 · 최종 수정 2026-08-08
+> 상태: HUD 13개 연결 완료, 메뉴 · 튜토리얼 미연결 · 최종 수정 2026-08-08
 
 확정 기획 [`../game-design/treeline.md`](../game-design/treeline.md)과 적 모델링의
 `Frost-pressure anatomy` 규격을 바탕으로 만든 Unity UI 시안이다. 런타임 PNG는
 [`Treeline/Assets/Game/UI/Art`](../../Treeline/Assets/Game/UI/Art)에 Sprite로
-임포트했다. 프리팹과 씬 연결은 아직 하지 않았으며, 연결 뒤 1920×1080 WebGL
-빌드에서 크기와 대비를 확인한다.
+임포트했다. HUD 13개는 `Player.prefab` 의 `HUD` 캔버스에 붙였고(A 이정범), 메뉴와
+튜토리얼은 아직 붙이지 않았다. 크기와 대비는 에디터 플레이 모드에서만 봤으므로
+1920×1080 WebGL 빌드에서 다시 확인해야 한다.
 
 ![HUD 배치 시안](previews/hud-mockup-1920x1080.jpg)
 
@@ -126,6 +127,12 @@ Transparency on, Mip Maps off, Bilinear, Clamp로 임포트했다. 작은 조준
 
 목표 문구와 미니맵은 만들지 않는다. 기획상 목적이 장소와 장치의 사슬로 전달되고,
 항상 떠 있는 안내문은 어둠과 고립감을 약하게 만든다.
+
+구현하면서 두 곳이 위 표에서 벗어났다(A 이정범). **스태미너와 배터리는 늘 띄우고**,
+평상시 불투명도는 45~65%가 아니라 **75~85%로 올렸다.** 둘 다 쓰는 동안이 아니라
+쓸지 말지를 정할 때 필요한 값이고, 낮은 불투명도는 실제 화면에서 안 보였다. 근거는
+[`../tech-design/decisions.md`](../tech-design/decisions.md)에 남겼다. 배치는 이
+문서의 시안을 따라 스태미너·체력은 좌하단, 배터리·탄약은 우하단이다.
 
 ## 튜토리얼 UI 동작 제안
 

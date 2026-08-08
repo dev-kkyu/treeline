@@ -30,6 +30,9 @@ namespace Treeline
         [Tooltip("웅크린 채 걷는 속도 (m/s).")]
         [SerializeField] private float crouchSpeed = 1.4f;
 
+        [Tooltip("스태미너가 바닥난 뒤 회복이 시작되기 전까지의 속도 (m/s). 숨이 차 있다.")]
+        [SerializeField] private float exhaustedSpeed = 1.8f;
+
         [Header("중력과 점프")]
         [Tooltip("중력 가속도. 음수다.")]
         [SerializeField] private float gravity = -20f;
@@ -90,6 +93,16 @@ namespace Treeline
         /// <summary>회복 대기 중인가. HUD 가 이때 다른 채움 이미지를 쓴다.</summary>
         public bool IsRecoveryLocked { get; private set; }
 
+        /// <summary>
+        /// 다 써서 바닥났고 아직 회복이 시작되지 않았다. 이 동안은 걷기보다도 느리다.
+        /// </summary>
+        /// <remarks>
+        /// 회복이 한 번이라도 돌면 <see cref="StaminaRatio"/> 가 0 을 벗어나므로 따로
+        /// 플래그를 두지 않는다. 즉 이 상태는 <see cref="recoveryDelaySeconds"/> 만큼만
+        /// 이어진다.
+        /// </remarks>
+        public bool IsExhausted => StaminaRatio <= 0f;
+
         /// <summary>스태미너가 바뀌었다. 0~1 을 넘긴다.</summary>
         /// <remarks>
         /// HUD 가 매 프레임 <see cref="PlayerMotor"/> 를 찾지 않도록 이벤트로 낸다.
@@ -147,7 +160,12 @@ namespace Treeline
             bool wantsSprint = !isCrouching && input.SprintHeld && wish.sqrMagnitude > 0.01f;
             UpdateStamina(wantsSprint);
 
-            float speed = isCrouching ? crouchSpeed : (IsSprinting ? sprintSpeed : walkSpeed);
+            // 숨이 찬 동안은 걷기보다 느리다. 달리기를 다 쓰고 나면 대가가 있어야
+            // 「달릴까 말까」가 판단이 된다. 웅크리기가 더 느리므로 그쪽이 먼저다.
+            float speed = isCrouching ? crouchSpeed
+                : IsSprinting ? sprintSpeed
+                : IsExhausted ? exhaustedSpeed
+                : walkSpeed;
 
             // 접지 상태에서도 살짝 눌러줘야 경사면에서 계단처럼 튀지 않는다.
             if (controller.isGrounded && verticalVelocity < 0f)

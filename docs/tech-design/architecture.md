@@ -374,14 +374,14 @@ IMPORTANT: `ChapterExit` 의 `BoxCollider` 는 **`size` 를 직접 확인한다.
 | 컴포넌트 | 책임 |
 | --- | --- |
 | `PlayerInputReader` | 입력을 읽는 **유일한** 곳. 나머지는 여기만 참조한다 |
-| `PlayerMotor` | 걷기 · 달리기 · 웅크리기 · 점프. 중력과 콜라이더 높이 |
+| `PlayerMotor` | 걷기 · 달리기 · 웅크리기 · 점프. 중력, 콜라이더 높이, 스태미너 |
 | `PlayerLook` | 좌우는 몸체, 상하는 카메라. 포인터 잠금도 여기 |
 | `PlayerHealth` | 체력 3칸. `IDamageable` 구현 |
 | `WeaponSwitcher` | 어느 총을 드는가. 양손 운반 중 총 잠금 |
 | `PlayerWeapon` | 총 한 자루. `GameLayers.Shot` 레이캐스트, 탄창 · 재장전, 반동 |
 | `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
 | `Flashlight` | 조명 토글과 배터리 소모 |
-| `PlayerHud` | 체력 3칸 · 탄약 · 조준선. 값을 폴링하지 않고 이벤트로 받는다 |
+| `PlayerHud` | 체력 · 탄약 · 배터리 · 스태미너 · 조준점 · 상호작용 문구 · 피격 오버레이 |
 
 프리팹 구조는 이렇다.
 
@@ -394,7 +394,14 @@ Player                  태그 Player, 레이어 Player(8)
 │   ├── ViewModelLight  총만 비추는 약광. ViewModel(9) 전용
 │   ├── Pistol          PlayerWeapon + Model
 │   └── Shotgun         PlayerWeapon + Model
-└── HUD                 Screen Space Overlay 캔버스
+└── HUD                 Screen Space Overlay 캔버스 (1920×1080 기준, Match 0.5)
+    ├── Health          체력 칸 3개. 좌하단
+    ├── Stamina         Frame + Fill. 체력 위
+    ├── Battery         Frame + Fill. 우하단
+    ├── Ammo            눈금 8개 + 여분 문구. 배터리 위
+    ├── Crosshair       조준점. 상호작용 대상이 있으면 스프라이트를 갈아끼운다
+    ├── Interact        키캡 + 동사. 중앙 아래
+    └── DamageOverlay   화면 전체. 평소 `enabled = false`
 ```
 
 `PlayerWeapon` 만 루트가 아니라 `Camera` 밑에 **총마다 하나씩** 붙는다
@@ -438,16 +445,46 @@ IMPORTANT: **손전등도 `ViewModel` 을 비추지 않는다.** 손전등과 �
 없어서 그렇게 했고, `sin` 곡선이라 시작과 끝이 정확히 원래 자세라 튀지 않는다.
 모델이 붙으면 여기를 애니메이터로 갈아끼운다.
 
-`PlayerHud` 는 `HealthChanged` · `AmmoChanged` · `Equipped` 를 구독한다. 무기를
-바꾸면 이전 무기의 구독을 끊는다 — 안 끊으면 안 든 총의 탄약이 화면에 남는다.
-초기값은 `OnEnable` 이 아니라 `Start` 에서 읽는다. `OnEnable` 은 `PlayerHealth.Awake`
-보다 먼저 돌 수 있어 체력을 0 으로 읽는다.
+`PlayerHud` 는 `HealthChanged` · `AmmoChanged` · `ReloadingChanged` · `Equipped` ·
+`StaminaChanged` 를 구독한다. 무기를 바꾸면 이전 무기의 구독을 끊는다 — 안 끊으면
+안 든 총의 탄약이 화면에 남는다. 초기값은 `OnEnable` 이 아니라 `Start` 에서 읽는다.
+`OnEnable` 은 `PlayerHealth.Awake` 보다 먼저 돌 수 있어 체력을 0 으로 읽는다.
 
-IMPORTANT: **HUD 문구는 영문이다** (`PISTOL` · `SHOTGUN`). 기본 폰트에 한글
-글리프가 없어 WebGL 빌드에서 깨진다. 에디터에서는 시스템 폰트로 대체되어 멀쩡해
-보이고, `Font.GetCharacterInfo` 도 한글이 있다고 답하므로 **에디터에서는 확인할 수
-없는 종류다.** 근거는 [`decisions.md`](decisions.md) 의 「UI 는 uGUI 로 만들고
-화면 문구는 영문으로 쓴다」.
+**전부 이벤트로 받지는 않는다.** 배터리 잔량과 조준 대상은 매 프레임 바뀌므로
+이벤트로 만들어도 매 프레임 오고, 대신 구독·해지 자리만 늘어난다. 이 둘은
+`Update` 에서 `Flashlight.BatteryRatio` 와 `PlayerInteractor.Prompt` 를 그냥 읽는다.
+기준은 「자주 바뀌는가」가 아니라 **「HUD 가 안 볼 때도 바뀌는가」**다 — 체력과
+탄약은 화면 밖 사건이라 이벤트고, 이 둘은 아니다.
+
+표시 규칙(불투명도 · 경고 문턱 · 점멸)은 [`../ui-assets/README.md`](../ui-assets/README.md)
+의 「HUD 동작 제안」 표를 바탕으로 하고, 값은 `PlayerHud` 상단에 상수로 모아 두었다.
+스프라이트는 B 가 만든 `Assets/Game/UI/Art/` 를 쓴다. 표에서 벗어난 곳은 두 군데이고
+이유는 [`decisions.md`](decisions.md) 에 있다 — 스태미너 · 배터리를 늘 띄우는 것과
+불투명도를 올린 것이다.
+
+IMPORTANT: **HUD 요소는 스프라이트 원본 크기에 맞춰 그린다.** 1920×1080 기준 캔버스에서
+원본 픽셀과 화면 픽셀이 1:1 로 맞아야 선이 안 뭉갠다. 처음에 절반 크기로 그렸다가
+「해상도가 떨어져 보인다」는 지적을 받았다. 압축 문제가 아니었다 — 전부 `RGBA32`
+무압축인데도 축소 자체로 흐려진 것이다. 게이지 두 종은 B 의 시안에 맞춰 0.75 배로
+두었고, 나머지는 원본 크기 그대로다.
+
+IMPORTANT: **프레임 스프라이트의 내부 창은 프레임 중앙이 아니다.** `battery-frame.png`
+는 512×145 인데 창이 x 56~440 이라 중심이 8px 왼쪽이다. 채움을 정중앙에 두면 100% 일 때
+오른쪽 테두리를 넘는다. `Battery/Fill` 의 `anchoredPosition.x` 가 `-6` 인 이유다
+(네이티브 −8 × 0.75). 프레임을 갈아끼우면 알파를 다시 떠서 창 위치를 재야 한다.
+
+에디터 게임 뷰가 1920 보다 작으면 `CanvasScaler` 가 그만큼 줄인다. 1044×485 에서는
+0.494 배라 실제 빌드의 절반 크기로 보인다. **HUD 의 크기와 선명도는 게임 뷰를
+1920×1080 으로 두고 판단한다.**
+
+IMPORTANT: **HUD 문구는 영문이다.** 기본 폰트에 한글 글리프가 없어 WebGL 빌드에서
+깨진다. 에디터에서는 시스템 폰트로 대체되어 멀쩡해 보이고, `Font.GetCharacterInfo`
+도 한글이 있다고 답하므로 **에디터에서는 확인할 수 없는 종류다.** 근거는
+[`decisions.md`](decisions.md) 의 「UI 는 uGUI 로 만들고 화면 문구는 영문으로 쓴다」.
+
+IMPORTANT: 이 제약은 **`IInteractable.Prompt` 에도 걸린다.** 그 문구는 상호작용
+담당(C)이 정하고 HUD 는 받아서 찍기만 하는데, 한글이면 화면에서 깨지는 것은 여기다.
+지금 있는 `Lever` 는 `Pull lever` 라 문제가 없다.
 
 `TestDamageTarget` 은 A 의 사격 검증용 표적 대역이고 **적이 아니다.** 적은 B 가
 `Enemy/` 에 만든다. `Crawler.prefab` 이 왔으므로 사격 감각을 맞추는 용도로만 남기고,
