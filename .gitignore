@@ -33,6 +33,10 @@ node_modules/
 *.local.*
 CLAUDE.local.md
 
+# API 키. 위의 *.local.* 에 이미 걸리지만, 유출되면 되돌릴 수 없으므로 명시한다.
+*.key
+elevenlabs.local.key
+
 
 # ---------------------------------------------------------------------------
 # Unity
