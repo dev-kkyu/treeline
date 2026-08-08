@@ -86,6 +86,27 @@ namespace Treeline
         [Tooltip("흔들림이 잦아드는 시간.")]
         [SerializeField] private float grabShakeSeconds = 0.5f;
 
+        [Header("발소리 — 거리로 낸다")]
+        [Tooltip("접지 소리를 낼 곳. 비우면 발소리가 없다.")]
+        [SerializeField] private AudioSource stepSource;
+
+        [Tooltip("번갈아 쓴다. 하나만 두면 기관총처럼 들린다.")]
+        [SerializeField] private AudioClip[] stepClips;
+
+        [Tooltip("이만큼 갈 때마다 한 발. 시간이 아니라 거리라서 배회와 추격이 저절로 갈린다.")]
+        [SerializeField] private float stepStride = 1.1f;
+
+        [Tooltip("배회할 때 / 쫓을 때 발소리 크기.")]
+        [SerializeField, Range(0f, 1f)] private float roamStepVolume = 0.55f;
+
+        [SerializeField, Range(0f, 1f)] private float chaseStepVolume = 0.9f;
+
+        [Tooltip("움직이는 동안 까는 루프. colossus-walk-loop.")]
+        [SerializeField] private AudioSource moveLoop;
+
+        [Tooltip("이 속도를 넘으면 움직이는 것으로 본다.")]
+        [SerializeField] private float movingSpeed = 0.15f;
+
         [Header("발각 — 돌아보고 포효한 뒤에 온다")]
         [Tooltip("알아채고 이만큼 멈춰 서서 플레이어를 본다. Colossus_Roar 클립 길이(1.17초)에 맞춘 값이다.")]
         [SerializeField] private float roarSeconds = 1.2f;
@@ -163,10 +184,16 @@ namespace Treeline
         /// <summary>상태 이름 해시다. 위 트리거 해시와 값이 같아도 쓰는 곳이 다르다.</summary>
         private static readonly int RoarStateHash = Animator.StringToHash("Roar");
 
+        private static readonly int GrabStateHash = Animator.StringToHash("GrabExecute");
+
         private GameObject grabbed;
         private Transform grabbedEye;
         private Coroutine grabRoutine;
         private float grabShakeStart = float.NegativeInfinity;
+
+        private Vector3 lastStepPosition;
+        private float travelled;
+        private int lastStep = -1;
 
         /// <summary>
         /// **항상 참이다.** 총으로 죽일 수 없다는 것이 이 적의 정체다.
@@ -253,11 +280,14 @@ namespace Treeline
         private void OnEnable()
         {
             AcquirePlayer();
+            lastStepPosition = transform.position;
+            travelled = 0f;
         }
 
         private void Update()
         {
             DriveAnimator();
+            DriveFootsteps();
 
             if (IsBuried)
             {
@@ -634,6 +664,15 @@ namespace Treeline
 
             while (grabbed != null)
             {
+                // 클립이 끝나면 놓는다. 죽으면 장이 다시 시작하므로 평소에는 여기까지
+                // 오지 않지만, 안 죽고 클립만 끝나는 길이 하나라도 있으면 플레이어가
+                // 손에 매달린 채 조작 불능으로 남는다. 실제로 그 상태를 봤다.
+                if (animator != null && Time.time - started > 0.3f
+                    && animator.GetCurrentAnimatorStateInfo(0).shortNameHash != GrabStateHash)
+                {
+                    break;
+                }
+
                 float pull = grabHandoverSeconds > 0f
                     ? Mathf.Clamp01((Time.time - started) / grabHandoverSeconds)
                     : 1f;
@@ -679,6 +718,9 @@ namespace Treeline
 
                 yield return null;
             }
+
+            grabRoutine = null;
+            ReleasePlayer();
         }
 
         /// <summary>손에서 내려놓는다. 죽어서 장이 다시 시작하든, 클립이 끊기든 여기로 온다.</summary>
@@ -741,6 +783,81 @@ namespace Treeline
             }
         }
 
+        /// <summary>
+        /// 간 거리로 발소리를 낸다. <b>클립에 접지 이벤트가 없어서</b> 시간이 아니라
+        /// 거리로 잡는다.
+        /// </summary>
+        /// <remarks>
+        /// 플레이어 발소리와 같은 방식이다. 거리로 재면 배회(1.2)와 추격(3.4)의 간격이
+        /// 속도에서 저절로 따라오고, 벽에 붙어 제자리걸음 할 때 소리가 나지 않는다.
+        /// 시간으로 하면 속도를 고칠 때마다 간격도 같이 고쳐야 한다.
+        /// </remarks>
+        private void DriveFootsteps()
+        {
+            float speed = agent != null && agent.isOnNavMesh ? agent.velocity.magnitude : 0f;
+            bool moving = speed > movingSpeed;
+
+            if (moveLoop != null)
+            {
+                if (moving && !moveLoop.isPlaying)
+                {
+                    moveLoop.Play();
+                }
+                else if (!moving && moveLoop.isPlaying)
+                {
+                    moveLoop.Stop();
+                }
+            }
+
+            if (stepSource == null || stepClips == null || stepClips.Length == 0)
+            {
+                return;
+            }
+
+            if (!moving)
+            {
+                // 멈추면 쌓아둔 거리를 버린다. 안 그러면 다시 걷는 첫 프레임에 터진다.
+                lastStepPosition = transform.position;
+                travelled = 0f;
+                return;
+            }
+
+            Vector3 moved = transform.position - lastStepPosition;
+            moved.y = 0f;
+            lastStepPosition = transform.position;
+            travelled += moved.magnitude;
+
+            if (travelled < stepStride)
+            {
+                return;
+            }
+
+            travelled -= stepStride;
+            stepSource.volume = IsChasing ? chaseStepVolume : roamStepVolume;
+            stepSource.pitch = UnityEngine.Random.Range(0.95f, 1.05f);
+            stepSource.PlayOneShot(PickStep());
+        }
+
+        /// <summary>직전 것을 빼고 고른다. 하나뿐이면 그것을 쓴다.</summary>
+        private AudioClip PickStep()
+        {
+            if (stepClips.Length == 1 || lastStep < 0)
+            {
+                // 첫 발은 아무거나. 여기서 걸러내면 0 번이 영영 안 나온다.
+                lastStep = UnityEngine.Random.Range(0, stepClips.Length);
+                return stepClips[lastStep];
+            }
+
+            int i = UnityEngine.Random.Range(0, stepClips.Length - 1);
+            if (i >= lastStep)
+            {
+                i++;
+            }
+
+            lastStep = i;
+            return stepClips[i];
+        }
+
         private void DriveAnimator()
         {
             if (animator == null)
@@ -757,6 +874,12 @@ namespace Treeline
         {
             // 잡은 채로 꺼지면 플레이어가 손에 매달린 채 조작 불능으로 남는다.
             ReleasePlayer();
+
+            // 루프는 스스로 안 멈춘다. Update 가 도는 동안만 관리되므로 여기서 끊는다.
+            if (moveLoop != null && moveLoop.isPlaying)
+            {
+                moveLoop.Stop();
+            }
         }
 
         /// <summary>

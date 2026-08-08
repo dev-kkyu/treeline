@@ -743,6 +743,15 @@ MonoBehaviour:
   grabHandoverSeconds: 0.3
   grabTurnSpeed: 90
   grabLockSlack: 0.6
+  grabShakeDegrees: 4.5
+  grabShakeSeconds: 0.5
+  stepSource: {fileID: 0}
+  stepClips: []
+  stepStride: 1.1
+  roamStepVolume: 0.55
+  chaseStepVolume: 0.9
+  moveLoop: {fileID: 0}
+  movingSpeed: 0.15
   roarSeconds: 1.2
   roarTurnSpeed: 220
   noticed:
@@ -755,6 +764,12 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   threatSound:
+    m_PersistentCalls:
+      m_Calls: []
+  grabSound:
+    m_PersistentCalls:
+      m_Calls: []
+  killSound:
     m_PersistentCalls:
       m_Calls: []
   attackRange: 3.2

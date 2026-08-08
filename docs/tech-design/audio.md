@@ -217,10 +217,46 @@ IMPORTANT: **같은 장치에 클립과 이벤트를 둘 다 걸면 소리가 �
 | `Colossus.roarSound` | `Colossus/Snd_Roar` 의 `Play` | `colossus-roar` — 포효 클립 21f, 턱이 열리는 지점 |
 | `Colossus.noticed` | `Player` 의 `PlayerLook.Shake` | 화면이 짧게 떨린다 |
 | `Colossus.grabSound` | `Colossus/Snd_Grab` 의 `Play` | `colossus-grab`(0.34초) — 잡기 클립 8f. **놓쳤을 때는 안 울린다** |
+| | `Colossus/Snd_GrabRoar` 의 `Play` | `colossus-roar` 를 **피치 0.80** 으로. 아래 참고 |
 | `Colossus.killSound` | `Colossus/Snd_Kill` 의 `Play` | `colossus-kill`(1.99초) — 90f. 화면이 닫히는 것과 같은 프레임 |
 | `CableCar.activated` | `BoardLever` 의 `Play` | `lever-pull` |
 | | `CableCar/Snd_Start` 의 `Play` | `generator-start` — 권양기가 돈다 |
 | | `CableCar/Snd_Run` 의 `Play` | `generator-rumble-loop` — 가는 동안 |
+
+#### 붙잡을 때의 포효는 피치로 길이를 맞췄다
+
+붙잡는 8f 에서 포효를 한 번 더 내고 90f 의 즉사 소리로 잇는다. 클립이 하나뿐이라
+발각 포효와 같은 것을 쓰는데, **그대로 쓰면 2.00 초라 2.27 초에 끝나고 무는 순간
+(2.97 초)까지 0.7 초가 빈다.**
+
+`pitch` 를 **0.80** 으로 내려 2.50 초로 늘렸다. 8f(0.27 초)에 시작하면 **2.77 초 —
+물기 시작(84f)에 정확히 닿는다.** 남는 0.2 초는 턱이 닫히는 구간이고, 그 침묵 뒤에
+즉사 소리가 온다.
+
+피치를 내린 것은 길이 때문만이 아니다. **같은 클립이 두 번 울리는 것을 가리고**,
+낮은 쪽이 더 가깝고 큰 것으로 들린다. 발각은 멀리서, 붙잡을 때는 얼굴 앞에서다.
+
+#### 발소리는 거리로 낸다 — 클립에 접지 이벤트가 없다
+
+`Colossus.fbx` 의 애니메이션 이벤트는 넷뿐이고(`GrabLock` · `GrabKill` · `Roar` ·
+`Threat`) **접지 이벤트가 없다.** 그래서 플레이어 발소리와 같은 방식으로, 간 거리를
+쌓아 보폭마다 낸다.
+
+| | 값 |
+| --- | --- |
+| 보폭 | **1.1 m** — `Walk_Knuckle` 한 주기(1.80초)에 두 발 |
+| 배회(1.2 m/s) | 0.92 초 간격 |
+| 추격(3.4 m/s) | **0.32 초 간격** |
+| 크기 | 배회 0.55 / 추격 0.90 |
+
+**거리로 재면 배회와 추격이 저절로 갈린다.** 시간으로 하면 속도를 고칠 때마다
+간격도 같이 고쳐야 하고, 벽에 붙어 제자리걸음 할 때도 소리가 난다.
+
+`colossus-walk-loop` 은 그 아래에 깔린다. 움직이는 동안만 재생하고 멈추면 끊는다.
+
+IMPORTANT: **루프는 스스로 안 멈춘다.** `Update` 가 도는 동안만 관리되므로
+`OnDisable` 에서 끊어야 한다. 삭도가 떠날 때 `StandDown()` 이 컴포넌트를 끄는데,
+안 끊으면 걷는 소리만 승강장에 남는다.
 
 IMPORTANT: **소리를 애니메이션 이벤트에 걸면 「놓쳤다」가 공짜로 표현된다.**
 `grabSound` 는 8f 재검사를 통과했을 때만 불리므로, 헛손질에는 아무 소리도 나지
