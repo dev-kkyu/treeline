@@ -10,6 +10,8 @@
 
 ![HUD 배치 시안](previews/hud-mockup-1920x1080.jpg)
 
+![튜토리얼 조작 안내 시안](previews/tutorial-controls-mockup-1920x1080.jpg)
+
 ## 아트 디렉션
 
 핵심 문장은 **중계소 계기판 + 동결압 균열**이다.
@@ -60,15 +62,17 @@
 ```text
 Assets/Game/UI/Art/
 ├─ Menu/
+├─ Tutorial/
 ├─ HUD/
 │  ├─ Vitals/
 │  ├─ Flashlight/
+│  ├─ Stamina/
 │  ├─ Combat/
 │  └─ Interaction/
 └─ Effects/
 ```
 
-13개 PNG 모두 `Sprite (2D and UI)`, Single, Full Rect, sRGB, Alpha Is
+27개 PNG 모두 `Sprite (2D and UI)`, Single, Full Rect, sRGB, Alpha Is
 Transparency on, Mip Maps off, Bilinear, Clamp로 임포트했다. 작은 조준점·키캡·게이지
 채움은 비압축, 큰 프레임·체력·피격 오버레이는 High Quality 압축이다. 패널과
 버튼의 9-slice Border도 아래 표의 값으로 `.meta`에 저장했다.
@@ -85,11 +89,25 @@ Transparency on, Mip Maps off, Bilinear, Clamp로 임포트했다. 작은 조준
 | `runtime/hud/flashlight/battery-frame.png` | 512×145 | 손전등 배터리 외곽 |
 | `runtime/hud/flashlight/battery-fill-full.png` | 384×32 | 배터리 정상 채움. Image `Filled`로 사용 |
 | `runtime/hud/flashlight/battery-fill-low.png` | 384×32 | 25% 이하 경고 상태 |
+| `runtime/hud/stamina/stamina-frame.png` | 512×91 | 달리기 스태미너 외곽 |
+| `runtime/hud/stamina/stamina-fill-ready.png` | 384×24 | 소모·회복 중 기본 채움 |
+| `runtime/hud/stamina/stamina-fill-recovery-locked.png` | 384×24 | 달리기 직후 회복 대기 상태 |
 | `runtime/hud/combat/ammo-round.png` | 28×52 | 현재 무기의 탄약 눈금 |
 | `runtime/hud/combat/crosshair.png` | 64×64 | 기본 사격 조준점 |
 | `runtime/hud/interaction/interact-reticle.png` | 96×96 | 상호작용 가능한 물체 조준 표시 |
 | `runtime/hud/interaction/keycap-e.png` | 56×56 | 키보드 상호작용 키캡 |
 | `runtime/effects/damage-overlay.png` | 1672×941 | 피격 시 짧게 나타나는 화면 가장자리 균열 |
+| `runtime/tutorial/tutorial-card-frame.png` | 768×254 | 단계별 안내 카드 배경. TextMeshPro 문구를 별도로 배치 |
+| `runtime/tutorial/keycap-wasd.png` | 176×116 | 이동 안내 |
+| `runtime/tutorial/mouse-look.png` | 72×96 | 시야 회전 안내 |
+| `runtime/tutorial/mouse-left-click.png` | 72×96 | 공격 안내 |
+| `runtime/tutorial/keycap-shift.png` | 128×56 | 달리기 안내 |
+| `runtime/tutorial/keycap-space.png` | 144×56 | 점프 안내 |
+| `runtime/tutorial/keycap-e.png` | 56×56 | 상호작용 안내 |
+| `runtime/tutorial/keycap-f.png` | 56×56 | 손전등 안내 |
+| `runtime/tutorial/keycap-c.png` | 56×56 | 웅크리기 안내 |
+| `runtime/tutorial/keycap-r.png` | 56×56 | 재장전 안내 |
+| `runtime/tutorial/keycap-1-2.png` | 120×56 | 무기 교체 안내 |
 
 `masters/alpha/`의 파일은 재가공용 고해상도 마스터다. Unity에는 `runtime/`
 폴더만 먼저 넣는다.
@@ -101,12 +119,49 @@ Transparency on, Mip Maps off, Bilinear, Clamp로 임포트했다. 작은 조준
 | 체력 3칸 | 좌하단 45% alpha | 피격 후 2초간 100%, 소진 칸은 어둡게 유지 |
 | 탄약 | 무기를 들었을 때만 65% | 4발 이하 적색 선, 0발이면 0.15초 점멸 2회 |
 | 배터리 | 손전등이 켜졌을 때만 55% | 25% 이하 적색 채움, 10% 이하 느린 점멸 |
+| 스태미너 | 달리기 시작부터 표시, 가득 차면 1초 뒤 숨김 | 회복 대기 동안 `recovery-locked` 색, 0이면 2회 짧게 점멸 |
 | 조준점 | 35% alpha | 상호작용 대상이면 `interact-reticle`로 교체 |
 | 상호작용 | 미표시 | `PlayerInteractor.Prompt`가 비어 있지 않을 때만 키캡+동사 |
 | 피격 | 미표시 | `PlayerHealth.HealthChanged`에서 0.35초 등장 후 1.2초 페이드 |
 
 목표 문구와 미니맵은 만들지 않는다. 기획상 목적이 장소와 장치의 사슬로 전달되고,
 항상 떠 있는 안내문은 어둠과 고립감을 약하게 만든다.
+
+## 튜토리얼 UI 동작 제안
+
+첫 플레이에서는 큰 조작표를 계속 띄우지 않고 아래 순서의 카드를 한 장씩 보여준다.
+해당 입력을 실제로 수행하면 0.2초 페이드로 사라지고 다음 단계로 넘어간다.
+
+1. `WASD` 이동 → 마우스 시야 회전
+2. `E` 상호작용 → `F` 손전등
+3. `Shift` 달리기 → `C` 웅크리기 → `Space` 점프
+4. 무기를 얻은 뒤에만 마우스 왼쪽 발사 → `R` 재장전 → `1/2` 무기 교체
+
+조작표 전체 화면은 일시정지 메뉴의 `조작법`에서 다시 열 수 있게 한다. 전투 안내는
+무기를 얻기 전에 노출하지 않고, 각 단계 완료 여부는 세이브 데이터에 저장해 재접속할
+때 반복하지 않는다. 이미지에 설명 문구를 굽지 않았으므로 카드 제목과 설명은
+TextMeshPro로 구성하고, 실제 Input System 바인딩이 바뀌면 아이콘과 문구도 함께
+바꾼다.
+
+## 구현 요청 — A 이정범
+
+담당은 **A 이정범(플레이어 · 전투 · 진행 UI)**이다. `PlayerMotor`의 기존 달리기에
+아래 스태미너 규칙을 붙이고, 이 폴더의 세 Sprite를 HUD에 연결한다.
+
+- 앞으로 이동하며 실제로 달리는 동안만 스태미너가 초당 감소한다. Shift를 누른 채
+  제자리거나 웅크린 상태면 소모하지 않는다.
+- 달리기를 멈춘 순간부터 `recoveryDelaySeconds` 동안은 회복하지 않는다. 이때 HUD
+  채움은 `stamina-fill-recovery-locked.png`를 사용한다.
+- 대기가 끝나면 초당 `recoveryPerSecond`로 회복하고, 가득 차면 HUD를 1초 뒤 숨긴다.
+- 0이 되면 즉시 걷기로 전환한다. 짧은 Shift 연타를 막기 위해 20% 이상 회복한 뒤
+  다시 달릴 수 있게 한다.
+- 초기 튜닝값은 **연속 달리기 5초 / 회복 대기 1.5초 / 빈 상태에서 완전 회복 3초**.
+  `SerializeField`로 노출해 2장과 6장 도망 구간 플레이테스트 후 조절한다.
+- UI가 매 프레임 `PlayerMotor`를 탐색하지 않도록 0~1 비율 이벤트와 회복 대기 상태를
+  노출한다. 기존 `IsSprinting`은 실제로 달리는 동안에만 true를 유지한다.
+
+완료 기준은 달리는 동안 감소, 1.5초 회복 정지, 이후 회복, 0에서 강제 걷기,
+20% 재개 제한, 세 HUD 상태 전환이 A의 샌드박스에서 모두 보이는 것이다.
 
 ## Unity 임포트
 
@@ -153,6 +208,7 @@ python docs/ui-assets/tools/build_assets.py
 
 - [`previews/hud-mockup-1920x1080.jpg`](previews/hud-mockup-1920x1080.jpg)
 - [`previews/title-menu-mockup-1920x1080.jpg`](previews/title-menu-mockup-1920x1080.jpg)
+- [`previews/tutorial-controls-mockup-1920x1080.jpg`](previews/tutorial-controls-mockup-1920x1080.jpg)
 - [`previews/asset-contact-sheet.jpg`](previews/asset-contact-sheet.jpg)
 
 프리뷰의 어두운 복도 배경은 배치 확인용으로 스크립트가 만든 임시 이미지이며 게임

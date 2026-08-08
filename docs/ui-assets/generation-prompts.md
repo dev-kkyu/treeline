@@ -85,3 +85,34 @@ Color palette: frost white #B9C1BC, slate #4E585C, charcoal #252B2E, tiny muted 
 Constraints: background must be exactly uniform flat #00ff00 with no shadow, gradient, texture, reflection, or lighting variation; do not use #00ff00 in subject; no continuous opaque frame; no center obstruction; no cast shadow; no text; no logo; no watermark
 Avoid: snowflakes, icicles, blood splatter, gore, spiderweb symmetry, camera lens flare, cinematic black bars, heavy opaque corners
 ```
+
+## 스태미너 프레임
+
+```text
+Use case: stylized-concept
+Asset type: Unity game HUD sprint stamina gauge frame
+Primary request: one empty slim horizontal stamina gauge casing for Treeline, matching the existing abandoned mountain relay-station UI kit and frost-pressure anatomy
+Scene/backdrop: perfectly flat solid #00ff00 chroma-key background for local background removal
+Subject: a single narrow mechanical pressure gauge frame with a large completely empty horizontal inner slot for a separate fill Image; subtly pinched ends and two small pressure-relief notches so it reads as exertion rather than a battery
+Style/medium: production-ready painted game UI sprite; restrained analog industrial horror; worn dark steel, chipped frost enamel, sparse pressure cracks
+Composition/framing: centered straight-on orthographic view, approximately 6:1 width-to-height, generous padding, crisp silhouette, no perspective
+Lighting/mood: neutral high-readability asset lighting, cold and tense
+Color palette: charcoal #252B2E, slate #4E585C, frost #B9C1BC, tiny muted bruised red #72524D under 2 percent
+Constraints: background must be one perfectly uniform #00ff00 color with no shadow, gradient, texture, reflection, floor plane, or lighting variation; do not use #00ff00 in the subject; inner slot must be empty; no cast shadow; no contact shadow; no text; no numbers; no human figure; no running icon; no battery terminal; no lightning symbol; no logo; no watermark
+Avoid: neon glow, sci-fi hologram, steampunk brass, fantasy ornament, gore, heart icon, perspective tilt, excessive micro-detail
+```
+## 튜토리얼 카드 프레임
+
+```text
+Use case: stylized-concept
+Asset type: Unity first-person horror game tutorial card frame sprite
+Primary request: one empty wide compact tutorial instruction card frame for Treeline, matching an abandoned mountain relay-station HUD and frost-pressure anatomy; it must hold a keycap or mouse icon on the left and two short lines of Unity TextMeshPro copy on the right
+Scene/backdrop: perfectly flat solid #00ff00 chroma-key background for local background removal
+Subject: a single rectangular mechanical instruction card casing with a large completely empty dark inner field, clipped industrial corners, subtle frost scoring, one restrained bruised-red status notch, no dividers that force a specific text layout
+Style/medium: production-ready painted game UI sprite; restrained analog industrial horror; worn charcoal steel, chipped pale frost enamel, sparse pressure cracks
+Composition/framing: centered straight-on orthographic view, approximately 3.4:1 width-to-height, generous padding, crisp silhouette, no perspective
+Lighting/mood: neutral high-readability asset lighting, cold and tense
+Color palette: charcoal #252B2E, deep #0C1217, slate #4E585C, frost #B9C1BC, tiny muted bruised red #72524D under 2 percent
+Constraints: background must be one perfectly uniform #00ff00 color with no shadow, gradient, texture, reflection, floor plane, or lighting variation; do not use #00ff00 in the subject; inner field must be empty; no cast shadow; no contact shadow; no text; no letters; no numbers; no keyboard keys; no mouse; no human figure; no logo; no watermark
+Avoid: neon glow, sci-fi hologram, steampunk brass, fantasy ornament, gore, perspective tilt, excessive micro-detail
+```
