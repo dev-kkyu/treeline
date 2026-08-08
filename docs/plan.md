@@ -75,6 +75,11 @@ IMPORTANT: **1단계가 끝나는 순간부터 언제 멈춰도 완결이다.** 
 [`tech-design/architecture.md`](tech-design/architecture.md) 의 「NavMesh 는 캐릭터를
 빼고 굽는다」에 있다.
 
+**A 가 완료 기준을 양방향으로 확인했다 (2026-08-08).** 권총 2발에 `Crawler` 가
+죽고(체력 2 · 1피해와 일치), `Crawler` 가 7프레임 만에 추격을 시작해 세 번 때려
+플레이어를 죽이고 `PlayerHealth.Died` 까지 발생한다. **양쪽 다 상대 타입을 모른 채
+`IDamageable` 로만 닿는다.** 대역이 아니라 B 의 실제 프리팹으로 확인했다.
+
 ### 1-3 관통 잇기 — C ✅
 
 장 전환(이름 기반) · 체크포인트 · 사망 재시작 · `Ending` 씬. `EditorApplication.Step`
