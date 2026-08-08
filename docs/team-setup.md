@@ -62,13 +62,17 @@ A 안을 그대로 받았다. `Crawler` 의 `hearRange` · `hearSpeed` 를 지�
 **`Cue_Chase` 를 생으로 켜고 끄던 것은 그때 지운다.** 6장 씬은 내 것이 아니라
 건드리지 않았다.
 
-**`colossus-roar.wav` 는 여전히 안 걸려 있다.** 6장 씬 작업이라 남겨 둔다.
+~~**`colossus-roar.wav` 는 여전히 안 걸려 있다.**~~ **걸었다 (A, 같은 날).**
+`Ch6` 의 `Colossus/Snd_Roar` 다 (3D · linear · 8~70m). 붙이면서 **2.36 초를
+2.000 초로 잘랐다** — `roarSeconds` 가 2 라 남기면 이미 달려오는데 포효가
+이어진다. 2.00 초 지점 크기가 피크의 90.9% 여서 그냥 자르면 딱 소리가 나므로
+마지막 120ms 에 페이드를 걸었다. **원본 wav 를 덮어썼으니 다시 뽑을 때 길이를
+2 초로 맞춘다.**
 
-곁다리로 둘 더 — **`ChaseMusic` 이 `Crawler[] hunters` 라 `Colossus` 를 못 받는다.**
-그래서 2장은 페이드와 더킹이 있고 6장은 생으로 켜고 끈다. 인터페이스로 열면 6장도
-같은 방식이 된다. 그리고 **`colossus-roar.wav` 를 2.36 초에서 2.000 초로 잘라
-`Ch6` 의 `Colossus/Snd_Roar` 에 걸었다** (A). `roarSeconds` 가 2 라 남기면 이미
-달려오는데 포효가 이어진다. 원본을 덮어썼으니 다시 뽑을 때 길이를 2 초로 맞춘다.
+남은 것은 **6장에 `ChaseMusic` 을 놓는 일**이다. A 가 한다. `Cue_Chase` 를 생으로
+켜고 끄는 배선(`noticed` → `Play`, `lost` → `Stop`)을 지우고 `_Audio` 에
+`ChaseMusic` 을 놓는다. `noticed` 에 걸린 `Snd_Roar.Play` 와 `Player.Shake` 는
+음악이 아니라 사건 표시라 그대로 둔다.
 
 ### 2026-08-09 · NavMesh 에이전트 타입이 둘이 되었다 (A)
 
