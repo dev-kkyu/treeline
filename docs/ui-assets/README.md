@@ -1,11 +1,12 @@
 # Treeline UI 에셋
 
-> 상태: 1차 R&D 완료 · 최종 수정 2026-08-08
+> 상태: Unity 리소스 임포트 완료 · 최종 수정 2026-08-08
 
 확정 기획 [`../game-design/treeline.md`](../game-design/treeline.md)과 적 모델링의
-`Frost-pressure anatomy` 규격을 바탕으로 만든 Unity UI 시안이다. 게임 코드나
-씬에는 아직 넣지 않았으며, 실제 적용 전에 1920×1080 WebGL 빌드에서 크기와 대비를
-확인한다.
+`Frost-pressure anatomy` 규격을 바탕으로 만든 Unity UI 시안이다. 런타임 PNG는
+[`Treeline/Assets/Game/UI/Art`](../../Treeline/Assets/Game/UI/Art)에 Sprite로
+임포트했다. 프리팹과 씬 연결은 아직 하지 않았으며, 연결 뒤 1920×1080 WebGL
+빌드에서 크기와 대비를 확인한다.
 
 ![HUD 배치 시안](previews/hud-mockup-1920x1080.jpg)
 
@@ -51,6 +52,26 @@
 | `previews/` | HUD·타이틀 배치 시안과 에셋 연락판 |
 | `tools/build_assets.py` | 크기 변환, 상태 변형, 프리뷰 재생성 |
 | `generation-prompts.md` | 생성에 사용한 최종 프롬프트 |
+
+## Unity 프로젝트 배치
+
+`runtime/`이 제작 기준 원본이고 Unity에는 아래와 같이 복사했다.
+
+```text
+Assets/Game/UI/Art/
+├─ Menu/
+├─ HUD/
+│  ├─ Vitals/
+│  ├─ Flashlight/
+│  ├─ Combat/
+│  └─ Interaction/
+└─ Effects/
+```
+
+13개 PNG 모두 `Sprite (2D and UI)`, Single, Full Rect, sRGB, Alpha Is
+Transparency on, Mip Maps off, Bilinear, Clamp로 임포트했다. 작은 조준점·키캡·게이지
+채움은 비압축, 큰 프레임·체력·피격 오버레이는 High Quality 압축이다. 패널과
+버튼의 9-slice Border도 아래 표의 값으로 `.meta`에 저장했다.
 
 ## 런타임 에셋
 
