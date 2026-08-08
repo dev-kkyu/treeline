@@ -376,3 +376,37 @@ IMPORTANT: **씬에 UI 를 손으로 배치하지 않는다.** `TitleScreen.Awak
 **내가 만들던 `OptionsPanel.cs` 는 지웠다.** UI 쪽 세션의 「사운드 설정」과 같은
 것을 두 벌 만드는 셈이라 — 발소리가 두 벌이었던 것과 같은 모양이다. 옵션 화면은
 UI 쪽에서 이어서 만든다.
+
+### 2026-08-09 · `Colossus` 애니메이션 이벤트에 받는 쪽을 만들었다 (B)
+
+`Colossus.fbx` 에 이벤트가 **넷** 들어 있는데 프로젝트에 받는 쪽이 하나도
+없었다. 타이틀 배경에 실루엣을 올리자 콘솔에 이게 떴다.
+
+```
+'Silhouette' AnimationEvent 'AE_ColossusRoar' on animation 'Colossus_Roar'
+has no receiver! Are you missing a component?
+```
+
+IMPORTANT: **애니메이션 이벤트는 Animator 가 붙은 GameObject 의 컴포넌트에서만
+함수를 찾는다.** 부모도 자식도 보지 않는다. `Crawler` 에서 겪은 것과 같은
+함정이라 같은 모양으로 `ColossusAnimationEvents` 를 만들어 Animator 와 같은
+오브젝트에 붙인다.
+
+| 이벤트 | 클립 · 프레임 | 지금 |
+| --- | --- | --- |
+| `AE_ColossusRoar` | `Roar` 22f | 신호 + 선택적 소리 |
+| `AE_ColossusThreat` | `Threat` 26f | 신호만 |
+| `AE_GrabLock` | `Grab_Execute` 8f | 신호만 — **판정은 아직 없다** |
+| `AE_GrabKill` | `Grab_Execute` 90f | 신호만 — **즉사 처리 아직 없다** |
+
+**6 장 `Colossus.prefab` 은 아직 Animator 가 없어서(회색 박스) 지금은 안 터진다.
+모델을 붙이는 순간 같은 오류가 난다.** 그때 이 컴포넌트를 Animator 와 같은
+오브젝트에 같이 붙이면 된다.
+
+**포획 둘은 구독만 하면 된다.** 마침 `colossus-grab.wav` · `colossus-kill.wav` 를
+만들고 있는 것 같은데, 그 둘이 걸릴 자리가 정확히 `GrabLock` · `GrabKill` 이다.
+8f 에서 사거리를 다시 재고 벗어났으면 `Grab_Miss` 로 보내는 규칙은
+`docs/enemy-sheets/.../12-grab-execute.md` 에 있다.
+
+소리 칸은 **비워 두어도 된다.** 타이틀은 `TitleApparition` 이 포효음을 내고
+있어서 비워 뒀다 — 두 군데서 내면 두 번 울린다.
