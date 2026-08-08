@@ -3,6 +3,30 @@
 이 저장소는 Claude Code 설정을 팀 공용으로 공유한다 (`.claude/`). 클론 후
 아래를 한 번만 해두면 세 명이 동일한 환경에서 작업하게 된다.
 
+이미 클론해 둔 사람은 아래 「이번 pull 후 할 것」만 보면 된다.
+
+---
+
+## 이번 pull 후 할 것
+
+2026-08-08 에 0단계 골격(레이어 · 인터페이스 · 폴더 · 샌드박스 씬)이 들어갔다.
+
+```bash
+git pull --rebase --autostash
+```
+
+- **`SampleScene` 이 없어졌다.** Unity 를 열면 빈 씬이 뜬다. Project 창에서
+  `Assets/Game/_Sandbox/<자기 이름>.unity` 를 열면 된다. 소유자가 없는 공용 씬을
+  셋이 같이 만지면 병합할 수 없어서 각자 하나씩 갖는 방식으로 바꿨다.
+- **빌드 씬 목록이 비어 있다.** `Ctrl+B` 를 누르면 「씬이 없다」는 오류가 나는데
+  정상이다. 1단계에서 C 가 `Ch1` · `Ch2` · `Ch6` 을 등록한다.
+- **레이어가 8개 늘었다.** 번호를 코드에 직접 쓰지 말고
+  `Assets/Game/Shared/GameLayers.cs` 를 쓴다. 레이어를 추가할 때는 담당별 번호
+  구간을 지킨다.
+
+무엇을 만들지는 [`roles.md`](roles.md) 의 「시작하기」, 구조 규칙은
+[`tech-design/architecture.md`](tech-design/architecture.md) 를 본다.
+
 ---
 
 ## 1. git 사용자 이름 설정

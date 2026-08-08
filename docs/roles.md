@@ -62,6 +62,45 @@ IMPORTANT: **적 모델이 늦어져도 1단계는 진행되어야 한다.** B �
 공격 · 사망까지 완성하고 모델은 나중에 갈아끼운다. 파이프라인 검증이 1단계를
 막으면 안 된다.
 
+### 시작하기 — 각자의 첫 걸음
+
+0단계(레이어 · 인터페이스 · 폴더 · 샌드박스 씬)는 2026-08-08 에 들어갔다. 지금
+바로 시작할 수 있다.
+
+**공통**
+
+- 작업은 `Assets/Game/<자기 담당 폴더>/` 안에서만 한다. `Shared/` 를 고치는 것은
+  셋의 합의가 필요하다
+- 실험은 `_Sandbox/<자기 이름>.unity` 에서 한다. 남의 샌드박스를 열지 않는다
+- 레이어 번호를 코드에 쓰지 않는다. `Shared/GameLayers.cs` 를 쓴다
+- 입력은 신규 Input System 으로만 받는다. `Input.GetKey` 류는 런타임에 예외가 난다
+- 의미 있는 것을 끝내면 `/milestone`, 무언가 정했으면 `/decision`
+
+**A 이정범** — `Assets/Game/Player/`
+
+1. `Player.prefab` 껍데기를 먼저 커밋한다. 캡슐 + `CharacterController` +
+   `Player` 태그 + `Player` 레이어면 충분하다
+2. 자기 샌드박스에서 이동 · 카메라 · 손전등
+3. `InputSystem_Actions.inputactions` 를 인수한다. 이 에셋의 소유자는 A 다
+4. 사격은 `GameLayers.Shot` 으로 레이캐스트하고 맞은 것이 `IDamageable` 이면 때린다
+5. 상호작용 조준은 `GameLayers.Interaction`, 대상은 `IInteractable`
+
+**B 김도한** — `Assets/Game/Enemy/`
+
+1. 자기 샌드박스에 캡슐 두 개를 놓는다. 하나에 `Player` 태그를 붙이면 A 의
+   프리팹이 오기 전에도 추격을 만들 수 있다
+2. `Crawler.prefab`. `IDamageable` 을 구현하고 레이어는 `Enemy` 다
+3. 플레이어는 `FindWithTag("Player")` 로 찾는다
+4. 시야 판정은 `GameLayers.EnemySight`
+5. NavMesh 는 `com.unity.ai.navigation` 의 `NavMeshSurface` 를 쓴다
+
+**C 임성규** — `Assets/Game/Levels/` · `Interaction/` · `Progress/`
+
+1. `Levels/Ch1.unity` · `Ch2.unity` · `Ch6.unity` 를 만들고 빌드 목록에 등록한다
+2. 씬 로드는 인덱스가 아니라 이름으로 한다
+3. 문 · 레버는 `IInteractable` 을 구현하고 레이어는 `Interactable` 이다
+4. 진행 트리거와 체크포인트 볼륨은 `Trigger` 레이어에 둔다
+
 ### 2단계 — 1 · 2 · 6 에 기믹
 
 장을 한 명씩 인수한다. 회색 박스는 C 가 만들었지만 살을 붙이는 것은 각자다.
