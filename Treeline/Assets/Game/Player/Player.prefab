@@ -315,6 +315,7 @@ MonoBehaviour:
   library:
   - surface: 0
     clips:
+    - {fileID: 8300000, guid: 70be54dfc609e384b88f750445120ec3, type: 3}
     - {fileID: 8300000, guid: 6760b3cd17c6e1b47aeb9314a55a4d68, type: 3}
   - surface: 1
     clips:
