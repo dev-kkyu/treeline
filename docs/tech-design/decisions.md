@@ -24,6 +24,30 @@
 
 ---
 
+## 2026-08-09 · 파티클 속도 커브는 세 축을 함께 세운다
+
+`velocityOverLifetime` 의 `x` · `y` · `z` 는 **모드가 같아야 한다.** 히터 열기가
+위로 오르게 하려고 `y` 만 `MinMaxCurve(0.35f, 0.9f)` 로 바꿨더니 `x` · `z` 가
+`Constant` 로 남아 인스펙터가 이 오류를 띄웠다.
+
+```
+Particle Velocity curves must all be in the same mode
+```
+
+한 축만 고치면 안 되고, 손댈 때 셋을 함께 넣는다. `forceOverLifetime` 등
+축이 셋인 모듈 전부에 같은 제약이 있다.
+
+IMPORTANT: **런타임에는 예외가 안 나고 인스펙터에만 뜬다.** 코드로 파티클을
+만지면 이런 오류가 조용히 쌓이므로, 건드린 뒤 다른 시스템까지 한 번 훑는다.
+
+```csharp
+foreach (ParticleSystem q in FindObjectsByType<ParticleSystem>(FindObjectsSortMode.None))
+{
+    var w = q.velocityOverLifetime;
+    if (w.enabled && (w.x.mode != w.y.mode || w.y.mode != w.z.mode)) { /* 어긋남 */ }
+}
+```
+
 ## 2026-08-09 · 제3자 에셋을 쓰지 않고 전부 만든다
 
 무료 에셋도 포함해서 남이 만든 것을 게임에 넣지 않기로 팀에서 정했다.

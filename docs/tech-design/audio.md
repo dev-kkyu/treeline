@@ -325,6 +325,35 @@ IMPORTANT: **적 소리만 `Audio/` 밖에 있다.** `Assets/Game/Enemy/Audio/` 
 12f 로 한 프레임 어긋나 있던 것도 13f 로 맞췄다. 자세한 것은
 [`decisions.md`](decisions.md) 의 「근접 피해는 13f 애니메이션 이벤트가 준다」.
 
+배회 중에는 `crawler-skitter-loop` 이, 추격 중에는 `crawler-sprint-loop` 이
+걸린다. 이 갈림은 상태가 아니라 **실제 속도**로 판단한다 — 추격 중에 멈춰서
+공격할 때는 `crawler-idle-loop` 이 맞다.
+
+IMPORTANT: **조사(소리를 들었을 때)에는 `crawler-notice` 를 쓰지 않는다.** 그것은
+「봤다」의 소리라 여기 쓰면 플레이어가 이미 들킨 줄 알고 숨기를 포기한다.
+배회 발성(`crawler-vocal-01` · `-02`)을 대신 낸다.
+
+### 2 장 음악 — 장 트랙을 깔고 추격 루프를 겹친다 (2026-08-09)
+
+2 장에는 음악이 아예 걸려 있지 않았다. `_Audio` 아래에 둘을 두었다.
+
+| 오브젝트 | 클립 | Volume | Play On Awake |
+| --- | --- | --- | --- |
+| `Mus_Ch2` | `ch2-hide` | 0.35 | ○ |
+| `Mus_Chase` | `chase-dread-loop` | 0.50 | ✕ — `ChaseMusic` 이 페이드로 켠다 |
+
+`ChaseMusic` 컴포넌트가 씬의 `Crawler` 들을 훑어 하나라도 추격 중이면 추격
+루프를 1.4 초 페이드로 올리고 **장 음악을 0.35 배로 낮춘다.** 확인값은 추격 중
+`Mus_Chase` 0.500 / `Mus_Ch2` 0.123 이다.
+
+덕킹이 선택이 아닌 이유는 이 문서의 「음악을 크게 깔면 발소리와 천장에서 나는
+소리가 묻혀 오히려 덜 무서워진다」 다. 둘을 같은 크기로 겹치면 정확히 그렇게 된다.
+
+6 장은 같은 일을 `Colossus.noticed` · `lost` UnityEvent 로 한다. 2 장이 컴포넌트
+쪽인 이유는 **`Crawler` 는 죽으면 `Destroy` 되기 때문**이다. 이벤트를 구독하면
+해지 시점을 관리해야 하는데, 읽는 쪽이 매 프레임 `IsChasing` 을 보면 그 문제가
+아예 없다. `Colossus` 는 죽지 않아 구독이 안전하다.
+
 IMPORTANT: **`moan` · `call` · `bellow` · `cry` · `snarl` · `growl` 을 프롬프트에
 쓰면 소 울음이 온다.**
 전부 생성기에게 포유류 발성 신호다. 처음 뽑은 `crawler-vocal` 둘이 실제로 그렇게
