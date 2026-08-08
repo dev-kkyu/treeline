@@ -212,6 +212,16 @@ PROMPTS = [
     ("Devices", "snowblower-loop",
      "Rotary snow blower running at full speed, engine roar with the auger "
      "chewing through packed snow, " + STEADY, 12.0, True),
+    # 6 장 삭도. 그동안 발전기 소리를 빌려 썼다
+    ("Devices", "cablecar-start",
+     "Large industrial winch starting up: brake releasing with a hard clunk, "
+     "heavy electric motor whining up to speed under load, steel haul rope "
+     "creaking as it takes tension, close microphone", 4.0, False),
+    ("Devices", "cablecar-loop",
+     "Aerial cable car winch running steadily under load, deep electric motor "
+     "hum with a steel haul rope singing over rollers and a slow rhythmic "
+     "sheave clatter, " + STEADY, 12.0, True),
+
     ("Devices", "searchlight-swivel-loop",
      "Large searchlight motor slewing the lamp housing, steady electric "
      "servo whine with gear train, " + STEADY, 10.0, True),
@@ -367,6 +377,17 @@ PROMPTS = [
     ("Colossus", "colossus-buried",
      "Enormous body buried under collapsed snow, muffled deep breathing and "
      "slow shifting still audible beneath the mass, no music", 5.0, False),
+    # 6 장 발각 큐. 기획의 「멈춰 서서 돌아보고 포효한 뒤 온다」 그 2 초다.
+    # roar 를 쓰되 lion · bear 를 막지 않으면 사자가 온다. 울음 계열 금지어는
+    # crawler-vocal 에서 배운 그대로다.
+    ("Colossus", "colossus-roar",
+     "An enormous predatory thing stopping, turning, and forcing a roar out "
+     "through a lipless underslung jaw. Cavernous and low with dry cracked "
+     "hide flexing under it, rising into a harsh rasping blast that carries "
+     "across a valley, ending abruptly. Vast, inhuman, no clear pitch. "
+     "Not a lion, not a bear, not a mammal, no human voice, no music.",
+     3.0, False),
+
     # 1장 창밖. 실물 없이 실루엣만 지나간다
     ("Colossus", "colossus-distant-loop",
      "Enormous unseen animal moving far away through a blizzard, deep low "
