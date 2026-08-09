@@ -41,6 +41,8 @@ namespace Treeline
         private PlayerWeapon subscribed;
         private string idleState = StateIdle;
         private float returnToIdleAt = float.PositiveInfinity;
+        private Renderer[] armsRenderers;
+        private bool wasCarrying;
 
         private void Awake()
         {
@@ -86,6 +88,8 @@ namespace Treeline
 
         private void Update()
         {
+            UpdateCarry();
+
             // 한 번짜리 동작이 끝나면 쉬기로 돌려보낸다. 안 그러면 마지막 프레임에서
             // 팔이 굳는다. 상태 시간을 보지 않고 우리가 잰 시각을 쓰는 이유는,
             // 연사하면 같은 상태를 다시 걸어 normalizedTime 이 0 으로 돌아가서다.
@@ -103,14 +107,19 @@ namespace Treeline
 
             if (weapon == null)
             {
+                // 아무것도 안 들었어도 팔은 남는다. 손이 사라지면 몸이 없는 시점이
+                // 되어 1인칭이 깨진다 — 어느 장에서든 팔은 늘 있어야 한다.
                 idleState = StateIdle;
                 Play(idleState);
+                SetArmsVisible(true);
                 return;
             }
 
             subscribed = weapon;
             weapon.Fired += OnFired;
             weapon.ReloadingChanged += OnReloadingChanged;
+            weapon.AmmoChanged += OnAmmoChanged;
+            OnAmmoChanged();
 
             string prefix = weapon.Kind == WeaponKind.Shotgun ? "Arms_Shotgun" : "Arms_Pistol";
             idleState = prefix + "Idle";
@@ -126,7 +135,87 @@ namespace Treeline
 
             subscribed.Fired -= OnFired;
             subscribed.ReloadingChanged -= OnReloadingChanged;
+            subscribed.AmmoChanged -= OnAmmoChanged;
             subscribed = null;
+        }
+
+        /// <summary>
+        /// 탄약이 바닥나면 팔도 내린다. 쏠 수 없는 총을 계속 들고 있으면 화면의
+        /// 3분의 1을 쓸모없는 것이 차지하고, <b>쏠 수 있는지를 HUD 로만 알게 된다.</b>
+        /// 손이 비면 그 자체가 신호다.
+        /// </summary>
+        private void OnAmmoChanged()
+        {
+            if (subscribed == null)
+            {
+                return;
+            }
+
+            // 탄약이 없으면 **총만** 내린다. 팔은 남는다 — 손이 사라지면 몸이
+            // 없는 시점이 되어 1인칭이 깨진다. 빈손 자세로 돌려보내면
+            // PlayerWeapon 이 뷰모델을 끄므로 총은 알아서 사라진다.
+            bool hasAmmo = subscribed.Loaded > 0 || subscribed.Reserve > 0;
+            SetArmsVisible(true);
+            if (!hasAmmo && idleState != StateIdle)
+            {
+                idleState = StateIdle;
+                Play(idleState);
+            }
+        }
+
+        /// <summary>
+        /// 무언가를 두 손으로 들고 있는 동안의 자세. <see cref="WeaponSwitcher"/> 가
+        /// 총을 봉인하는 것과 같은 신호를 팔도 받는다 — 6장 연료통이 이것이다.
+        /// </summary>
+        private void UpdateCarry()
+        {
+            if (switcher == null)
+            {
+                return;
+            }
+
+            bool carrying = switcher.IsCarrying;
+            if (carrying == wasCarrying)
+            {
+                return;
+            }
+
+            wasCarrying = carrying;
+            SetArmsVisible(true);
+            if (carrying)
+            {
+                idleState = "Arms_CarryIdle";
+                PlayOnce("Arms_CarryLift", 0.77f);
+            }
+            else
+            {
+                // 내려놓고 나면 들고 있던 총으로 돌아간다.
+                PlayerWeapon w = switcher.Current;
+                idleState = w == null ? StateIdle
+                    : (w.Kind == WeaponKind.Shotgun ? "Arms_ShotgunIdle" : "Arms_PistolIdle");
+                PlayOnce("Arms_CarryDrop", 0.57f);
+            }
+        }
+
+        /// <summary>
+        /// IMPORTANT: 오브젝트를 끄지 않고 <b>렌더러만</b> 끈다. 이 컴포넌트가 팔
+        /// 오브젝트에 붙어 있어서, 오브젝트를 끄면 자기도 같이 꺼져 다시 켜 줄
+        /// 사람이 없어진다. Animator 도 계속 돌아야 다시 나타날 때 자세가 맞다.
+        /// </summary>
+        private void SetArmsVisible(bool visible)
+        {
+            if (armsRenderers == null || armsRenderers.Length == 0)
+            {
+                armsRenderers = GetComponentsInChildren<Renderer>(true);
+            }
+
+            for (int i = 0; i < armsRenderers.Length; i++)
+            {
+                if (armsRenderers[i] != null)
+                {
+                    armsRenderers[i].enabled = visible;
+                }
+            }
         }
 
         private void OnFired()
