@@ -191,7 +191,7 @@ IMPORTANT: **`E` 로 내려놓는 경로는 아직 사람이 눌러본 적이 �
   | 언제 | 부를 것 |
   | --- | --- |
   | 1장 손전등 | `Flashlight.PickUp()` |
-  | 3장 권총 · 5장 산탄총 | `WeaponSwitcher.PickUp(WeaponKind)` |
+  | 3장 권총 · 4장 산탄총 | `WeaponSwitcher.PickUp(WeaponKind)` |
   | 배터리 | `Flashlight.AddBattery(초)` |
 
   IMPORTANT: **탄약 획득은 없다** (2026-08-10 기획 변경). 총을 주우면 그때부터

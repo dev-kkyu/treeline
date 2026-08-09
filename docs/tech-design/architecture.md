@@ -1046,7 +1046,7 @@ PlayerHealth ──Died 이벤트──▶ 재시작   (Progress: C, 아직 구�
 | --- | --- |
 | 적 (B) | `PlayerHealth.TakeDamage` |
 | 획득물 (C) | `WeaponSwitcher.AddAmmo(종류, 발수)` — **여분에 들어간다** · `Flashlight.AddBattery` |
-| 총 획득 (C) | `WeaponSwitcher.PickUp(종류)` — 권총 3장, 산탄총 5장 |
+| 총 획득 (C) | `WeaponSwitcher.PickUp(종류)` — 권총 3장, 산탄총 4장 |
 | 손전등 획득 (C) | `Flashlight.PickUp()` — 1장 |
 | 양손 운반 (C) | `WeaponSwitcher.SetCarrying(true/false)` |
 | 진행 (C) | `PlayerHealth.Died` 구독, 장 전환 시 `PlayerHealth.Restore` |

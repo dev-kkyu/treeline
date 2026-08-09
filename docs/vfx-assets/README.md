@@ -33,7 +33,7 @@ Assets/Game/VFX/
 | --- | --- | --- |
 | `PS_IndoorFrostDust` | 1·2·3·4·6장 실내 냉기 | 방 크기에 맞게 Box Shape만 조절 |
 | `PS_Blizzard` | 5장 외부 철탑, 6장 승강장 | 플레이어 주변에 배치하고 바람 방향 회전 |
-| `PS_MuzzleFlash` | 3장 권총, 5장 산탄총 | 무기 총구 Transform 아래에 두고 발사 때 `Play()` |
+| `PS_MuzzleFlash` | 3장 권총, 4장 산탄총 | 무기 총구 Transform 아래에 두고 발사 때 `Play()` |
 | `PS_FuelFire` | 3장 고인 연료 인화 | 불붙은 구간 폭에 맞게 Scale 조절 |
 | `PS_ElectricalSparks` | 4장 차단기·전력 복구 | 사건 위치에서 한 번 `Play()` |
 | `PS_ExplosionBurst` | 4장 수소, 6장 눈사태 제설포 | 폭발 위치에서 한 번 `Play()` + 별도 카메라 흔들림 |
