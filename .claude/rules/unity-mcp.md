@@ -60,6 +60,14 @@ git fetch origin -q && git diff --stat HEAD..origin/develop -- <프로젝트>/As
   `Camera.main` 에서 `clearFlags` · `backgroundColor` · `fieldOfView` 를 베낀다
 - **씬을 열면 `Texture2D` 가 파괴된다.** 여러 씬을 돌며 한 장으로 이어 붙이려면
   `hideFlags` 를 주거나, 장면마다 파일로 떨구고 밖에서 잇는다
+- IMPORTANT: **트랜스폼을 바꾼 뒤 `Collider.bounds` 는 낡은 값이다.**
+  `Physics.SyncTransforms()` 를 부르기 전에는 물리 씬이 안 따라온다. 레버를 180°
+  돌리고 재니 콜라이더만 옛 자리에 남은 것처럼 보여 「콜라이더가 안 따라왔다」로
+  오진했다. **비활성 오브젝트의 콜라이더는 아예 크기 0 인 점으로 나온다** —
+  `size` 는 멀쩡한데 `bounds` 가 한 점이면 그 오브젝트가 꺼진 것이다
+- **`Bounds.Contains` 는 축정렬이라 비스듬한 것에서 거짓 양성이 난다.** 5장 레버가
+  지선(`Guy_*`) 에 파묻혔다고 나왔는데 실제 정점까지는 5.3 m 였다. 대각선 케이블의
+  AABB 가 공간을 통째로 덮은 것이다. **정점까지의 실거리로 한 번 더 거른다**
 
 ## 안 보이는 것을 「없다」고 하기 전에
 
