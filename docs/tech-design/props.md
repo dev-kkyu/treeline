@@ -1284,38 +1284,67 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
 
 ### R9. 벽 레버 `WallLever` (재생성) — **우선순위 최상**
 
-    Heavy industrial wall-mounted disconnect lever, a rectangular steel back
-    plate bolted to the wall, and a long straight tubular operating handle
-    standing bolt upright from a pivot boss at the bottom of the plate, the
-    handle well clear of the plate with a wide air gap behind it, a knurled
-    grip sleeve on the upper half and a rounded end cap, a curved slotted
-    guide quadrant on the plate beside it with notches at each end. Worn matte
-    grey-green paint over steel, bare metal at the grip, light rust at seams.
-    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
-    occlusion. No branding, no text, no decals.
+IMPORTANT: 1 차 프롬프트가 **계속 걸쇠로 나왔다.** 원인은 첫머리에 둔
+`wall-mounted ... back plate` 다. Meshy 는 앞부분에 크게 끌리는데, 「벽 + 판」이
+먼저 오면 **문고리 · 걸쇠 · 경첩** 쪽으로 가버린다. 지금 있는 모델이 정확히 그
+결과다.
 
-- 치수: 판 0.26 × 0.60 × 0.06m · 손잡이 길이 0.50m · 전체 높이 약 1.05m
-- 축: 판 뒷면이 `-Z` (벽에 닿는다), 손잡이가 `+Y` 로 곧게 섬 · 피벗: **판 바닥 중앙**
+그래서 **판과 벽을 프롬프트에서 뺐다.** 판이 없으면 걸쇠가 될 수 없다. 벽에
+붙이는 일은 Unity 에서 위치만 잡으면 되고, 필요하면 기존 `WallLever_Body` 의 판을
+그대로 재활용할 수도 있다. **막대가 주인공이 되게 첫 문장에 둔다.**
+
+두 벌을 뽑아 나은 쪽을 쓴다.
+
+**V1 — 공 손잡이 (권장)**
+
+    A tall industrial pull lever. A single straight round steel rod half a
+    metre long stands bolt upright, topped with a large heavy ball grip sized
+    for two hands. The rod is thick and cylindrical along its whole length.
+    At the bottom the rod enters a chunky cylindrical pivot barrel carried
+    between two triangular steel cheek plates on a small square mounting foot.
+    The upright rod is by far the largest part; the foot is small and low.
+    Worn matte grey-green paint over steel, bare metal at the ball grip, rust
+    at the pivot barrel. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+
+**V2 — T 손잡이 + 부채꼴 가이드**
+
+    A tall industrial pull lever. A single straight round steel rod half a
+    metre long stands bolt upright, topped with a horizontal T-shaped cross
+    grip with knurled ends. At the bottom the rod enters a chunky cylindrical
+    pivot barrel on a small square mounting foot, with a curved slotted
+    quadrant arc rising beside the rod and a notch at each end of the slot.
+    The upright rod is by far the largest part; the foot is small and low.
+    Worn matte grey-green paint over steel, bare metal at the grip, rust at
+    the pivot barrel. Low-poly, game-ready, clean topology. No baked shadows,
+    no baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 손잡이 길이 0.50m · 받침 0.22 × 0.10 × 0.22m · 전체 높이 약 0.62m
+- 축: 막대가 `+Y` 로 곧게 섬, 앞 `+Z` · 피벗: **받침 바닥 중앙**
 - 바꿀 곳: `Ch1` 2 · `Ch2` 4 (`ShutterLever` 포함) · `Ch4` 8 · `Ch6` 6 — **약 20개**
-- 부품 분리: **손잡이.** `Lever.handle` 이 그것만 돌린다
-- 비고: 지금 것은 **레버가 아니라 문고리 걸쇠다.** 판 1m 에 손잡이는 판에 눌러붙은
-  작은 막대뿐이라 잡을 것이 없고, `Lever` 가 `pulledRotation (-55, 0, 0)` 으로 눕히면
-  **판 속으로 파고든다.**
+- 부품 분리: **막대 + 손잡이.** 피벗 배럴 위에서 자른다. `Lever.handle` 이 그것만 돌린다
+- 비고: 지금 것은 **레버가 아니라 문고리 걸쇠다.** 판이 1m 인데 손잡이는 판에
+  눌러붙은 작은 막대뿐이라 잡을 것이 없고, `Lever` 가 `pulledRotation (-55, 0, 0)` 으로
+  눕히면 **판 속으로 파고든다**
 
 IMPORTANT: 이것이 **이 게임의 주 상호작용물**이다. 서치라이트 · 비상 셔터 · 히터 ·
 차단기 · 환기 팬 · 발전기 · 삭도 권양기가 전부 이 하나로 조작되고, 6장의 절차 셋도
-그렇다. 26종 중 **화면에서 가장 자주 눌리는 물건**이라 우선순위가 가장 높다.
+그렇다. **화면에서 가장 자주 눌리는 물건**이라 우선순위가 가장 높다.
 
-프롬프트에서 두 가지를 못 박았다.
+프롬프트가 붙잡고 있는 것 셋.
 
-- **`standing bolt upright` · `well clear of the plate with a wide air gap`** —
-  자세와 틈을 같이 잡는다. 손잡이가 눕은 채로 뽑히면 `Lever` 가 거기서 또 눕혀
-  두 번 눕고, 판에 붙어 나오면 덩어리 분리가 안 된다
-- **`curved slotted guide quadrant with notches at each end`** — 어디까지 움직이는
-  물건인지 형태가 말해준다. 올린 자리와 내린 자리가 눈에 보이면 눌러도 되는 것으로
-  읽힌다
+| 넣은 말 | 왜 |
+| --- | --- |
+| 첫 문장에 `A tall industrial pull lever` | Meshy 는 앞부분에 크게 끌린다. 「벽」 · 「판」을 앞에 두면 걸쇠가 된다 |
+| `stands bolt upright` | 눕은 채로 뽑히면 `Lever` 가 거기서 또 눕혀 **두 번 눕는다** |
+| `the upright rod is by far the largest part` | 비율을 말로 못 박지 않으면 받침이 커지고 막대가 줄어든다 |
 
-임포트에서 손잡이 피벗을 **밑동 축**에 맞추고, `pulledRotation` 이 **벽 반대쪽으로**
+**그래도 걸쇠가 나오면 받침을 통째로 뺀다** — `A tall industrial pull lever, a
+single straight round steel rod ... with a large heavy ball grip` 까지만 남기고
+돌린다. 막대 하나만 와도 쓸 수 있다. 받침은 기존 모델에서 떼어 쓰거나 Unity 에서
+상자 두 개로 만들면 되고, 어차피 벽에 반쯤 묻힌다.
+
+임포트에서 손잡이 피벗을 **배럴 축**에 맞추고, `pulledRotation` 이 **벽 반대쪽으로**
 눕는지 실제로 돌려서 확인한다. 지금 프리팹은 구울 때 180° 를 먹인 것이라 그 규약이
 새 모델에서 그대로일 거라고 가정하면 안 된다.
 
