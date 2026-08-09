@@ -149,7 +149,7 @@ namespace Treeline
             HudGuideText.AttachTo(transform);
             // 입김은 UI가 아니라 카메라 앞 월드 파티클이다. 플레이어 카메라를 알고
             // 있는 HUD에서 한 번만 붙이고, 화면 서리 오버레이는 더 이상 사용하지 않는다.
-            PlayerColdBreath.AttachTo(GetComponentInParent<Camera>() ?? Camera.main);
+            PlayerColdBreath.AttachTo(GetComponentInParent<Camera>() ?? Camera.main, motor);
             Ch1Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
             Ch2Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
 
