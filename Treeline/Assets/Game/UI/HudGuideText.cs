@@ -17,9 +17,13 @@ namespace Treeline
         private static HudGuideText instance;
         private static string pendingMessage;
         private static float pendingSeconds;
+        private static Sprite pendingIcon;
+        private static string pendingCategory;
 
         private CanvasGroup group;
         private RectTransform panelRect;
+        private Image controlIcon;
+        private TextMeshProUGUI categoryText;
         private TextMeshProUGUI messageText;
         private float targetAlpha;
         private float visibleUntil = float.PositiveInfinity;
@@ -48,20 +52,27 @@ namespace Treeline
                 return;
             }
 
-            if (instance == null)
-            {
-                pendingMessage = message;
-                pendingSeconds = seconds;
-                return;
-            }
+            ShowStyled(null, "현장 안내", message, seconds);
+        }
 
-            instance.ShowInternal(message, seconds);
+        /// <summary>조작키 Sprite와 함께 입력 안내를 표시한다.</summary>
+        public static void ShowControl(Sprite icon, string message)
+        {
+            ShowStyled(icon, "조작 안내", message, 0f);
+        }
+
+        /// <summary>Ch1의 다음 목적지를 짧은 텍스트로 안내한다.</summary>
+        public static void ShowObjective(string message, float seconds = 7f)
+        {
+            ShowStyled(null, "이동 안내", message, seconds);
         }
 
         /// <summary>현재 안내를 페이드 아웃한다.</summary>
         public static void Hide()
         {
             pendingMessage = null;
+            pendingIcon = null;
+            pendingCategory = null;
             if (instance != null)
             {
                 instance.targetAlpha = 0f;
@@ -73,6 +84,8 @@ namespace Treeline
         public static void HideImmediate()
         {
             pendingMessage = null;
+            pendingIcon = null;
+            pendingCategory = null;
             if (instance == null || instance.group == null)
             {
                 return;
@@ -98,8 +111,12 @@ namespace Treeline
             {
                 string message = pendingMessage;
                 float seconds = pendingSeconds;
+                Sprite icon = pendingIcon;
+                string category = pendingCategory;
                 pendingMessage = null;
-                ShowInternal(message, seconds);
+                pendingIcon = null;
+                pendingCategory = null;
+                ShowInternal(icon, category, message, seconds);
             }
         }
 
@@ -123,8 +140,27 @@ namespace Treeline
             SetPanelOffset(Mathf.Lerp(HiddenOffset, 0f, group.alpha));
         }
 
-        private void ShowInternal(string message, float seconds)
+        private static void ShowStyled(Sprite icon, string category, string message, float seconds)
         {
+            if (instance == null)
+            {
+                pendingIcon = icon;
+                pendingCategory = category;
+                pendingMessage = message;
+                pendingSeconds = seconds;
+                return;
+            }
+
+            instance.ShowInternal(icon, category, message, seconds);
+        }
+
+        private void ShowInternal(Sprite icon, string category, string message, float seconds)
+        {
+            bool hasIcon = icon != null;
+            controlIcon.enabled = hasIcon;
+            controlIcon.sprite = icon;
+            categoryText.enabled = !hasIcon;
+            categoryText.text = category;
             messageText.text = message;
             visibleUntil = seconds > 0f
                 ? Time.unscaledTime + seconds
@@ -159,12 +195,18 @@ namespace Treeline
             Image warningRule = NewImage("WarningRule", panel.transform, new Color(0.53f, 0.16f, 0.14f, 0.92f));
             AnchorLine(warningRule.rectTransform, false, 5f);
 
-            TextMeshProUGUI category = NewText("Category", panel.transform, 15f,
+            controlIcon = NewImage("ControlIcon", panel.transform, Color.white);
+            controlIcon.preserveAspect = true;
+            controlIcon.enabled = false;
+            SetRect(controlIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                new Vector2(0.5f, 0.5f), new Vector2(92f, 0f), new Vector2(128f, 78f));
+
+            categoryText = NewText("Category", panel.transform, 15f,
                 new Color(0.62f, 0.7f, 0.71f, 0.9f));
-            category.text = "현장 안내";
-            category.fontStyle = FontStyles.Bold;
-            category.characterSpacing = 3f;
-            SetRect(category.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f),
+            categoryText.text = "현장 안내";
+            categoryText.fontStyle = FontStyles.Bold;
+            categoryText.characterSpacing = 3f;
+            SetRect(categoryText.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f),
                 new Vector2(0f, 0.5f), new Vector2(29f, 0f), new Vector2(138f, -20f));
 
             Image divider = NewImage("Divider", panel.transform, new Color(0.37f, 0.43f, 0.44f, 0.48f));

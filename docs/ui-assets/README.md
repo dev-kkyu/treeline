@@ -1,12 +1,14 @@
 # Treeline UI 에셋
 
-> 상태: HUD 13개 및 설원 타이틀 메뉴 연결 완료, 튜토리얼 미연결 · 최종 수정 2026-08-09
+> 상태: HUD 13개·설원 타이틀·Ch1 튜토리얼 연결 완료 · 최종 수정 2026-08-09
 
 확정 기획 [`../game-design/treeline.md`](../game-design/treeline.md)과 적 모델링의
 `Frost-pressure anatomy` 규격을 바탕으로 만든 Unity UI 시안이다. 런타임 PNG는
-[`Treeline/Assets/Game/UI/Art`](../../Treeline/Assets/Game/UI/Art)에 Sprite로
+[`Treeline/Assets/Game/UI/Art`](../../Treeline/Assets/Game/UI/Art)와 런타임 로드용
+`UI/Resources`에 Sprite로
 임포트했다. HUD 13개는 `Player.prefab` 의 `HUD` 캔버스에 붙였고(A 이정범), 메뉴는
-`Title.unity`의 설원 렌더 위에 연결했다. 튜토리얼은 아직 붙이지 않았다. 크기와 대비는 에디터 플레이 모드에서만 봤으므로
+`Title.unity`의 설원 렌더 위에 연결했다. Ch1은 Player HUD가 `Ch1Tutorial`을 자동으로
+붙인다. 크기와 대비는 에디터 플레이 모드에서만 봤으므로
 1920×1080 WebGL 빌드에서 다시 확인해야 한다.
 
 ![HUD 배치 시안](previews/hud-mockup-1920x1080.jpg)
@@ -170,19 +172,21 @@ Transparency on, Mip Maps off, Bilinear, Clamp로 임포트했다. 작은 조준
 [`../tech-design/decisions.md`](../tech-design/decisions.md)에 남겼다. 배치는 이
 문서의 시안을 따라 스태미너·체력은 좌하단, 배터리·탄약은 우하단이다.
 
-## 튜토리얼 UI 동작 제안
+## 튜토리얼 UI 동작
 
 첫 플레이에서는 큰 조작표를 계속 띄우지 않고 아래 순서의 카드를 한 장씩 보여준다.
 해당 입력을 실제로 수행하면 0.2초 페이드로 사라지고 다음 단계로 넘어간다.
 
 1. `WASD` 이동 → 마우스 시야 회전
-2. `E` 상호작용 → `F` 손전등
+2. `E` 상호작용 → 바닥의 손전등 획득 → `F` 손전등
 3. `Shift` 달리기 → `C` 웅크리기 → `Space` 점프
 4. 무기를 얻은 뒤에만 마우스 왼쪽 발사 → `R` 재장전 → `1/2` 무기 교체
 
-조작표 전체 화면은 일시정지 메뉴의 `조작법`에서 다시 열 수 있게 한다. 전투 안내는
-무기를 얻기 전에 노출하지 않고, 각 단계 완료 여부는 세이브 데이터에 저장해 재접속할
-때 반복하지 않는다. 이미지에 설명 문구를 굽지 않았으므로 카드 제목과 설명은
+Ch1에는 1~3번을 구현했다. 완료 여부는 `Treeline.Tutorial.Ch1.ControlsComplete`에 저장해
+재접속 때 반복하지 않는다. 이후에는 손전등 획득 → 옥상 서치라이트 → 외부 통로 순서로
+7초짜리 텍스트 내비게이션을 보여주며, 같은 상태가 30초간 이어지면 한 번 다시 알린다.
+전투 안내는 무기를 얻는 장에서 별도로 붙이고, 조작표 전체 화면은 일시정지 메뉴의
+`조작법`에서 다시 열 수 있게 한다. 이미지에 설명 문구를 굽지 않았으므로 카드 문구는
 TextMeshPro로 구성하고, 실제 Input System 바인딩이 바뀌면 아이콘과 문구도 함께
 바꾼다.
 
