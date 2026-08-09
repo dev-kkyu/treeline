@@ -375,6 +375,7 @@ Assets/Game/Audio/
 ├── Electrical/   조명 · 차단기 · 정전과 복구
 ├── Interaction/  레버 · 밸브 · 획득 · 운반
 ├── Devices/      장치. 세 패턴에 맞춰 나뉜다
+├── UI/           메뉴 버튼. 타이틀과 엔딩이 같은 것을 쓴다
 └── Music/        장면별 배경음악
 ```
 
@@ -383,7 +384,8 @@ Assets/Game/Audio/
 본다 — 카테고리마다 `AudioSource` 설정이 다르고, 볼륨은 파일이 아니라 코드에서
 정하게 되어 있다.
 
-**적 · 무기 소리는 여기 두지 않는다.** 그것들은 담당 폴더로 간다.
+**적 · 무기 · 주인공 소리는 여기 두지 않는다.** 그것들은 담당 폴더로 간다 —
+`Enemy/Audio/` 와 `Player/Audio/{Weapons,Body}/` 다.
 
 ## 서로 붙는 지점
 
@@ -557,6 +559,8 @@ IMPORTANT: 마지막 항목은 **실제로 장을 막아 본 뒤에 그렇게 �
 | `PlayerInteractor` | `GameLayers.Interaction` 조준, `IInteractable` 호출 |
 | `Flashlight` | 조명 토글과 배터리 소모 |
 | `PlayerFootsteps` | 발소리 · 도약 · 착지. 이동 거리로 내고 표면은 장마다 정한다 |
+| `PlayerBodyAudio` | 몸에서 나는 소리. 신음 · 사망 · 호흡 · 힘쓰기. 발소리는 위가 낸다 |
+| `WeaponAudio` | 총 한 자루의 소리. 발사 · 재장전 박자 · 탄착. `PlayerWeapon` 과 같이 붙는다 |
 | `PlayerHud` | 체력 · 탄약 · 배터리 · 스태미너 · 조준점 · 상호작용 문구 · 피격 오버레이 |
 
 프리팹 구조는 이렇다.

@@ -1,9 +1,11 @@
-> 상태: 작성 중 · 최종 수정 2026-08-08
+> 상태: 작성 중 · 최종 수정 2026-08-09
 
 # 사운드
 
-`Assets/Game/Audio/` 에 59 개, `Assets/Game/Enemy/Audio/` 에 28 개가 들어 있다. **전부 만들어져 있고 임포트 설정도
-끝났다. 가져다 붙이면 소리가 난다.** 아직 없는 것은 이것을 재생하는 코드다.
+`Assets/Game/Audio/` 에 66 개, `Assets/Game/Enemy/Audio/` 에 29 개,
+`Assets/Game/Player/Audio/` 에 23 개가 들어 있다. **전부 만들어져 있고 임포트 설정도
+끝났다. 가져다 붙이면 소리가 난다.** 재생 코드는 발소리 · 메뉴 · 무기 · 주인공까지
+붙었고 나머지는 아직 없다.
 
 만든 사람은 B 김도한이고 도구는 ElevenLabs 다. 출처와 권리는
 [`docs/assets.md`](../assets.md) 에 있다.
@@ -172,14 +174,81 @@ IMPORTANT: `lever-locked` 은 **377ms 뒤에** 소리가 났다. 잠긴 레버�
 | | `device-complete` | `Complete()`. 히터 · 환기 팬 · 예열 공용 |
 | | `ice-melt-crack` | 히터가 다 돌아 얼음이 깨질 때 |
 | | `generator-start` | 4 장 발전기 기동 |
+| | `generator-stop` | 발전기가 내려간다 (2026-08-09) |
 | | `snowblower-start` | 5 장 제설기 시동 |
 | | `cablecar-start` | 6 장 삭도 권양기 기동 |
 | `SustainedDevice` | `snowblower-loop` | 제설기가 도는 동안 |
 | | `cablecar-loop` | 삭도가 가는 동안 |
 | | `searchlight-swivel-loop` | 서치라이트가 도는 동안 |
+| | `hydrogen-hiss-loop` | 축전지실에 수소가 차 있는 동안 (2026-08-09) |
 
 `TimedDevice` 는 `Started` 이벤트와 `Progress` 가 이미 있으므로 시작 · 완료
 두 지점에 그대로 걸면 된다.
+
+IMPORTANT: **`generator-stop` 은 `Electrical/power-down` 과 다른 소리다.** 저쪽은
+건물의 조명과 팬이 죽는 소리이고 이쪽은 **기관이 멈추는** 소리다. 2.5 초 동안
+발화 간격이 벌어지다가 플라이휠만 돌아 멈춘다. 둘을 겹쳐 쓸 수는 있지만 서로를
+대신하지 못한다.
+
+#### 4 장 축전지실 폭발은 소리 다섯이 이어진 사건이다 (2026-08-09)
+
+`hydrogen-explosion` 하나로는 그 장면이 안 된다. 기획의 네 문장이 각각 다른
+소리다 — 「문 옆 계기가 빨갛다 · 여기서 쏘면 터진다」, 「폭발이 무리를
+쓸어버린다」, 「대신 축전지가 날아가 조명 일부가 안 들어온다」.
+
+| 순서 | 파일 | 무엇 |
+| ---: | --- | --- |
+| 0 | `hydrogen-hiss-loop` | 방에 들어서면 들린다. **경고다** |
+| 1 | `hydrogen-explosion` | 터진다 |
+| 2 | `battery-arc` | 축전지가 날아간다. 조명이 죽는 이유 |
+| 3 | `debris-fall` | 방이 무너진다 |
+| 4 | `explosion-ear-ring` | 사람 쪽 꼬리. 폭발이 카메라를 흔드는 것의 소리 짝 |
+
+IMPORTANT: **0 번이 없으면 규칙을 죽어보고 배운다.** 계기 색은 보고 있어야
+보이지만 소리는 방에 들어서면 들린다. `explosion-ear-ring` 은 4 초로 뽑았지만
+**들리는 길이가 1.1 초**다 — 1.5 초를 넘으면 피크 대비 −54 dB 이하로 내려간다.
+
+**배선에는 새 코드가 필요 없다.** `HydrogenPocket` 이 `exploded` UnityEvent 를
+이미 내고, `AudioSource.PlayDelayed(float)` 는 **인자가 하나인 메서드라 UnityEvent 가
+값을 넣어 부를 수 있다.** 그래서 폭발 뒤 세 소리는 지연값만 다르게 걸면 된다.
+
+| 어디 | 무엇 | 지연 |
+| --- | --- | ---: |
+| `HydrogenHaze` 의 자식 | `hydrogen-hiss-loop` · loop · playOnAwake | — |
+| `exploded` → | `Snd_BatteryArc.PlayDelayed` | 0.15 s |
+| `exploded` → | `Snd_EarRing.PlayDelayed` | 0.20 s |
+| `exploded` → | `Snd_Debris.PlayDelayed` | 0.50 s |
+
+경고 루프를 **가스 안개(`HydrogenHaze`)의 자식**으로 두는 것이 요점이다. 그 오브젝트는
+환기 팬이 돌면 이미 꺼지므로, 「가스가 있는 동안만 들린다」를 코드 없이 얻는다.
+`HydrogenPocket.disables` 에 따로 넣을 필요도 없다.
+
+#### 폭발 · 제설포 · 눈사태는 장치 기준보다 크다
+
+장치 카테고리의 기준(−22)은 모터와 셔터다. 그 장에서 가장 큰 사건을 레버와 같은
+크기로 두면 최후의 수단이 최후로 들리지 않는다. `normalize.py` 의 `FILE_TARGETS` 가
+`hydrogen-explosion` · `avalanche-cannon` · `avalanche-slide` 를 −14~−16 으로 잡는다.
+
+#### 제설포와 눈사태를 다시 뽑았다 (2026-08-09)
+
+| | 무게중심 | 200 Hz 아래 | 60 Hz HPF 손실 | |
+| --- | ---: | ---: | ---: | --- |
+| `avalanche-cannon` 1판 | 2762 Hz | — | 1.5 dB | 산을 흔드는 소리가 아니라 문 닫는 소리 |
+| `avalanche-cannon` 2판 | 2341 Hz | **84.6 %** | 0.2 dB | 이것을 쓴다 |
+| `avalanche-slide` 1판 | 4499 Hz | — | **8.0 dB** | 들리지 않는 초저역이 헤드룸을 먹는다 |
+| `avalanche-slide` 3판 | 4385 Hz | 0.8 % | 0.0 dB | 이것을 쓴다 |
+
+제설포는 「compressed gas」 를 **강철관 안에서 터지는 것**으로 바꾸자 저역이 왔다.
+눈사태는 세 판을 뽑았지만 **끝까지 밝은 쪽으로만 나왔다** — 「무게」 를 형용사로
+부탁하면 초저역이 오고, 질량이나 얼음덩이로 부탁하면 밝은 쉭 소리가 온다. 셋 중
+초저역 쓰레기가 없는 것을 골랐다.
+
+IMPORTANT: **눈사태의 무게는 이 파일에서 나오지 않는다.** 기획이 「눈사태와 폭발은
+카메라를 흔들고 화면을 덮는 방식으로 만든다」로 이미 정해 두었으므로, 저역이
+필요하면 파일을 다시 뽑는 것이 아니라 카메라 흔들림과 저역 레이어로 만든다.
+
+`avalanche-cannon` 은 **0.76 초**다. 3 초로 뽑았지만 그 뒤는 피크 대비 −48 dB
+이하라 잘라냈다 — 골짜기로 굴러가는 꼬리가 필요하면 별도 레이어로 얹는다.
 
 ### 장치와 레버 소리를 붙이는 길은 둘이다 — 한쪽만 쓴다
 
@@ -467,12 +536,48 @@ IMPORTANT: **`moan` · `call` · `bellow` · `cry` · `snarl` · `growl` 을 프
 | `Clinger_Cling_Tremor` | `clinger-tremor-loop` | **One-shot.** 곧 떨어진다는 예고 |
 | `Clinger_Unfold_Drop` **f9** | `clinger-drop-release` | `AE_DropRelease` |
 | `Clinger_Land` **f14** | `clinger-land` | `AE_EnableGroundMode` |
-| `Clinger_Scuttle` | `clinger-scuttle-loop` | 루프. 지상 추격 |
+| `Clinger_Scuttle` | `clinger-scuttle-loop` | 루프. 지상 추격 (콘크리트) |
+| `Clinger_Scuttle` | `clinger-scuttle-snow-loop` | 루프. **5 장 눈 위** (2026-08-09) |
 | `Clinger_Attack_Underjaw` **f8** | `clinger-attack-tell` | 예고 |
 | `Clinger_Attack_Underjaw` **f12** | `clinger-attack` | 히트 |
 | `Clinger_Hit` | `clinger-hit` | 지상 피격 |
 | `Clinger_Death_Fall` **f4** | `clinger-death` | 천장 사망. `AE_DeathRelease` |
 | `Clinger_Death` **f3** | `clinger-death` | 지상 사망. `AE_DeathRelease` |
+
+#### 5 장은 같은 걸음이 눈에서 난다 (2026-08-09)
+
+`Clinger` 는 4 장과 5 장에 같이 나오는데 「실내가 아니라 눈보라 속」이다. 같은
+`Clinger_Scuttle` 클립에 **바닥이 바뀌면 소리가 통째로 바뀐다** — 딱딱한 충격이
+사라지고 묻히는 소리와 파헤치는 소리만 남는다. 그래서 이동 루프만 눈 판을 따로
+만들었다. 나머지 여덟은 바닥과 무관하다.
+
+IMPORTANT: 프롬프트를 「눈 위 발소리」로 쓰면 **사람 발소리 넷이 온다.**
+`05-scuttle.md` 가 이 걸음의 정체를 「앞팔(1.55 m)이 몸을 던지고 짧은 뒷사지
+(0.82 m)가 못 따라가 바닥을 긁으며 끌려온다 — 뒤 갈고리가 1.5 m/s 미끄러지는 것은
+버그가 아니라 이 걸음」으로 못박았으므로, **앞발이 박히는 소리와 뒷발이 눈을
+파헤치는 소리를 따로** 지시해야 그 절뚝임이 나온다.
+
+`PlayerFootsteps` 가 「밟고 있는 바닥은 레벨을 만든 쪽만 안다」로 장마다 표면을
+정하는 것과 같은 문제다. 적도 같은 길을 따른다 — `ClingerAudio.surface` 를 씬에
+놓인 인스턴스에서 덮어쓴다. 4 장은 `Concrete`, 5 장은 `Snow` 다.
+
+#### 이동 루프 둘은 아무도 재생하지 않고 있었다 (2026-08-09)
+
+`Clinger.prefab` 은 소리를 **UnityEvent 로** 걸어 두었다 — 일곱 개가 `Snd_Voice` ·
+`Snd_Tremor` 로 간다. 그런데 `Snd_Cling`(천장 대기)과 `Snd_Scuttle`(지상 추격)에는
+아무 이벤트도 없고 `playOnAwake` 도 꺼져 있어서 **두 루프가 한 번도 나지 않았다.**
+
+이벤트로는 안 되는 것이 맞다. 「천장에 붙어 있는 동안」과 「달리는 동안」은 사건이
+아니라 **상태**라 매 프레임 판단해야 한다. 그래서 `ClingerAudio` 를 만들었고
+**그 두 루프만** 맡는다 — 단발은 그대로 UnityEvent 가 낸다. 같은 것을 양쪽에서
+내면 소리가 두 번 난다.
+
+IMPORTANT: **두 루프를 소스 하나로 합쳐 클립만 갈지 않는다.** 프리팹이 천장 쪽을
+0.45 · 13 m, 지상 쪽을 0.80 · 22 m 로 잡아 두었다. 매달린 것은 가까이 와야 들리고
+달려오는 것은 멀리서 들려야 하므로, 그 차이가 곧 설계다. 소스를 합치면 사라진다.
+
+속도는 `ClingerAudio` 가 `NavMeshAgent.velocity` 를 직접 읽는다. `Clinger` 는 속도를
+밖으로 내지 않고, 그것 하나 때문에 `Clinger` 를 고칠 이유는 없다.
 
 2026-08-09 갱신: 애니메이션 명세가 개정되면서 세 가지가 바뀌었다.
 
@@ -862,9 +967,81 @@ imp.SaveAndReimport();
 
 ---
 
+### `Player/Audio/` — 무기 15 종 · 주인공 8 종 (2026-08-09)
+
+IMPORTANT: **무기와 주인공 소리도 `Audio/` 밖이다.** `architecture.md` 가 무기 ·
+손전등의 담당 폴더를 `Player/` 로 정했으므로 적 소리와 같은 이유로 여기 있다.
+폴더는 `Player/Audio/Weapons/` 와 `Player/Audio/Body/` 둘이다.
+
+**클립 이름과 시각은 팔 애니메이션 명세에서 그대로 가져왔다.** `06-pistol.md` 의
+「f8 탄창 멈치 · f39 MagazineIn · f43 슬라이드」, `07-shotgun.md` 의 「f18/32/46/60
+탄 4발 · f69 PumpBack · f73 전진」 이 그대로 `WeaponAudio` 의 박자표다.
+
+총성과 탄창 딸깍은 같은 폴더에 있어야 하지만 같은 음량이면 안 된다 — 카테고리로
+맞추면 딸깍이 총성만큼 커진다. `normalize.py` 의 `FILE_TARGETS` 가 파일 단위로
+목표를 덮어쓰고, 같은 표의 `max_gain` 이 이득 상한을 그 파일에서만 푼다.
+
+#### 총성은 두 번, 펌프는 한 번 다시 뽑았다
+
+판정은 **상승 시간**과 **60 Hz 아래가 먹는 에너지**, 그리고 **채널별 피크**다.
+
+| | 상승 시간 / 무게중심 | 60 Hz HPF 손실 | |
+| --- | ---: | ---: | --- |
+| `shotgun-fire` | 8 ms | 2.2 dB | 처음부터 제대로 나왔다 |
+| `pistol-fire` 1판 | 130 ms | — | 부풀어 오르는 소리고, 얇다 |
+| `pistol-fire` 2판 | 174 ms | **13 dB** | 들리지 않는 초저역이 헤드룸을 먹었다 |
+| `pistol-fire` 3판 | 20 ms | 1.5 dB | 이것을 쓴다 |
+| `shotgun-pump-back` 1판 | 1493 Hz | 0.4 dB | 강철 긁는 결이 없고 둔탁하다 |
+| `shotgun-pump-back` 3판 | 5390 Hz | 0.0 dB | 이것을 쓴다 |
+
+`pistol-fire` 2판의 원인은 프롬프트의 「deep low end」 다. **저역을 달라고 하면
+들리는 저역이 아니라 초저역 덩어리가 온다.** 화약이 터지는 몸통으로 지시하면
+들리는 대역에 온다.
+
+IMPORTANT: **클리핑은 채널별 피크로 본다.** `-ac 1` 다운믹스로 재면 1.0 을 넘는
+값이 나오는데 그건 측정 방식이 만든 것이고 실제 클리핑이 아니다. 펌프 후퇴 2판은
+채널별로 0 dBFS 에 **218 샘플**이 붙어 진짜 클리핑이었고, 프롬프트에서 극단적인
+낱말(hauled · hard)을 덜어 다시 뽑아 14 샘플(0.3 ms)로 줄였다.
+
+#### 부정문을 넣으면 소리가 사라진다
+
+「no deep boom, no rumble」 을 넣은 `bullet-impact-concrete` 가 **피크 0.017 로
+거의 무음**으로 왔다. 뺄 것을 적지 말고 **남길 것만** 적는다.
+
+(적 소리의 「소가 아니다」 는 통했다 — 차이는 **대상이 있는지**다. 정체를 좁히는
+부정은 되고, 대역을 빼라는 부정은 소리 자체를 지운다.)
+
+### 파이프라인 스크립트는 대상을 좁혀서 돌린다
+
+IMPORTANT: `trim_silence.py` · `normalize.py` 를 `--apply` 로 돌릴 때 **폴더 전체가
+대상이면 남이 방금 다시 뽑아 아직 손대지 않은 파일까지 같이 처리된다.** 두 번
+겪었다 — 콜로서스 소리 8 개의 잔향을 1.4~2.4 초씩 깎았고, 남의 `ice-melt-crack` 을
+11.6 dB 올렸다. 둘 다 되돌렸다. 그래서 두 스크립트에 `--only` 가 있다.
+
+```bash
+python docs/sound/trim_silence.py --only avalanche-cannon --apply
+python docs/sound/normalize.py --category Devices --only avalanche-cannon --apply
+```
+
+또 하나. **다시 뽑으면 같은 이름의 옛 `.wav` 가 남는다.** `gen_sfx.py --overwrite`
+는 mp3 만 쓰므로, 트림이 새 wav 를 덮어쓰지 않는 경우(자를 것이 없을 때) 옛 판과 새
+판이 한 폴더에 같은 이름으로 공존한다. 어느 것이 물릴지 알 수 없으므로 mp3 정리와
+함께 반드시 확인한다.
+
 ## 5. 아직 없는 것
 
-- **재생 코드 전부.** 파일과 임포트 설정만 있다
+- **재생 코드 대부분.** 붙은 것은 발소리 · 메뉴 클릭 · 무기 · 주인공 몸이고,
+  앰비언스 · 건물 · 전기 · 장치 · 상호작용 · 음악은 아직 파일만 있다
+- **4 장 축전지실 폭발의 배선.** 소리 다섯은 다 있지만 Ch4 에 `InstantDevice` 가
+  아직 없다. 위 순서표대로 걸면 된다
+- **5 장 Clinger 인스턴스의 표면.** `ClingerAudio` 는 붙었고 프리팹 기본값이
+  `Concrete` 다. Ch5 의 인스턴스에서 `Snow` 로 덮어써야 한다
+**`bullet-impact-metal` 은 2026-08-09 에 붙었다.** 발사 레이캐스트가 `Default` 와
+`Enemy` 만 때리므로 레이어로는 벽과 철판이 구분되지 않는다. `WeaponAudio` 가
+**레이어 마스크를 먼저 보고, 비어 있으면 맞은 것의 이름 · 머티리얼 이름에 든
+조각**(`metal` · `grate` · `steel` · `pipe` · `drum` · `shutter` …)으로 짐작한다.
+소품 이름이 규칙을 따르는 동안은 이것으로 충분하고, 어긋나면 `metalLayers` 에
+레이어를 넣어 덮는다.
 - **무기 소리.** 권총 · 산탄총. 담당 폴더(`Player/`)로 간다
 - **`Clinger` · `Colossus` 의 코드.** 소리는 명세대로 만들어 두었지만
   `Clinger.cs` · `Clinger.prefab` 이 아직 없다. 모델이 명세와 다르게 나오면
@@ -873,5 +1050,15 @@ imp.SaveAndReimport();
   볼륨 슬라이더가 들어가면 그때 `AudioMixer` 로 묶는 것이 맞다
 
 발소리 재생은 플레이어 이동에 붙으므로 **A 이정범** 담당과 겹친다. 장치 · 상호작용
-소리는 **C 임성규** 담당이다. 파일만 있고 코드는 없는 상태라 지금은 충돌하지
-않는다.
+소리는 **C 임성규** 담당이다.
+
+IMPORTANT: **2026-08-09 부터 A 의 파일에 B 가 들어간 자리가 있다.** 무기 · 주인공
+소리를 붙이면서 `Player/` 아래를 고쳤다. 전부 **소리를 내는 쪽이 아니라 소리를 낼
+시점을 알리는 쪽**만 건드렸다.
+
+| 파일 | 무엇 |
+| --- | --- |
+| `PlayerWeapon.cs` | `DryFired` · `Impacted` 이벤트와 `ReloadSeconds`. 발사 · 재장전 규칙은 그대로다 |
+| `PlayerFootsteps.cs` | `Landed` 이벤트 하나. 착지 판정을 두 벌 두지 않으려고 이미 있는 자리에서 알린다 |
+| `Player.prefab` | `PlayerBodyAudio` 1개, `WeaponAudio` 2개를 붙이고 클립을 물렸다 |
+| `Colossus.cs` (B) | 처형이 시작될 때 플레이어의 발버둥 소리를 부른다 |

@@ -46,11 +46,51 @@ TARGETS = {
     # 적 소리는 조금 크게 둔다. 위치를 알려주는 것이 곧 게임 규칙이다.
     # 세 종이 한 폴더에 있으므로 항목도 하나다
     "Enemy":      {"lufs": -20.0, "rms": -20.0},
+    # 메뉴 소리는 장면 위에 얹히는 것이 아니라 그 자체가 피드백이다. 다만
+    # 눌릴 때마다 나므로 효과음보다 한 단계 낮게 둬야 거슬리지 않는다
+    "UI":         {"lufs": -24.0, "rms": -24.0},
+    # 무기 카테고리의 기본값은 **기계 조작음**(슬라이드 · 탄창 · 펌프) 기준이다.
+    # 총성은 아래 FILE_TARGETS 가 따로 끌어올린다
+    "Weapon":     {"lufs": -22.0, "rms": -24.0},
+    # 주인공은 짧은 것(신음 · 사망)과 긴 것(지친 호흡 루프)이 갈린다. 루프는
+    # 5 초를 넘어 LUFS 로 재므로 두 값이 그대로 두 목표가 된다
+    "Protagonist": {"lufs": -26.0, "rms": -22.0},
+}
+
+# 같은 카테고리 안에서 목표가 다른 것.
+#
+# 총성과 탄창 딸깍은 한 폴더에 있어야 하지만(무기는 한 담당이다) 같은 음량이면
+# 안 된다 — 카테고리로 맞추면 딸깍이 총성만큼 커진다. 폭발 · 제설포 · 눈사태도
+# 같다. 장치 카테고리의 기준은 모터와 셔터인데, **그 장에서 가장 큰 사건**을
+# 레버와 같은 크기로 두면 최후의 수단이 최후로 들리지 않는다.
+#
+# `max_gain` 은 MAX_GAIN_DB 를 이 파일에서만 푼다. 15 dB 상한은 잡음까지 끌어올리는
+# 것을 막으려는 값인데, 총성은 생성기가 유난히 작게 주면서도 **잡음 여유가 44 dB**
+# 라 상한이 이유 없이 물린다. 풀기 전에 여유를 재고 푼다.
+FILE_TARGETS = {
+    "pistol-fire":            {"lufs": -16.0, "rms": -16.0, "max_gain": 24.0},
+    "shotgun-fire":           {"lufs": -14.0, "rms": -14.0},
+    "bullet-impact-concrete": {"lufs": -22.0, "rms": -22.0},
+    "bullet-impact-metal":    {"lufs": -22.0, "rms": -22.0},
+    # 호흡 루프도 max_gain 을 푼다. 네 판을 뽑았고 가장 나은 것이 −29 LUFS 다
+    "player-breath-exhausted-loop": {"lufs": -26.0, "rms": -26.0, "max_gain": 17.0},
+    # 4 장 축전지실. 폭발과 그 직후만 장치 기준보다 크게 둔다
+    "hydrogen-explosion":     {"lufs": -14.0, "rms": -14.0},
+    "battery-arc":            {"lufs": -18.0, "rms": -18.0},
+    "debris-fall":            {"lufs": -20.0, "rms": -20.0},
+    # 귀울림은 폭발이 끝난 뒤 혼자 남는 소리다. 크면 귀가 아프고 작으면 없는
+    # 것이 되므로 장치 기준보다 낮게 두고 재생 쪽에서 올린다
+    "explosion-ear-ring":     {"lufs": -26.0, "rms": -26.0},
+    # 5 장 제설포와 눈사태. 산이 무너지는 소리가 발전기와 같은 크기일 수 없다
+    "avalanche-cannon":       {"lufs": -16.0, "rms": -16.0},
+    "avalanche-slide":        {"lufs": -16.0, "rms": -16.0},
 }
 
 # Audio/ 밖에 있는 카테고리
 CATEGORY_DIRS = {
     "Enemy": "Treeline/Assets/Game/Enemy/Audio",
+    "Weapon": "Treeline/Assets/Game/Player/Audio/Weapons",
+    "Protagonist": "Treeline/Assets/Game/Player/Audio/Body",
 }
 
 PEAK_CEILING_DB = -1.0   # 이 위로는 올리지 않는다
@@ -105,7 +145,7 @@ def analyse(category, path):
     x = decode(path, ch)
     peak = db(float(np.abs(x).max()))
     rms = db(float(np.sqrt(np.mean(x ** 2))))
-    t = TARGETS[category]
+    t = FILE_TARGETS.get(path.stem, TARGETS[category])
 
     lufs = measure_lufs(path) if dur >= LONG_SEC else None
     if lufs is not None:
@@ -114,8 +154,9 @@ def analyse(category, path):
         gain, basis, level = t["rms"] - rms, "RMS", rms
 
     note, limit = "", False
-    if gain > MAX_GAIN_DB:
-        gain, note = MAX_GAIN_DB, "이득 상한"
+    max_gain = t.get("max_gain", MAX_GAIN_DB)
+    if gain > max_gain:
+        gain, note = max_gain, "이득 상한"
     headroom = PEAK_CEILING_DB - peak
     if gain > headroom:
         # 순간음은 피크가 먼저 천장에 닿아 목표 음량까지 못 올라간다. 이득을
@@ -153,6 +194,12 @@ def main():
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--category", action="append",
                     help="카테고리 지정. 여러 번 가능")
+    # IMPORTANT: --category 만으로 --apply 하면 **그 폴더의 모든 파일**을 다시
+    # 쓴다. 대부분은 이득이 0 이라 건너뛰지만, 남이 방금 다시 뽑아 아직 음량을
+    # 안 맞춘 파일이 있으면 그것까지 같이 맞춰 버린다. 실제로 그렇게 남의
+    # ice-melt-crack 을 11.6 dB 올렸다. 새로 뽑은 것만 맞출 때는 --only 로 좁힌다.
+    ap.add_argument("--only", action="append",
+                    help="파일 이름(확장자 없이) 지정. 여러 번 가능")
     args = ap.parse_args()
     if not (args.report or args.apply):
         args.report = True
@@ -167,6 +214,9 @@ def main():
         if not d.is_dir():
             continue
         files = sorted(list(d.glob("*.mp3")) + list(d.glob("*.wav")))
+        if args.only:
+            wanted = set(args.only)
+            files = [f for f in files if f.stem in wanted]
         if not files:
             continue
         t = TARGETS[category]

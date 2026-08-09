@@ -644,6 +644,14 @@ namespace Treeline
                 hud.HideForCutscene();
             }
 
+            // 손이 닫히는 소리는 이쪽이 내고(grabSound), 그 안에서 사람이 내는 소리는
+            // 저쪽이 낸다. 둘이 같은 프레임에 겹쳐야 「붙잡혔다」가 들린다.
+            PlayerBodyAudio bodyAudio = grabbed.GetComponentInChildren<PlayerBodyAudio>(true);
+            if (bodyAudio != null)
+            {
+                bodyAudio.PlayStruggle();
+            }
+
             grabRoutine = StartCoroutine(HoldPlayer());
         }
 

@@ -66,6 +66,9 @@ IMPORTANT: OFL 은 **제품에 임베드하고 재배포하는 것을 명시적�
 | Treeline 메뉴 클릭음 1종 | 사운드 (WAV) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 타이틀 · 엔딩 메뉴의 버튼 | 2026-08-09 |
 | Treeline 무기음 15종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 권총 · 산탄총의 발사 · 빈 방아쇠 · 탄창 · 슬라이드 · 펌프 · 탄 장전 · 장착 · 탄착 · 탄피 | 2026-08-09 |
 | Treeline 주인공 소리 8종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 피격 2종 · 사망 · 도약 · 착지 · 힘쓰기 · 발버둥 · 지친 호흡 루프 | 2026-08-09 |
+| Treeline 4장 폭발음 4종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 축전지실 — 수소 누출 루프 · 축전지 방전 · 잔해 낙하 · 폭발 뒤 귀울림. 기존 `hydrogen-explosion` 과 이어 붙인다 | 2026-08-09 |
+| Treeline 5장 · 발전기 · Clinger 소리 4종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 제설포 · 눈사태(둘 다 재생성) · 발전기 정지(신규) · Clinger 눈 위 이동 루프(신규) | 2026-08-09 |
+| Treeline 산탄총 펌프음 2종 (재생성) | 사운드 (WAV) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 펌프 후퇴 · 전진. 1판이 둔탁해 다시 뽑았다 | 2026-08-09 |
 | Crawler | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 · 2048 텍스처 3장) | 미확인 | 적 「기는 것」 | 2026-08-08 |
 | Crawler 리그 · 애니메이션 6종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Crawler/`) | 프로젝트 자체 제작 | 적 「기는 것」 | 2026-08-08 |
 | Colossus | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 8,634 tris · 2048 텍스처 3장) | 미확인 | 적 「죽지 않는 것」 | 2026-08-08 |

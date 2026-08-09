@@ -662,6 +662,7 @@ GameObject:
   - component: {fileID: 7856992790118699374}
   - component: {fileID: 5523734209767166159}
   - component: {fileID: 5646207033953877029}
+  - component: {fileID: 5540604142059818684}
   m_Layer: 12
   m_Name: Clinger
   m_TagString: Untagged
@@ -867,6 +868,28 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &5540604142059818684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5188329450587727104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04ebbcdd330605741a2c6c9c86544952, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Treeline.ClingerAudio
+  clinger: {fileID: 5646207033953877029}
+  agent: {fileID: 5523734209767166159}
+  clingSource: {fileID: 749575574140114140}
+  scuttleSource: {fileID: 4202369825718490560}
+  clingLoop: {fileID: 8300000, guid: 65d256dc1ea97324f8a242753bd7f222, type: 3}
+  scuttleConcrete: {fileID: 8300000, guid: a3029425449ea774f97f9a00a06f6977, type: 3}
+  scuttleSnow: {fileID: 8300000, guid: ce5faf0872f0d8f44b4ae405053d73eb, type: 3}
+  surface: 0
+  movingSpeed: 0.15
+  crossfade: 0.25
 --- !u!1 &5385909862897502697
 GameObject:
   m_ObjectHideFlags: 0

@@ -23,9 +23,11 @@ import numpy as np
 SR = 44100
 ROOT = "Treeline/Assets/Game/Audio"
 ONE_SHOT_DIRS = ["Footsteps", "Structure", "Electrical", "Interaction",
-                 "Devices"]
-# Audio/ 밖에 있는 단발성. 적 소리는 담당 폴더에 있다
-EXTRA_DIRS = ["Treeline/Assets/Game/Enemy/Audio"]
+                 "Devices", "UI"]
+# Audio/ 밖에 있는 단발성. 적 · 무기 · 주인공은 담당 폴더에 있다
+EXTRA_DIRS = ["Treeline/Assets/Game/Enemy/Audio",
+              "Treeline/Assets/Game/Player/Audio/Weapons",
+              "Treeline/Assets/Game/Player/Audio/Body"]
 
 HEAD_PAD_MS = 10        # 앞에 남길 여유
 TAIL_PAD_MS = 60        # 뒤에 남길 잔향 여유
@@ -70,7 +72,13 @@ def bounds(x):
     return int(loud[0]), int(loud[-1]) + 1
 
 
-def targets():
+def targets(only=None):
+    """자를 파일 목록.
+
+    IMPORTANT: `only` 없이 `--apply` 를 돌리면 **아직 정리 안 된 옛 파일까지 같이
+    잘린다.** 새 소리 한 벌만 뽑고 돌렸다가 남의 폴더에 있던 미처리 파일의 잔향을
+    통째로 깎은 적이 있다. 새로 뽑은 것만 손볼 때는 `--only` 로 좁힌다.
+    """
     root = pathlib.Path(ROOT)
     files = []
     dirs = [root / d for d in ONE_SHOT_DIRS]
@@ -80,7 +88,12 @@ def targets():
             continue
         files += sorted(d.glob("*.mp3"))
         files += sorted(d.glob("*.wav"))
-    return [f for f in files if "-loop" not in f.stem]
+    files = [f for f in files if "-loop" not in f.stem]
+    if only:
+        wanted = set(only)
+        files = [f for f in files
+                 if f.stem in wanted or f.parent.name in wanted]
+    return files
 
 
 def trim_music(apply_it):
@@ -136,6 +149,9 @@ def main():
     ap.add_argument("--apply", action="store_true", help="실제로 자른다")
     ap.add_argument("--music", action="store_true",
                     help="Music/ 을 대상으로 한다. mp3 구간 복사로 자른다")
+    ap.add_argument("--only", action="append",
+                    help="파일 이름 또는 폴더 이름. 여러 번 가능. "
+                         "새로 뽑은 것만 자를 때 쓴다")
     args = ap.parse_args()
     if not (args.report or args.apply):
         args.report = True
@@ -144,7 +160,7 @@ def main():
         trim_music(args.apply)
         return
 
-    files = targets()
+    files = targets(args.only)
     if not files:
         sys.exit(f"{ROOT} 아래에 단발성 파일이 없다.")
 
