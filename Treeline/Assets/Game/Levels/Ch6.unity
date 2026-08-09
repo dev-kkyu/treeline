@@ -2878,7 +2878,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Treeline.Carriable
   prompt: "\uC5F0\uB8CC\uD1B5\uC744 \uB4E0\uB2E4"
-  holdOffset: {x: 0, y: -0.42, z: 0.75}
+  holdOffset: {x: 0.02, y: -0.42300004, z: 0.48050004}
   holdRotation: {x: 0, y: 0, z: 0}
   dropDistance: 1.2
   liftClip: {fileID: 0}
@@ -8059,6 +8059,7 @@ MonoBehaviour:
   devices:
   - {fileID: 188948639}
   oneShot: 1
+  handle: {fileID: 0}
   pulledRotation: {x: -55, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
@@ -9473,6 +9474,7 @@ MonoBehaviour:
   devices:
   - {fileID: 42025488}
   oneShot: 1
+  handle: {fileID: 0}
   pulledRotation: {x: -55, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
@@ -11387,6 +11389,7 @@ MonoBehaviour:
   devices:
   - {fileID: 1817032952}
   oneShot: 1
+  handle: {fileID: 0}
   pulledRotation: {x: -55, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
