@@ -87,10 +87,21 @@ namespace Treeline
         [Tooltip("바닥을 찾을 때 무시할 층. 플레이어와 적은 뺀다.")]
         [SerializeField] private LayerMask groundMask = ~0;
 
+        [Header("루프 소리 — 상태가 정한다")]
+        [Tooltip("천장에 매달려 있는 동안. 위에 뭔가 있다는 것을 이 소리가 알린다.")]
+        [SerializeField] private AudioSource clingLoop;
+
+        [Tooltip("지상에서 움직이는 동안.")]
+        [SerializeField] private AudioSource scuttleLoop;
+
+        [Tooltip("이보다 느리면 멈춘 것으로 본다.")]
+        [SerializeField] private float movingSpeed = 0.15f;
+
         [Header("소리 · 연출을 붙일 자리")]
         [SerializeField] private UnityEvent tremored;
         [SerializeField] private UnityEvent dropped;
         [SerializeField] private UnityEvent landed;
+        [SerializeField] private UnityEvent attackTell;
         [SerializeField] private UnityEvent attackHit;
         [SerializeField] private UnityEvent hurt;
         [SerializeField] private UnityEvent died;
@@ -149,6 +160,19 @@ namespace Treeline
             SetColliders(ceiling: true, ground: false);
             ApplyMode(ClingerMode.Ceiling);
             nextTremorTime = Time.time + UnityEngine.Random.Range(tremorInterval.x, tremorInterval.y);
+
+            if (clingLoop != null)
+            {
+                // 여럿이 같은 위상으로 울면 한 마리로 들린다.
+                clingLoop.time = UnityEngine.Random.Range(0f, clingLoop.clip != null ? clingLoop.clip.length : 0f);
+                clingLoop.Play();
+            }
+        }
+
+        private void OnDisable()
+        {
+            // 루프는 스스로 안 멈춘다.
+            StopLoops();
         }
 
         private void Update()
@@ -241,6 +265,13 @@ namespace Treeline
             }
 
             fallSpeed = 0f;
+
+            // 매달려 있던 소리는 여기서 끊긴다. 떨어진 뒤에도 천장에서 울면 위치가 어긋난다.
+            if (clingLoop != null && clingLoop.isPlaying)
+            {
+                clingLoop.Stop();
+            }
+
             Dropped?.Invoke();
             dropped?.Invoke();
         }
@@ -312,11 +343,19 @@ namespace Treeline
                 Attack();
             }
 
+            Vector3 flat = agent.velocity;
+            flat.y = 0f;
+
             if (animator != null)
             {
-                Vector3 v = agent.velocity;
-                v.y = 0f;
-                animator.SetFloat(SpeedId, v.magnitude, 0.1f, Time.deltaTime);
+                animator.SetFloat(SpeedId, flat.magnitude, 0.1f, Time.deltaTime);
+            }
+
+            if (scuttleLoop != null)
+            {
+                bool moving = flat.magnitude > movingSpeed;
+                if (moving && !scuttleLoop.isPlaying) scuttleLoop.Play();
+                else if (!moving && scuttleLoop.isPlaying) scuttleLoop.Stop();
             }
         }
 
@@ -337,6 +376,9 @@ namespace Treeline
             {
                 animator.SetTrigger(AttackId);
             }
+
+            // 예고는 클립에 이벤트를 더하지 않고 여기서 낸다. 물기(12f)까지 0.4초 남는다.
+            attackTell?.Invoke();
         }
 
         /// <summary>`Attack_Underjaw` 12f. 이 프레임에 다시 재서 한 번만 준다.</summary>
@@ -416,6 +458,7 @@ namespace Treeline
             agent.enabled = false;
             corpseFalling = onCeiling;
             fallSpeed = 0f;
+            StopLoops();
 
             Died?.Invoke();
             died?.Invoke();
@@ -466,6 +509,19 @@ namespace Treeline
             if (animator != null)
             {
                 animator.SetInteger(ModeId, (int)next);
+            }
+        }
+
+        private void StopLoops()
+        {
+            if (clingLoop != null && clingLoop.isPlaying)
+            {
+                clingLoop.Stop();
+            }
+
+            if (scuttleLoop != null && scuttleLoop.isPlaying)
+            {
+                scuttleLoop.Stop();
             }
         }
 

@@ -237,12 +237,33 @@ bay(천장 3.2 m)에는 더 높은 자리가 없다. 09 · 10 은 옮기지 않�
 (`Clinger_01`~`05`)의 `Drop()` 을 걸어 두었다. 이미 내려온 것은 `Drop()` 이 무시하므로
 **플레이어가 피해 다닌 만큼 그때 한꺼번에 온다.**
 
+### 소리 9종 (2026-08-09)
+
+`Crawler` 처럼 별도 `ClingerAudio` 를 만들지 않았다. 그 파일이 거의 복사본이 되기
+때문이고, 대신 **루프 둘은 코드가 상태로 몰고 한 번짜리는 `UnityEvent` 로 뺐다.**
+
+| 소스 | 클립 | 언제 |
+| --- | --- | --- |
+| `Snd_Cling` | `clinger-cling-loop` | 천장에 매달려 있는 동안. 떨어질 때 코드가 끊는다 |
+| `Snd_Scuttle` | `clinger-scuttle-loop` | 지상에서 0.15 m/s 이상 움직일 때 |
+| `Snd_Tremor` | `clinger-tremor-loop` | `tremored` → `Play`, `dropped` → `Stop` |
+| `Snd_Voice` | (비움) | 나머지 여섯을 `PlayOneShot` 으로 낸다 |
+
+`attackTell` 은 클립 이벤트가 아니라 `Attack()` 에서 낸다. 계약의 이벤트 넷에는
+예고가 없고, 애니메이션에 이벤트를 더하면 리깅 쪽 에셋을 건드리게 된다. 트리거를
+치는 순간이 물기(12f)보다 0.4 초 앞이라 예고로 정확히 맞는다.
+
+IMPORTANT: **`clinger-tremor-loop` 은 6.06 초짜리다.** 경련 애니메이션(1.3 초)보다
+길어서 자주 떨면 자기 소리와 겹친다. 그래서 `tremorInterval` 을 **7~14 초**로 잡았다.
+원래 3.5~9 초였는데 그 간격에서는 소리가 끊이지 않아 배경이 됐다.
+
+IMPORTANT: **매달린 소리는 13 m 까지만 들린다.** 26 m 로 두었더니 스폰 자리에서
+**일곱 마리가 한꺼번에 들려** 한 덩어리가 됐다. 「위에 뭔가 있다」는 머리 위 한두
+마리일 때 성립한다.
+
 ## 아직 안 한 것
 
-- **소리 9종이 안 걸려 있다.** `Clinger.cs` 에 `UnityEvent` 여섯(`tremored` ·
-  `dropped` · `landed` · `attackHit` · `hurt` · `died`)을 열어 두었으니 프리팹에서
-  `AudioSource` 를 꽂으면 된다. `Crawler` 처럼 별도 `ClingerAudio` 를 만들지 않은
-  이유는 그 파일이 거의 복사본이 되기 때문이다
+- 여럿을 놓았을 때의 밸런스. 4장 12 마리가 적당한지는 사람이 플레이해야 안다
 - LOD1/LOD2 — 프로파일에서 실제로 걸릴 때 만든다.
   → [`MODEL-SPEC.md`](../MODEL-SPEC.md) 4절
 - `Clinger_Roughness.png`는 임포트만 돼 있고 머터리얼이 쓰지 않는다. 생성 텍스처의
