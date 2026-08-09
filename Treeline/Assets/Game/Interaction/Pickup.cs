@@ -17,10 +17,18 @@ namespace Treeline
         /// <summary>산탄총. 5장.</summary>
         Shotgun = 3,
 
-        /// <summary>권총 탄약. <see cref="Pickup.Amount"/> 는 발수다.</summary>
+        /// <summary>
+        /// 폐지. 권총 탄약이었다.
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: 2026-08-10 에 탄약 획득을 없앴다. <b>값을 지우지 않고 남겨 둔다</b> —
+        /// enum 은 정수로 직렬화되므로 가운데를 지우면 뒤 항목의 번호가 밀리고,
+        /// 놓친 씬 하나가 조용히 다른 물건이 된다. 주우려 하면 아무 일도 일어나지 않고
+        /// 경고만 남는다.
+        /// </remarks>
         PistolAmmo = 4,
 
-        /// <summary>산탄총 탄약. <see cref="Pickup.Amount"/> 는 발수다.</summary>
+        /// <summary>폐지. 산탄총 탄약이었다. <see cref="PistolAmmo"/> 참고.</summary>
         ShotgunAmmo = 5,
     }
 
@@ -146,14 +154,10 @@ namespace Treeline
                 case PickupKind.PistolAmmo:
                 case PickupKind.ShotgunAmmo:
                 {
-                    var weapons = who.GetComponentInParent<WeaponSwitcher>();
-                    if (weapons == null)
-                    {
-                        return Missing(nameof(WeaponSwitcher));
-                    }
-
-                    WeaponKind target = kind == PickupKind.PistolAmmo ? WeaponKind.Pistol : WeaponKind.Shotgun;
-                    return weapons.AddAmmo(target, Mathf.RoundToInt(amount)) > 0;
+                    // 폐지된 종류다. 씬에서 지웠어야 할 것이 남아 있다는 뜻이므로
+                    // 조용히 사라지게 두지 않고 어디에 있는지 알린다.
+                    Debug.LogWarning($"[Pickup] '{name}' 은 폐지된 탄약 획득물이다. 씬에서 지운다.", this);
+                    return false;
                 }
 
                 default:

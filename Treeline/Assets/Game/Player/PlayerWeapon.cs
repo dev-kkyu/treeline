@@ -56,14 +56,8 @@ namespace Treeline
         [SerializeField] private bool startsOwned;
 
         [Header("탄약")]
-        [Tooltip("탄창 하나에 들어가는 발수.")]
+        [Tooltip("탄창 하나에 들어가는 발수. 여분은 무한이라 이것만이 사격 리듬을 정한다.")]
         [SerializeField] private int magazineSize = 8;
-
-        [Tooltip("여분 탄약 최대치. 탄창 안은 여기 포함되지 않는다.")]
-        [SerializeField] private int maxReserve = 24;
-
-        [Tooltip("시작할 때 가진 총 탄약. 여기서 탄창을 먼저 채운다.")]
-        [SerializeField] private int startingAmmo;
 
         [Tooltip("재장전에 걸리는 시간(초). 정비공이라 빠르지 않다.")]
         [SerializeField] private float reloadSeconds = 1.8f;
@@ -98,14 +92,15 @@ namespace Treeline
         public bool IsOwned { get; private set; }
 
         /// <summary>탄창에 든 발수. 0 이면 재장전해야 쏜다.</summary>
+        /// <remarks>
+        /// IMPORTANT: <b>여분 탄약은 없다. 무한이다.</b> 2026-08-10 에 기획이 바뀌어
+        /// 「탄약을 찾아다니는 것」을 통째로 뺐다. 총을 주우면 그때부터 계속 쏠 수
+        /// 있고, 남은 제약은 <b>탄창이 비면 재장전해야 한다</b>는 것 하나다. 이유는
+        /// <c>docs/game-design/decisions.md</c> 를 본다.
+        /// </remarks>
         public int Loaded { get; private set; }
 
-        /// <summary>여분 탄약. 재장전할 때 여기서 탄창으로 옮긴다.</summary>
-        public int Reserve { get; private set; }
-
         public int MagazineSize => magazineSize;
-
-        public int MaxReserve => maxReserve;
 
         public bool IsReloading => reloading;
 
@@ -113,15 +108,13 @@ namespace Treeline
         /// 장을 넘어온 상태를 그대로 되돌린다. <see cref="GameFlow"/> 가 부른다.
         /// </summary>
         /// <remarks>
-        /// <see cref="PickUp"/> · <see cref="AddAmmo"/> 로는 못 한다. 둘 다 더하는
-        /// 함수라 이전 장에서 쓴 만큼을 표현할 수 없고, 특히 탄창(<see cref="Loaded"/>)
-        /// 은 넣을 방법이 아예 없다.
+        /// <see cref="PickUp"/> 으로는 못 한다. 그것은 「주웠다」만 세우는 함수라
+        /// 이전 장에서 몇 발 쓰고 넘어왔는지를 표현할 수 없다.
         /// </remarks>
-        public void RestoreState(bool owned, int loaded, int reserve)
+        public void RestoreState(bool owned, int loaded)
         {
             IsOwned = owned;
             Loaded = Mathf.Clamp(loaded, 0, magazineSize);
-            Reserve = Mathf.Clamp(reserve, 0, maxReserve);
             AmmoChanged?.Invoke();
         }
 
@@ -194,10 +187,9 @@ namespace Treeline
 
             IsOwned = startsOwned;
 
-            // 가진 탄약에서 탄창을 먼저 채우고 나머지를 여분으로 둔다.
-            int total = Mathf.Max(0, startingAmmo);
-            Loaded = Mathf.Min(magazineSize, total);
-            Reserve = Mathf.Clamp(total - Loaded, 0, maxReserve);
+            // 여분이 무한이므로 탄창은 늘 가득 찬 채로 시작한다. 빈 총을 주워 봐야
+            // 재장전 한 번을 강제할 뿐이고, 그건 규칙이 아니라 고장으로 읽힌다.
+            Loaded = magazineSize;
 
             SetViewModelVisible(false);
         }
@@ -270,12 +262,13 @@ namespace Treeline
         }
 
         /// <summary>
-        /// 재장전을 시작한다. 탄창이 이미 가득하거나 여분이 없으면 아무 일도 없다.
+        /// 재장전을 시작한다. 탄창이 이미 가득하면 아무 일도 없다.
         /// </summary>
+        /// <remarks>여분이 무한이라 <b>시작하면 반드시 가득 찬다.</b> 실패하지 않는다.</remarks>
         /// <returns>실제로 시작했으면 참.</returns>
         public bool TryStartReload()
         {
-            if (reloading || Loaded >= magazineSize || Reserve <= 0)
+            if (reloading || Loaded >= magazineSize)
             {
                 return false;
             }
@@ -288,35 +281,28 @@ namespace Treeline
         }
 
         /// <summary>
-        /// 이 총을 주웠다. 이제 들 수 있다. 부르는 쪽은 <see cref="WeaponSwitcher.PickUp"/> 이다.
+        /// 이 총을 주웠다. <b>주우면 그때부터 쏠 수 있다.</b>
+        /// 부르는 쪽은 <see cref="WeaponSwitcher.PickUp"/> 이다.
         /// </summary>
-        /// <remarks>탄약은 별개다. 총만 줍고 탄이 없을 수 있다.</remarks>
+        /// <remarks>
+        /// 탄약을 따로 줍던 시절에는 「총만 줍고 탄이 없다」가 성립했다. 지금은
+        /// 여분이 무한이라 주운 순간 탄창이 가득 차 있다.
+        /// </remarks>
         public void PickUp()
         {
-            IsOwned = true;
-        }
-
-        /// <summary>여분 탄약을 줍는다. 넘치는 분은 버린다.</summary>
-        /// <remarks>총을 아직 안 주웠어도 탄약은 쌓인다. 3장에서 권총과 탄약을 함께 얻는다.</remarks>
-        /// <returns>실제로 채운 발수.</returns>
-        public int AddAmmo(int rounds)
-        {
-            int before = Reserve;
-            Reserve = Mathf.Clamp(Reserve + Mathf.Max(0, rounds), 0, maxReserve);
-
-            if (Reserve != before)
+            if (IsOwned)
             {
-                AmmoChanged?.Invoke();
+                return;
             }
 
-            return Reserve - before;
+            IsOwned = true;
+            Loaded = magazineSize;
+            AmmoChanged?.Invoke();
         }
 
         private void FinishReload()
         {
-            int take = Mathf.Min(magazineSize - Loaded, Reserve);
-            Loaded += take;
-            Reserve -= take;
+            Loaded = magazineSize;
 
             reloading = false;
             ResetViewModelPose();

@@ -31,7 +31,6 @@ namespace Treeline
             public WeaponKind Kind;
             public bool Owned;
             public int Loaded;
-            public int Reserve;
         }
 
         private bool flashlightOwned;
@@ -70,7 +69,6 @@ namespace Treeline
                     Kind = weapon.Kind,
                     Owned = weapon.IsOwned,
                     Loaded = weapon.Loaded,
-                    Reserve = weapon.Reserve,
                 });
             }
 
@@ -111,7 +109,7 @@ namespace Treeline
                         continue;
                     }
 
-                    weapon.RestoreState(weapons[i].Owned, weapons[i].Loaded, weapons[i].Reserve);
+                    weapon.RestoreState(weapons[i].Owned, weapons[i].Loaded);
                     break;
                 }
             }
@@ -137,7 +135,7 @@ namespace Treeline
             for (int i = 0; i < weapons.Count; i++)
             {
                 sb.Append(" / ").Append(weapons[i].Kind).Append("=").Append(weapons[i].Owned ? "O" : "X")
-                  .Append(" ").Append(weapons[i].Loaded).Append("+").Append(weapons[i].Reserve);
+                  .Append(" ").Append(weapons[i].Loaded);
             }
 
             return sb.ToString();

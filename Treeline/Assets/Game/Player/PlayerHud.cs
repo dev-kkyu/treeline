@@ -147,11 +147,9 @@ namespace Treeline
         private void Awake()
         {
             HudGuideText.AttachTo(transform);
-            // 서리는 UI 가 아니라 카메라 앞 파티클이다. HUD 가 붙이는 것은 그대로
-            // 두는데, 플레이어에 딸린 것 중 카메라를 알고 있는 자리가 여기라서다.
-            ScreenFrostParticles.AttachTo(
-                GetComponentInParent<Camera>() ?? Camera.main,
-                motor != null ? motor.transform : transform.root);
+            // 입김은 UI가 아니라 카메라 앞 월드 파티클이다. 플레이어 카메라를 알고
+            // 있는 HUD에서 한 번만 붙이고, 화면 서리 오버레이는 더 이상 사용하지 않는다.
+            PlayerColdBreath.AttachTo(GetComponentInParent<Camera>() ?? Camera.main);
             Ch1Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
             Ch2Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
 
@@ -295,7 +293,7 @@ namespace Treeline
         {
             cutscene = true;
             HudGuideText.HideImmediate();
-            ScreenFrostParticles.HideImmediate();
+            PlayerColdBreath.HideImmediate();
 
             SetGroupAlpha(healthGroup);
             SetGroupAlpha(ammoGroup);
@@ -439,9 +437,10 @@ namespace Treeline
 
             if (ammoReserveText != null)
             {
-                ammoReserveText.text = subscribed.IsReloading
-                    ? "재장전"
-                    : "x" + subscribed.Reserve;
+                // 여분은 무한이라 셀 것이 없다. 숫자 대신 기호 하나를 둔다 —
+                // 비워 두면 「표시가 고장났나」로 읽히고, 「무한」이라고 쓰면
+                // 총알 이야기인지 알 수 없다.
+                ammoReserveText.text = subscribed.IsReloading ? "재장전" : "x∞";
             }
         }
 

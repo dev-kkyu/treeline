@@ -160,13 +160,8 @@ namespace Treeline
             return true;
         }
 
-        /// <summary>탄약을 준다. 그 총을 아직 안 줍거나 안 들고 있어도 채워진다.</summary>
-        /// <returns>실제로 채운 발수. 그런 총이 없으면 0.</returns>
-        public int AddAmmo(WeaponKind wanted, int rounds)
-        {
-            PlayerWeapon target = Find(wanted);
-            return target == null ? 0 : target.AddAmmo(rounds);
-        }
+        // 한때 AddAmmo 가 여기 있었다. 2026-08-10 에 여분 탄약을 없애면서 지웠다 —
+        // 무한한 것에 더할 것이 없다.
 
         private PlayerWeapon Find(WeaponKind wanted)
         {
