@@ -132,7 +132,7 @@ namespace Treeline
             chrome.CreateText("CreditsTitle", t, "크레딧", 34f, MenuChrome.Frost,
                 TextAlignmentOptions.Left, new Vector2(80f, -316f), new Vector2(330f, 54f), true);
 
-            chrome.CreateSectionLabel(t, "TeamHeading", "TEAM SBJ", -366f);
+            chrome.CreateSectionLabel(t, "TeamHeading", "TEAM SBD", -366f);
             CreateCreditRow(t, "이정범", "플레이어 · 전투 · 진행 UI", -392f);
             CreateCreditRow(t, "김도한", "적 · 에셋 파이프라인", -424f);
             CreateCreditRow(t, "임성규", "상호작용 · 레벨 · 진행", -456f);
