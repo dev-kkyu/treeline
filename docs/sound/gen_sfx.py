@@ -150,6 +150,13 @@ PROMPTS = [
     ("Electrical", "fluorescent-flicker",
      "Fluorescent tube struggling to start, rapid stuttering electrical "
      "flicker and ticking", 3.0, False),
+    # 5 장 유도등. power-up 은 건물의 조명과 팬이 한꺼번에 살아나는 소리라
+    # 야외 등 하나에는 너무 크다. 등 하나가 켜지는 소리는 **접점이 닫히는 것과
+    # 램프가 점화되는 것** 둘이다
+    ("Electrical", "beacon-strike",
+     "A large outdoor floodlight switching on: a contactor closes with one "
+     "solid clunk, the lamp strikes with a brief electrical rush, then settles "
+     "into a steady ballast hum, wind around it, close microphone", 2.5, False),
 
     # --- 상호작용. Lever · Pickup · Carriable 에 대응한다 -------------------
     ("Interaction", "lever-pull",
@@ -180,6 +187,19 @@ PROMPTS = [
     ("Interaction", "interact-denied",
      "Short dull thud of a locked mechanism refusing to move, single dead "
      "clunk, no reverb, close microphone", 1.0, False),
+    # CarrySlot.acceptClip — 6 장 권양기의 연료 투입구다. fuel-ignite 는 불이
+    # 붙는 소리라 붓는 소리를 대신하지 못한다. 붓는 소리의 정체는 **깡통에 공기가
+    # 들어가며 나는 끊긴 꿀럭거림**이므로 그것을 직접 지시한다
+    ("Interaction", "fuel-pour",
+     "Diesel poured out of a steel jerry can into a machine's filler neck: the "
+     "spout glugs in bursts as air pushes back into the can, the fuel splashes "
+     "and gurgles into the tank below, the thin can flexes and knocks against "
+     "the rim, close microphone", 3.5, False),
+    # Readable — 1 장 무전 일지 · 근무표. 지금까지 읽어도 아무 소리가 없었다.
+    # 종이는 두께가 소리를 정한다. 얇은 종이는 안 들리므로 「stiff」 를 넣는다
+    ("Interaction", "paper-handle",
+     "A single sheet of stiff paper lifted off a metal desk and unfolded once, "
+     "dry crisp crackling and rustling, close microphone", 1.5, False),
 
     # --- 메뉴. 타이틀 · 엔딩 화면의 버튼 ----------------------------------
     # 메뉴는 중계소 제어반의 연장이다. 밝고 둥근 UI 효과음을 쓰면 화면 안의
@@ -421,6 +441,14 @@ PROMPTS = [
     ("Devices", "device-complete",
      "Industrial process finishing, motor winding down and a single bell "
      "chime confirming completion, close microphone", 2.0, False),
+    # device-start 의 짝. Device.deactivatedClip 자리가 씬 전체에서 비어 있었고
+    # 채울 것이 없었다 — power-down 은 건물 전체가 죽는 소리라 장치 하나를
+    # 끄는 데 쓸 수 없다. 껐다 켜는 장치는 서치라이트와 제설기뿐이지만
+    # SustainedDevice · TimedDevice 는 실제로 꺼지므로 소리가 있어야 한다
+    ("Devices", "device-stop",
+     "Industrial machine being switched off: the motor loses speed and winds "
+     "down, and the contactor drops out with a heavy relay clunk at the end, "
+     "close microphone", 2.5, False),
     ("Devices", "ice-melt-crack",
      "Thick ice on metal cracking and releasing as it thaws, sharp splitting "
      "cracks with water dripping, close microphone", 3.0, False),

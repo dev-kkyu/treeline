@@ -28,6 +28,12 @@ namespace Treeline
         [TextArea(4, 12)]
         [SerializeField] private string body = "";
 
+        [Header("소리")]
+        [Tooltip("집어서 펼치는 소리. 비우면 소리가 나지 않는다.")]
+        [SerializeField] private AudioClip readClip;
+
+        [SerializeField, Range(0f, 1f)] private float sfxVolume = 0.7f;
+
         public string Prompt => prompt;
 
         /// <summary>이미 읽는 중이면 다시 집지 않는다. 같은 키로 닫기 때문이다.</summary>
@@ -43,6 +49,13 @@ namespace Treeline
             if (!CanInteract)
             {
                 return;
+            }
+
+            // 닫을 때는 소리를 내지 않는다. 닫기는 같은 키라 읽는 동안 한 번 더
+            // 누르면 여기로 오지 않고, 「집는 소리」 는 펼치는 순간의 것이다.
+            if (readClip != null)
+            {
+                AudioSource.PlayClipAtPoint(readClip, transform.position, sfxVolume);
             }
 
             ReadingPanel.Show(title, body);

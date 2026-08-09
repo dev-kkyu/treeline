@@ -4338,8 +4338,8 @@ MonoBehaviour:
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
-  pullClip: {fileID: 0}
-  lockedClip: {fileID: 0}
+  pullClip: {fileID: 8300000, guid: 6965e60ce78ccb04fa013690a04cd0b5, type: 3}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!65 &516445052
 BoxCollider:
@@ -10974,8 +10974,8 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
-  deactivatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: bc7afa7cc0f42cc44bd615c8761d49fe, type: 3}
+  deactivatedClip: {fileID: 8300000, guid: 50e1bb278a157014ca8bdbdbacf03c78, type: 3}
   sfxVolume: 0.85
   startsActive: 0
   runningLoop: {fileID: 0}
@@ -11622,7 +11622,7 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: 96f1feaabcc86b04b9020f8125687423, type: 3}
   deactivatedClip: {fileID: 0}
   sfxVolume: 0.85
 --- !u!1001 &1456168940
@@ -13314,8 +13314,8 @@ MonoBehaviour:
   kind: 0
   prompt: "\uC190\uC804\uB4F1\uC744 \uC90D\uB294\uB2E4"
   amount: 120
-  takeClip: {fileID: 0}
-  deniedClip: {fileID: 0}
+  takeClip: {fileID: 8300000, guid: 65bce2e72f539a940876d9a829d80499, type: 3}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &1637196281
 BoxCollider:
@@ -14696,6 +14696,8 @@ MonoBehaviour:
   body: "\uC8FC\uAC04   \uAD00\uC81C\uB3D9 \xB7 \uAE40\n\uC57C\uAC04   \uC219\uC18C\uB3D9
     \xB7 \uC774\n\uBE44\uBC88   \uBC15\n\n\uACBD\uBE44 \uCE90\uBE44\uB2DB   3 1 7\n\u203B
     \uBC88\uD638\uB294 \uADFC\uBB34\uC790 \uC678 \uACF5\uC720 \uAE08\uC9C0"
+  readClip: {fileID: 8300000, guid: 4b5d85344c1bc464dbcd4305487e6e84, type: 3}
+  sfxVolume: 0.7
 --- !u!1001 &1779216133
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17885,6 +17887,8 @@ MonoBehaviour:
     \uC7AC\uD655\uC778 \uC694\uB9DD.\n05:12   \uC911\uACC4\uAE30 2\uBC88 \uC2E0\uD638
     \uB04A\uAE40. \uC218\uB3D9 \uC804\uD658.\n05:41   \uCC3D\uBC16\uC5D0 \uBB54\uAC00
     \uC11C \uC788\uB2E4. \uD0A4\uAC00\n"
+  readClip: {fileID: 8300000, guid: 4b5d85344c1bc464dbcd4305487e6e84, type: 3}
+  sfxVolume: 0.7
 --- !u!65 &2121765853
 BoxCollider:
   m_ObjectHideFlags: 0

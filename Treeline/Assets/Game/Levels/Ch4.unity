@@ -1995,7 +1995,7 @@ MonoBehaviour:
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
   pullClip: {fileID: 8300000, guid: 08888ff0aef45164f881bae0c4846efe, type: 3}
-  lockedClip: {fileID: 0}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &146987222
 AudioSource:
@@ -4929,7 +4929,7 @@ MonoBehaviour:
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
   pullClip: {fileID: 8300000, guid: 6965e60ce78ccb04fa013690a04cd0b5, type: 3}
-  lockedClip: {fileID: 0}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &284433666
 AudioSource:
@@ -19798,7 +19798,7 @@ MonoBehaviour:
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
   pullClip: {fileID: 8300000, guid: 08888ff0aef45164f881bae0c4846efe, type: 3}
-  lockedClip: {fileID: 0}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &760884139
 AudioSource:
@@ -21820,7 +21820,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   activatedClip: {fileID: 8300000, guid: 40aa24272dabaf742bbb63300fe006bb, type: 3}
-  deactivatedClip: {fileID: 0}
+  deactivatedClip: {fileID: 8300000, guid: 50e1bb278a157014ca8bdbdbacf03c78, type: 3}
   sfxVolume: 0.85
   startsActive: 0
   runningLoop: {fileID: 0}
@@ -24346,7 +24346,7 @@ MonoBehaviour:
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
   pullClip: {fileID: 8300000, guid: 6965e60ce78ccb04fa013690a04cd0b5, type: 3}
-  lockedClip: {fileID: 0}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &998617731
 AudioSource:
@@ -36125,7 +36125,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   activatedClip: {fileID: 8300000, guid: 9f1e0c92490fc274b8ba39d50735eb12, type: 3}
-  deactivatedClip: {fileID: 0}
+  deactivatedClip: {fileID: 8300000, guid: 79de4415bb0d3b84695c5c76b0b0c868, type: 3}
   sfxVolume: 0.85
   seconds: 30
   started:
@@ -36309,8 +36309,8 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
-  deactivatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: 40aa24272dabaf742bbb63300fe006bb, type: 3}
+  deactivatedClip: {fileID: 8300000, guid: 50e1bb278a157014ca8bdbdbacf03c78, type: 3}
   sfxVolume: 0.85
   startsActive: 0
   runningLoop: {fileID: 0}
@@ -47216,7 +47216,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   activatedClip: {fileID: 8300000, guid: 40aa24272dabaf742bbb63300fe006bb, type: 3}
-  deactivatedClip: {fileID: 0}
+  deactivatedClip: {fileID: 8300000, guid: 50e1bb278a157014ca8bdbdbacf03c78, type: 3}
   sfxVolume: 0.85
   seconds: 25
   started:

@@ -1852,7 +1852,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   activatedClip: {fileID: 8300000, guid: d36c4cb6e8641834a82e915a650b48ea, type: 3}
-  deactivatedClip: {fileID: 0}
+  deactivatedClip: {fileID: 8300000, guid: 50e1bb278a157014ca8bdbdbacf03c78, type: 3}
   sfxVolume: 0.85
   seconds: 22
   started:

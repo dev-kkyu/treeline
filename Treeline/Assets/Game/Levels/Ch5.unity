@@ -2098,8 +2098,8 @@ MonoBehaviour:
   kind: 3
   prompt: "\uC0B0\uD0C4\uCD1D\uC744 \uC9D1\uB294\uB2E4"
   amount: 120
-  takeClip: {fileID: 0}
-  deniedClip: {fileID: 0}
+  takeClip: {fileID: 8300000, guid: 65bce2e72f539a940876d9a829d80499, type: 3}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &158722622
 BoxCollider:
@@ -7317,8 +7317,8 @@ MonoBehaviour:
   kind: 5
   prompt: "\uC0B0\uD0C4\uCD1D \uD0C4\uC57D\uC744 \uC9D1\uB294\uB2E4"
   amount: 8
-  takeClip: {fileID: 0}
-  deniedClip: {fileID: 0}
+  takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &554143055
 BoxCollider:
@@ -8850,7 +8850,7 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: d671007c10cf28745bd0472d188e10e8, type: 3}
   deactivatedClip: {fileID: 0}
   sfxVolume: 0.85
 --- !u!4 &650092183
@@ -9193,8 +9193,8 @@ MonoBehaviour:
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
-  pullClip: {fileID: 0}
-  lockedClip: {fileID: 0}
+  pullClip: {fileID: 8300000, guid: 6965e60ce78ccb04fa013690a04cd0b5, type: 3}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &676859545
 AudioSource:
@@ -9640,8 +9640,8 @@ MonoBehaviour:
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
-  pullClip: {fileID: 0}
-  lockedClip: {fileID: 0}
+  pullClip: {fileID: 8300000, guid: 08888ff0aef45164f881bae0c4846efe, type: 3}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &690762969
 AudioSource:
@@ -13331,7 +13331,7 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: 832564ba2070f51428cfc4f8d33d9169, type: 3}
   deactivatedClip: {fileID: 0}
   sfxVolume: 0.85
 --- !u!1 &994746256
@@ -14987,8 +14987,8 @@ MonoBehaviour:
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
-  pullClip: {fileID: 0}
-  lockedClip: {fileID: 0}
+  pullClip: {fileID: 8300000, guid: 6965e60ce78ccb04fa013690a04cd0b5, type: 3}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &1126789775
 AudioSource:
@@ -18719,7 +18719,7 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: d671007c10cf28745bd0472d188e10e8, type: 3}
   deactivatedClip: {fileID: 0}
   sfxVolume: 0.85
 --- !u!4 &1531518246
@@ -20814,8 +20814,8 @@ MonoBehaviour:
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
-  pullClip: {fileID: 0}
-  lockedClip: {fileID: 0}
+  pullClip: {fileID: 8300000, guid: 08888ff0aef45164f881bae0c4846efe, type: 3}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &1741641234
 AudioSource:
@@ -22145,8 +22145,8 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
-  deactivatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: a209bf43658269b478f51e369ad7ba13, type: 3}
+  deactivatedClip: {fileID: 8300000, guid: 50e1bb278a157014ca8bdbdbacf03c78, type: 3}
   sfxVolume: 0.85
   startsActive: 0
   runningLoop: {fileID: 0}
@@ -24012,8 +24012,8 @@ MonoBehaviour:
   kind: 5
   prompt: "\uC0B0\uD0C4\uCD1D \uD0C4\uC57D\uC744 \uC9D1\uB294\uB2E4"
   amount: 8
-  takeClip: {fileID: 0}
-  deniedClip: {fileID: 0}
+  takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &1951345070
 BoxCollider:
@@ -24697,7 +24697,7 @@ MonoBehaviour:
   deactivated:
     m_PersistentCalls:
       m_Calls: []
-  activatedClip: {fileID: 0}
+  activatedClip: {fileID: 8300000, guid: d671007c10cf28745bd0472d188e10e8, type: 3}
   deactivatedClip: {fileID: 0}
   sfxVolume: 0.85
 --- !u!1001 &2043463820
@@ -25296,8 +25296,8 @@ MonoBehaviour:
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
   pulledMaterial: {fileID: 0}
-  pullClip: {fileID: 0}
-  lockedClip: {fileID: 0}
+  pullClip: {fileID: 8300000, guid: 08888ff0aef45164f881bae0c4846efe, type: 3}
+  lockedClip: {fileID: 8300000, guid: 60448d2a6be9baf49aa41e0839d586d5, type: 3}
   sfxVolume: 0.8
 --- !u!82 &2098005660
 AudioSource:

@@ -1,8 +1,8 @@
-> 상태: 작성 중 · 최종 수정 2026-08-09
+> 상태: 작성 중 · 최종 수정 2026-08-10
 
 # 사운드
 
-`Assets/Game/Audio/` 에 66 개, `Assets/Game/Enemy/Audio/` 에 29 개,
+`Assets/Game/Audio/` 에 70 개, `Assets/Game/Enemy/Audio/` 에 29 개,
 `Assets/Game/Player/Audio/` 에 23 개가 들어 있다. **전부 만들어져 있고 임포트 설정도
 끝났다. 가져다 붙이면 소리가 난다.** 재생 코드는 발소리 · 메뉴 · 무기 · 주인공까지
 붙었고 나머지는 아직 없다.
@@ -129,7 +129,7 @@ IMPORTANT: `lever-locked` 은 **377ms 뒤에** 소리가 났다. 잠긴 레버�
 | `pipe-clank` | 갱도 배관. 인기척처럼 쓸 수 있다 |
 | `roof-snow-shift` | 지붕 눈이 무너져 내리는 소리. 놀래키는 용도 |
 
-### `Electrical/` — 전기 5 종
+### `Electrical/` — 전기 6 종
 
 정전과 복구가 이 무대의 두 축 중 하나라 따로 뒀다.
 
@@ -140,8 +140,9 @@ IMPORTANT: `lever-locked` 은 **377ms 뒤에** 소리가 났다. 잠긴 레버�
 | `power-down` | 정전되는 순간 |
 | `power-up` | 4 장 전력 복구. 조명이 켜지는 순간 |
 | `fluorescent-flicker` | 형광등이 들어오려다 마는 것 |
+| `beacon-strike` | 5 장 유도등이 켜지는 순간. 접점이 닫히고 램프가 점화된다 (2026-08-10) |
 
-### `Interaction/` — 상호작용 9 종
+### `Interaction/` — 상호작용 11 종
 
 `Assets/Game/Interaction/` 의 컴포넌트에 대응한다. **파일 이름이 컴포넌트
 이름과 맞다.**
@@ -157,6 +158,8 @@ IMPORTANT: `lever-locked` 은 **377ms 뒤에** 소리가 났다. 잠긴 레버�
 | `carriable-lift` | `Carriable` | 들었을 때 |
 | `carriable-drop` | `Carriable` | `Drop()` |
 | `interact-denied` | 공용 | 잠겨서 아무 일도 안 일어날 때 |
+| `fuel-pour` | `CarrySlot` | 6 장 권양기 투입구에 연료를 붓는다 (2026-08-10) |
+| `paper-handle` | `Readable` | 집어서 펼칠 때 (2026-08-10) |
 
 ### `Devices/` — 장치 14 종
 
@@ -172,6 +175,7 @@ IMPORTANT: `lever-locked` 은 **377ms 뒤에** 소리가 났다. 잠긴 레버�
 | | `avalanche-slide` | 사면이 무너진다. `avalanche-cannon` 뒤에 잇는다 |
 | `TimedDevice` | `device-start` | `Activate()` 직후 |
 | | `device-complete` | `Complete()`. 히터 · 환기 팬 · 예열 공용 |
+| | `device-stop` | `Deactivate()`. 모터가 잦아들고 접점이 떨어진다 (2026-08-10) |
 | | `ice-melt-crack` | 히터가 다 돌아 얼음이 깨질 때 |
 | | `generator-start` | 4 장 발전기 기동 |
 | | `generator-stop` | 발전기가 내려간다 (2026-08-09) |
@@ -184,6 +188,35 @@ IMPORTANT: `lever-locked` 은 **377ms 뒤에** 소리가 났다. 잠긴 레버�
 
 `TimedDevice` 는 `Started` 이벤트와 `Progress` 가 이미 있으므로 시작 · 완료
 두 지점에 그대로 걸면 된다.
+
+IMPORTANT: **`InstantDevice` 의 `deactivatedClip` 은 비워 둔다.** 그 클래스의
+`Deactivate()` 는 본문이 없다 — 셔터 · 인화 · 폭발 · 제설포는 되돌릴 수 없는
+장치라서 그렇게 만든 것이다. 채워 넣어도 영영 울리지 않는 데이터가 된다.
+`device-stop` 이 가는 곳은 `SustainedDevice` 와 `TimedDevice` 뿐이다.
+
+### 상호작용 소리 자리를 한 번에 훑는 법 (2026-08-10)
+
+씬마다 사람이 손으로 물리는 값이라 **빠진 것이 조용히 남는다.** 2026-08-10 에
+훑어보니 자리 92 개 중 **51 개가 비어 있었다** — Ch1 · Ch5 · Ch6 은 상호작용 소리가
+하나도 물려 있지 않았고, Ch2 · Ch4 는 일부만 있었다. 소리가 없는 것이 아니라
+**걸지 않은 것**이었으므로, 자산을 새로 만들 필요가 있었던 것은 넷뿐이다
+(`device-stop` · `fuel-pour` · `paper-handle` · `beacon-strike`).
+
+들여다볼 필드는 이것이 전부다. 씬을 열어 `SerializedObject` 로 비었는지만 본다.
+
+| 컴포넌트 | 필드 |
+| --- | --- |
+| `Lever` | `pullClip` · `lockedClip` |
+| `Pickup` | `takeClip` · `deniedClip` |
+| `Carriable` | `liftClip` · `dropClip` |
+| `CarrySlot` | `acceptClip` |
+| `Readable` | `readClip` |
+| `Device` 계열 | `activatedClip` · `deactivatedClip` · `startedClip` |
+
+IMPORTANT: **`EditorSceneManager.OpenScene` 은 저장 안 된 변경을 그냥 버린다.**
+여러 씬을 돌며 값을 채울 때 마지막에 한 번 `SaveOpenScenes()` 하면 **마지막 씬만
+남는다.** 실제로 Ch1 · Ch2 · Ch5 의 작업이 그렇게 사라졌고, 다시 훑어보고 나서야
+알았다. 다음 씬을 열기 **전에** 저장한다.
 
 IMPORTANT: **`generator-stop` 은 `Electrical/power-down` 과 다른 소리다.** 저쪽은
 건물의 조명과 팬이 죽는 소리이고 이쪽은 **기관이 멈추는** 소리다. 2.5 초 동안
