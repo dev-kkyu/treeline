@@ -147,6 +147,25 @@ if (surface.navMeshData != null && !AssetDatabase.Contains(surface.navMeshData) 
 `CreateAsset` 이 아니라 `CopySerialized` 인 이유는 **GUID 를 지키기 위해서**다. 새로
 만들면 씬의 참조가 바뀌어 diff 가 크게 나고, 남이 받을 때 충돌한다.
 
+IMPORTANT: **다시 구울 때마다 참조가 또 런타임 객체로 돌아간다.** 위 처리는 굽기
+직후 한 번이 아니라 **`BuildNavMesh()` 를 부른 모든 자리**에 붙어야 한다. 2026-08-09
+에 4장에서 밟았다 — 처음엔 제대로 뗐는데, 기하를 고치고 두 번 더 구우면서 참조가
+런타임 객체로 되돌아가 씬에 묻혔다. **첫 굽기만 보고 넘어가면 놓친다.**
+
+그리고 이렇게 묻힌 씬은 **git 이 두 번째로 망가뜨린다.** `.gitattributes` 가
+`*.unity` 를 텍스트로 못 박아 두었으므로(Force Text 라는 전제가 있으니 맞는 설정이다)
+바이너리가 된 씬에 체크아웃에서 CRLF 가 섞여 들어간다. 결과는 열리지도 않는 파일이고,
+콘솔에는 이것만 뜬다.
+
+```
+Invalid serialized file header. File: "Assets/Game/Levels/Ch4.unity".
+```
+
+**증상이 「씬이 안 열린다」로 오므로 NavMesh 를 의심하지 못한다.** 파일 앞부분이
+`%YAML` 로 시작하는지부터 본다. 아니면 원인은 여기다. 복구는 `git cat-file blob` 으로
+필터를 우회해 원본 바이너리를 되돌린 뒤, 위 `CopySerialized` 를 붙여 다시 저장하면
+된다. 그때 씬이 텍스트로 다시 써진다.
+
 ### 런타임에 막는 것은 굽기에서 뺀다
 
 IMPORTANT: **`NavMeshObstacle` 로 막을 물건은 구울 때 꺼야 한다.** 굽기가 렌더 메시를

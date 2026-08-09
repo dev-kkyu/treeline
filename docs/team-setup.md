@@ -13,6 +13,22 @@
 git pull --rebase --autostash
 ```
 
+### 2026-08-09 · `Ch4.unity` 가 한 번 깨진 채로 올라갔다 — 고쳤으니 받으면 된다 (A)
+
+`ef0c0dc` 에 올라간 `Ch4.unity` 는 **열리지 않는다.** 그 사이에 받았다면 콘솔에
+`Invalid serialized file header` 가 떴을 것이다. 다음 커밋에서 고쳤으므로 받기만
+하면 된다. 아무것도 안 해도 된다.
+
+원인은 NavMesh 였다. 구운 데이터가 에셋으로 안 떨어지고 씬에 묻혀 **씬 파일이
+바이너리가 됐고**, `.gitattributes` 가 `*.unity` 를 텍스트로 다루므로 체크아웃에서
+CRLF 가 섞여 파일이 깨졌다. 씬이 바이너리가 되는 것 자체는
+[`architecture.md`](tech-design/architecture.md) 가 이미 경고해 둔 것인데, **다시
+구울 때마다 참조가 런타임 객체로 되돌아간다**는 것을 놓쳤다. 거기에 그 내용을
+덧붙였다.
+
+**셋 다 해당하는 확인 하나.** 스크립트로 NavMesh 를 구웠다면 씬 파일 첫 줄이
+`%YAML 1.1` 인지 본다. 아니면 같은 상태다.
+
 ### 2026-08-09 · 4장 `Ch4.unity` 를 A 가 짓기 시작한다 (A)
 
 **`Assets/Game/Levels/Ch4.unity` 가 생긴다. 소유자는 A 다** — 씬은 한 사람만
