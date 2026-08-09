@@ -67,6 +67,17 @@ namespace Treeline
         private float visibleUntil = float.PositiveInfinity;
         private bool showingObjectives;
 
+        /// <summary>
+        /// 「CHAPTER 03  ·  연료 갱도」. 자료를 못 찾았으면 빈 문자열.
+        /// </summary>
+        /// <remarks>
+        /// 일시정지 화면이 지금 어느 장인지 보여주려고 읽는다. 같은 JSON 을 저쪽에서
+        /// 또 파싱하면 형식이 갈라질 뿐이라 이미 읽어 둔 것을 내준다.
+        /// </remarks>
+        public static string ChapterLabel => instance != null && instance.definition != null
+            ? $"{instance.definition.chapter}  ·  {instance.definition.title}"
+            : string.Empty;
+
         public static HudGuideText AttachTo(Transform hudRoot)
         {
             HudGuideText guide = hudRoot.GetComponent<HudGuideText>();

@@ -114,6 +114,26 @@ namespace Treeline
         }
 
         /// <summary>
+        /// 지금 장을 <b>처음부터</b> 다시 시작한다. 일시정지 화면의 「챕터 다시하기」가 부른다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="RestartChapter"/> 와 다르다. 죽어서 되살아나는 것은 체크포인트로
+        /// 돌아가는 게 맞지만, 스스로 「다시하기」를 고른 사람은 <b>막힌 상태에서
+        /// 벗어나려는 것</b>이다. 체크포인트로 되돌리면 막힌 그 자리로 다시 데려다
+        /// 놓게 되므로 자리와 장치 상태를 함께 버린다.
+        /// <para>
+        /// 소지품(<see cref="carried"/>)은 남긴다. 이 장에 들어설 때 들고 있던 것이고,
+        /// 그것까지 버리면 앞 장에서 아낀 배터리와 탄약이 사라져 다시하기가 벌이 된다.
+        /// </para>
+        /// </remarks>
+        public void RestartChapterFromStart()
+        {
+            hasCheckpoint = false;
+            chapterState = null;
+            LoadChapter(CurrentChapter);
+        }
+
+        /// <summary>
         /// 다시 시작할 위치를 갱신한다. <see cref="Checkpoint"/> 가 부른다.
         /// </summary>
         public void SetCheckpoint(Vector3 position, Quaternion rotation)

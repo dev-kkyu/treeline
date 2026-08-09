@@ -511,6 +511,11 @@ IMPORTANT: **재시작은 씬을 통째로 다시 읽는다.** `RestartChapter` 
 장이 바뀐다 → 둘 다 버린다
 ```
 
+죽어서 되살아나는 길과 **스스로 고른 다시하기**는 다르다. 일시정지의 「챕터
+다시하기」는 `RestartChapterFromStart` 로 가고, 체크포인트와 장치 상태를 버린 뒤
+장 처음으로 돌린다. 막혀서 다시 고르는 것인데 체크포인트로 되돌리면 막힌 그
+자리에 다시 데려다 놓기 때문이다. 소지품은 남긴다.
+
 - **되돌릴 때 소리와 이벤트를 내지 않는다.** `Device.Restore(bool)` 이
   `ApplyState(notify: false)` 로 간다. `Activate` 로 되돌리면 부활하자마자 차단기
   소리와 문 열리는 소리가 한꺼번에 울린다
@@ -1035,9 +1040,39 @@ IMPORTANT: **`Device.Awake` 가 시작 모습을 강제로 맞춘다.** `enables
 | 파일 | 하는 일 |
 | --- | --- |
 | `TitleScreen` | 타이틀. 시작 · 환경 설정 · 크레딧 세 쪽 |
-| `EndingScreen` | 엔딩. 「돌아가기」가 `GameFlow.ReturnToTitle()` 을 부른다 |
+| `PauseScreen` | 장 안에서 ESC. 재개 · 챕터 다시하기 · 환경 설정 |
+| `EndingScreen` | 엔딩. 다시 하기 · 환경 설정 · 타이틀로 |
+| `MenuChrome` | 위 셋이 쓰는 부품 틀. 패널 · 버튼 · 손잡이 · 글자 |
+| `MenuPager` | 한 패널 안에서 쪽을 갈아 끼운다 |
+| `SettingsPage` | 환경 설정 한 벌. 셋이 같은 것을 띄운다 |
 | `MenuButtonFeel` | 메뉴 버튼의 초점 반응. 표시선 · 글자 밀림 · 소리 |
+| `MenuTheme` | 그림 · 글꼴 · 소리 묶음. `Resources/Menu/` 에 있다 |
 | `ReadingPanel` | 읽을거리를 펼쳐 보여준다. `Readable` 이 부른다 |
+
+### 메뉴 화면 셋은 같은 부품을 쓴다
+
+타이틀 · 일시정지 · 엔딩은 같은 패널과 같은 버튼을 쓴다. 각자 짓게 두면 색과
+여백이 갈라지고 반응 하나를 고칠 때 세 파일을 고쳐야 한다. 화면마다 다른 것 —
+무슨 글이 어디 놓이는지 — 만 각 화면에 남긴다.
+
+IMPORTANT: 메뉴 연출은 전부 `Time.unscaledDeltaTime` 이다. 일시정지에서는
+`timeScale` 이 0 이라 보통 시간을 쓰면 쪽이 영영 안 넘어간다.
+
+`MenuTheme` 은 `Assets/Game/UI/Resources/Menu/MenuTheme.asset` 에 있다. 경로가
+코드에 박혀 있으니 옮기면 세 화면이 한꺼번에 민무늬가 된다. 이 에셋만
+`Resources/` 에 두면 **참조된 그림과 소리는 담당 폴더에 그대로 두고도** 빌드에
+들어간다 — 소리를 `Audio/` 밖으로 꺼내지 않아도 되는 이유다.
+
+### 일시정지는 씬에 두지 않는다
+
+`PauseScreen` 은 장이 열릴 때 스스로 생기고 씬과 함께 죽는다. 여섯 씬에 같은
+캔버스를 넣으면 버튼 하나 고칠 때 병합할 수 없는 파일을 여섯 개 건드린다.
+`GameFlow` · `ReadingPanel` 과 같은 판단이다.
+
+멈출 때는 `Time.timeScale` 만 0 으로 두지 않는다. 시점 회전은 마우스 델타라
+`deltaTime` 을 안 곱하므로 시간을 멈춰도 돈다. `PlayerLook` 과
+`PlayerInputReader` 를 함께 끄고, 끈 것만 되돌린다. 왜 그 둘인지와 ESC 를 어떻게
+받는지는 [`decisions.md`](decisions.md) 참고.
 
 ### 환경 설정 값은 `Shared/GameSettings` 하나가 든다
 
