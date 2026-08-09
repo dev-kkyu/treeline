@@ -227,6 +227,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Clinger_9
       objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4.2
@@ -1900,6 +1904,10 @@ PrefabInstance:
     - target: {fileID: 5188329450587727104, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_Name
       value: Clinger_7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4792,6 +4800,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Clinger_3
       objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.79999995
@@ -4853,6 +4865,10 @@ PrefabInstance:
     - target: {fileID: 5188329450587727104, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_Name
       value: Clinger_8
+      objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
@@ -5880,6 +5896,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Clinger_10
       objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.8
@@ -6720,6 +6740,10 @@ PrefabInstance:
     - target: {fileID: 5188329450587727104, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_Name
       value: Clinger_1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
@@ -11745,6 +11769,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Clinger_5
       objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1
@@ -12482,6 +12510,10 @@ PrefabInstance:
     - target: {fileID: 5188329450587727104, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_Name
       value: Clinger_4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
@@ -14508,6 +14540,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Clinger_6
       objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.1
@@ -15863,6 +15899,10 @@ PrefabInstance:
     - target: {fileID: 5188329450587727104, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_Name
       value: Clinger_0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x
@@ -19680,6 +19720,10 @@ PrefabInstance:
     - target: {fileID: 5188329450587727104, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_Name
       value: Clinger_2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5540604142059818684, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
+      propertyPath: surface
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7856992790118699374, guid: cdf5a990d68040a4e84a7dc0c5c87113, type: 3}
       propertyPath: m_LocalPosition.x

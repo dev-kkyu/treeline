@@ -30,6 +30,8 @@ namespace Treeline
         private float[] baseRate;
         private Light[] lamps;
         private float[] baseIntensity;
+        private AudioSource[] hisses;
+        private float[] baseVolume;
         private MaterialPropertyBlock block;
         private float applied = -1f;
 
@@ -51,6 +53,15 @@ namespace Treeline
             for (int i = 0; i < lamps.Length; i++)
             {
                 baseIntensity[i] = lamps[i].intensity;
+            }
+
+            // 새는 소리도 같이 옅어져야 한다. 보이는 것만 옅어지고 소리가 그대로면
+            // 팬을 다 돌린 뒤에도 방이 여전히 위험하게 들린다.
+            hisses = GetComponentsInChildren<AudioSource>(true);
+            baseVolume = new float[hisses.Length];
+            for (int i = 0; i < hisses.Length; i++)
+            {
+                baseVolume[i] = hisses[i].volume;
             }
 
             block = new MaterialPropertyBlock();
@@ -93,6 +104,11 @@ namespace Treeline
             for (int i = 0; i < lamps.Length; i++)
             {
                 lamps[i].intensity = baseIntensity[i] * left;
+            }
+
+            for (int i = 0; i < hisses.Length; i++)
+            {
+                hisses[i].volume = baseVolume[i] * left;
             }
         }
     }

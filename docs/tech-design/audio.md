@@ -208,20 +208,31 @@ IMPORTANT: **0 번이 없으면 규칙을 죽어보고 배운다.** 계기 색�
 보이지만 소리는 방에 들어서면 들린다. `explosion-ear-ring` 은 4 초로 뽑았지만
 **들리는 길이가 1.1 초**다 — 1.5 초를 넘으면 피크 대비 −54 dB 이하로 내려간다.
 
-**배선에는 새 코드가 필요 없다.** `HydrogenPocket` 이 `exploded` UnityEvent 를
-이미 내고, `AudioSource.PlayDelayed(float)` 는 **인자가 하나인 메서드라 UnityEvent 가
-값을 넣어 부를 수 있다.** 그래서 폭발 뒤 세 소리는 지연값만 다르게 걸면 된다.
+**2026-08-10 에 배선했고, 새 컴포넌트는 만들지 않았다.** `HydrogenPocket` 이
+`exploded` UnityEvent 를 이미 내고, `AudioSource.PlayDelayed(float)` 는 **인자가
+하나인 메서드라 UnityEvent 가 값을 넣어 부를 수 있다.** 그래서 폭발 뒤 세 소리는
+지연값만 다르게 걸면 끝난다.
 
-| 어디 | 무엇 | 지연 |
-| --- | --- | ---: |
-| `HydrogenHaze` 의 자식 | `hydrogen-hiss-loop` · loop · playOnAwake | — |
-| `exploded` → | `Snd_BatteryArc.PlayDelayed` | 0.15 s |
-| `exploded` → | `Snd_EarRing.PlayDelayed` | 0.20 s |
-| `exploded` → | `Snd_Debris.PlayDelayed` | 0.50 s |
+| 어디 | 무엇 | 지연 | 실측 |
+| --- | --- | ---: | ---: |
+| `HydrogenHaze/Snd_HydrogenHiss` | `hydrogen-hiss-loop` · loop · playOnAwake | — | 저절로 돈다 |
+| `exploded` → | `Snd_HydrogenBlast.Play` (기존) | 0 | 0.02 s |
+| `exploded` → | `Snd_BatteryArc.PlayDelayed` | 0.15 s | 0.18 s |
+| `exploded` → | `Snd_EarRing.PlayDelayed` | 0.20 s | 0.25 s |
+| `exploded` → | `Snd_Debris.PlayDelayed` | 0.50 s | 0.54 s |
 
-경고 루프를 **가스 안개(`HydrogenHaze`)의 자식**으로 두는 것이 요점이다. 그 오브젝트는
-환기 팬이 돌면 이미 꺼지므로, 「가스가 있는 동안만 들린다」를 코드 없이 얻는다.
-`HydrogenPocket.disables` 에 따로 넣을 필요도 없다.
+경고 루프를 **가스 안개(`HydrogenHaze`)의 자식**으로 둔 것이 요점이다. `Ignite()` 가
+끝에서 자기 오브젝트를 끄므로 폭발과 동시에 경고가 멈춘다 — `disables` 에 넣을
+필요도, 끄는 코드도 없다.
+
+IMPORTANT: **`PlayDelayed` 를 검증할 때 `isPlaying` 을 보면 안 된다.** 부른 즉시
+참이 되므로 네 소리가 전부 같은 프레임에 시작한 것처럼 보인다. 실제로 소리가 나기
+시작한 시점은 **재생 위치(`AudioSource.time`)가 0 을 벗어나는 순간**이다. 위 실측이
+그 값이고, 30~40 ms 는 프레임 표본 간격이다.
+
+가스가 옅어지면 **소리도 같이 옅어진다.** `GasVent` 가 이미 파티클과 조명을 팬의
+진행도로 줄이고 있었고, 같은 자리에서 자식 `AudioSource` 의 음량도 줄인다. 보이는
+것만 옅어지고 소리가 그대로면 팬을 다 돌린 뒤에도 방이 여전히 위험하게 들린다.
 
 #### 폭발 · 제설포 · 눈사태는 장치 기준보다 크다
 
@@ -1032,10 +1043,8 @@ python docs/sound/normalize.py --category Devices --only avalanche-cannon --appl
 
 - **재생 코드 대부분.** 붙은 것은 발소리 · 메뉴 클릭 · 무기 · 주인공 몸이고,
   앰비언스 · 건물 · 전기 · 장치 · 상호작용 · 음악은 아직 파일만 있다
-- **4 장 축전지실 폭발의 배선.** 소리 다섯은 다 있지만 Ch4 에 `InstantDevice` 가
-  아직 없다. 위 순서표대로 걸면 된다
-- **5 장 Clinger 인스턴스의 표면.** `ClingerAudio` 는 붙었고 프리팹 기본값이
-  `Concrete` 다. Ch5 의 인스턴스에서 `Snow` 로 덮어써야 한다
+- **`generator-stop` 을 걸 자리.** 파일은 있지만 Ch4 에 발전기를 멈추는 순간이
+  아직 없다. 연료가 끊기거나 사람이 세우는 규칙이 생기면 그때 건다
 **`bullet-impact-metal` 은 2026-08-09 에 붙었다.** 발사 레이캐스트가 `Default` 와
 `Enemy` 만 때리므로 레이어로는 벽과 철판이 구분되지 않는다. `WeaponAudio` 가
 **레이어 마스크를 먼저 보고, 비어 있으면 맞은 것의 이름 · 머티리얼 이름에 든
