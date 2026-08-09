@@ -2988,8 +2988,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.33321184, y: 0.22, z: 0.33339378}
-  m_Center: {x: 0, y: 0.102, z: 0}
+  m_Size: {x: 0.43102258, y: 0.308, z: 0.26817223}
+  m_Center: {x: 0, y: 0.11, z: 0}
 --- !u!1 &395322896
 GameObject:
   m_ObjectHideFlags: 0
@@ -11774,17 +11774,37 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 389771672}
     m_Modifications:
+    - target: {fileID: 907717988497320478, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
+      propertyPath: m_Size.x
+      value: 0.30787328
+      objectReference: {fileID: 0}
+    - target: {fileID: 907717988497320478, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
+      propertyPath: m_Size.y
+      value: 0.22
+      objectReference: {fileID: 0}
+    - target: {fileID: 907717988497320478, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
+      propertyPath: m_Size.z
+      value: 0.1915516
+      objectReference: {fileID: 0}
+    - target: {fileID: 907717988497320478, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
+      propertyPath: m_Center.y
+      value: 0.11
+      objectReference: {fileID: 0}
+    - target: {fileID: 2311554872267836052, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 4300000, guid: ef3f8502caa0ef240907d6451b0b6d20, type: 2}
     - target: {fileID: 3590327032069044842, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.34
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3590327032069044842, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.34
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3590327032069044842, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.34
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3590327032069044842, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
       propertyPath: m_LocalPosition.x
@@ -11838,6 +11858,10 @@ PrefabInstance:
       propertyPath: m_CastShadows
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7645939920616920218, guid: 880286e8481eb3c42b7ffd3efc229822, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 0814823ae29315145bd46fcad98e2dd7, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
