@@ -222,21 +222,26 @@ Unity 빌트인 `Player` 태그로 충분하다. 적은 `FindWithTag("Player")` 
 `EditorBuildSettings.asset` 도 셋이 다 건드린다. 씬을 추가하면 여기 등록해야
 한다. 샌드박스 씬은 빌드에 넣지 않는다.
 
-2026-08-08 에 넷을 등록했고 2026-08-09 에 `Ch4` 가 붙었다.
+2026-08-08 에 넷을 등록했고 2026-08-09 에 `Ch3`(B) · `Ch4`(A) 가 붙었다.
 
 | # | 씬 | `Chapters.Order` |
 | --- | --- | --- |
 | 0 | `Game/Levels/Title.unity` | 아니다 |
 | 1 | `Game/Levels/Ch1.unity` | 들어 있다 |
 | 2 | `Game/Levels/Ch2.unity` | 들어 있다 |
-| 3 | `Game/Levels/Ch4.unity` | **아직 아니다** |
-| 4 | `Game/Levels/Ch6.unity` | 들어 있다 |
-| 5 | `Game/Levels/Ending.unity` | 아니다 |
+| 3 | `Game/Levels/Ch3.unity` | **아직 아니다** |
+| 4 | `Game/Levels/Ch4.unity` | **아직 아니다** |
+| 5 | `Game/Levels/Ch6.unity` | 들어 있다 |
+| 6 | `Game/Levels/Ending.unity` | 아니다 |
 
 IMPORTANT: **빌드 목록에 있는 것과 `Chapters.Order` 에 있는 것은 다르다.** 짓는
 중인 장은 빌드 목록에만 올린다 — 그래야 이름으로 열어 확인할 수 있으면서 관통은
 안 건드린다. `Order` 에 먼저 끼우면 앞 장의 출구가 미완성 장으로 이어져 **지금
-되는 관통이 끊긴다.** `Ch4` 가 그 상태다. 이어지면 그때 `Order` 를 고친다.
+되는 관통이 끊긴다.** `Ch3` 와 `Ch4` 가 그 상태다. 이어지면 그때 `Order` 를 고친다.
+
+IMPORTANT: **이 파일은 셋이 동시에 건드린다.** 3장과 4장이 같은 날 각자 등록하다
+충돌이 났다. 붙일 때는 **빌드 목록만 상대 것을 통째로 받고 자기 씬을 에디터에서
+다시 등록한다** — YAML 을 손으로 합치지 않는다.
 
 `Title` 이 맨 앞이어야 게임이 거기서 시작한다. 순서가 바뀌면 빌드가 엉뚱한 씬으로
 열린다. `Title` 과 `Ending` 은 `Chapters.Order` 에 넣지 않는다 — 장이 아니라서
