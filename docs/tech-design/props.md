@@ -1759,6 +1759,11 @@ UV 가 어긋난 채 남는다. 이름을 지키는 것이 교체의 핵심이�
 
 ### 아직 배치 안 한 11 종 — 할 일
 
+IMPORTANT: 그중 **5장 것 넷**(`TowerSection` · `BeaconLight` · `SnowBlower` ·
+`AvalancheCannon`)의 치수 · 피벗과 5장을 지을 때의 함정은
+[`chapter-atmosphere.md`](chapter-atmosphere.md) 「5장을 지을 때」에 모아 두었다.
+
+
 레벨이 없거나 아직 손이 안 간 자리다. **에셋은 들어와 있으므로 배치만 하면 된다.**
 
 | 소품 | 어디에 | 왜 아직인가 |
