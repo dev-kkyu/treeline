@@ -102,8 +102,22 @@ GRIPS = [
      BORE, Vector((1, 0, 0)), ("W_Shotgun",), {"Index": 8.0}),
     ("PistolSupport", "L", "WeaponRoot", HOLD, (0, 0, 0), (0.030, -0.014, -0.040),
      BORE, Vector((-1, 0, 0)), ("W_Pistol", "W_Slide", "HandR"), {}),
-    ("PumpHold", "L", "WeaponRoot", Vector((0.10, 0.11, -0.31)), (0, 0, 0),
-     (0, -0.460, 0.012), Vector((-1, 0, 0)), Vector((0, 0, 1)), ("W_Pump",), {}),
+    # Middle of the pump sleeve, and it stays there. Sliding the grip back to the
+    # rear of the sleeve to bend the left elbow more was tried: with the 70 mm
+    # stroke on top of it the hand ended up against the chest at the back of the
+    # cycle and the wrist read 112. The left arm is straight here because the
+    # shotgun is long for these arms - see 07-shotgun.md - not because the grip
+    # is in the wrong place.
+    # On the Pump bone, not on WeaponRoot. Two things follow from that. The hand
+    # tracks the sleeve through its whole stroke for free, the way MagHold
+    # tracks the magazine - the clips were passing the travel in as a world
+    # offset instead. And grip_around orbits the *pump's* axis rather than the
+    # weapon's: measured, the sleeve runs along z +0.035 with a 27 mm radius,
+    # while the old grip point orbited a 12 mm circle about z 0, which is
+    # 62 mm under the sleeve. The hand never touched it and the solver reported
+    # the ring and little fingers 30 and 55 mm short.
+    ("PumpHold", "L", "Pump", Vector((0.10, 0.11, -0.31)), (0, 0, 0),
+     (0, -0.113, -0.027), Vector((-1, 0, 0)), Vector((0, 0, 1)), ("W_Pump",), {}),
     # magazine and shell are held away from the gun, the way they are during a
     # reload. Solving them seated in the weapon would close the left hand on the
     # gun instead of on the thing it is carrying.
@@ -320,21 +334,25 @@ def close_digit(side, digit, trees, tip_verts):
 
 
 def palm_depth(side):
-    """Bone to glove surface on the palm side, measured not guessed.
+    """Web bone to glove surface on the palm side, measured not guessed.
 
-    This is also the stand-off: the grip point is where the *skin* of the web
-    goes, and the bone the hand is placed by runs up the middle of a 15 mm
-    glove. Putting the bone on the surface buries the whole palm.
+    This is the stand-off, and it has to be measured from the **web**, because
+    the web is the point a grip is placed by. Measuring it from the middle of
+    the Hand bone - which is what this did first - answers a different question:
+    the two are not the same height, and the difference showed up as the left
+    hand hovering 40 mm off the shotgun pump with only the index finger near it.
+
+    Palm proper, near the web. The whole palm's deepest point is the heel, which
+    is not what touches when the web is on the grip, and including the thumb
+    measures its droop and answers 46 mm - that floated the hand off entirely.
     """
-    b = arm.data.bones["Hand." + side]
-    mid = (b.head_local + b.tail_local) * 0.5
-    # palm proper only: the knuckle row plus what little the Hand group owns.
-    # Including the thumb and the fingertips measured the thumb's droop instead
-    # and answered 46 mm, which floated the whole hand off the grip.
+    web = (arm.data.bones["Thumb1." + side].head_local
+           + arm.data.bones["Index1." + side].head_local) * 0.5
     pts = deformed(PALM_VERTS[side]
                    + [i for d in ("Index", "Middle", "Ring", "Little")
                       for i in group_verts(("%s1.%s" % (d, side),))])
-    return max(mid.z - p.z for p in pts)
+    near = [p for p in pts if (p - web).xy.length < 0.035]
+    return max(web.z - p.z for p in (near or pts))
 
 
 def wrist_bend(side):

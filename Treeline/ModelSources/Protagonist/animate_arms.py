@@ -25,6 +25,7 @@ from mathutils import Vector, Matrix, Quaternion
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hand_poses as HP
+import build_arms as BA          # for leave_openable only
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT_BLEND = os.path.join(HERE, "Protagonist_Arms_Anim.blend")
@@ -300,8 +301,11 @@ def set_hand(side, grip_world, forward, palm, twist=None, span=180.0):
     step = 5.0
     best = min([lo + i * step for i in range(int((hi - lo) / step) + 1)], key=score)
     best = min([best + i for i in range(-4, 5)], key=score)
-    _apply_hand(side, grip_world, fwd, pal, best)
-    return best
+    want = _apply_hand(side, grip_world, fwd, pal, best)
+    # how far short of the target the arm stopped. The IK target is not a
+    # promise - past full stretch the hand simply does not arrive - so anything
+    # choosing between hand placements has to be told.
+    return best, (arm.pose.bones["Hand." + side].head - want).length
 
 
 
@@ -376,7 +380,7 @@ def barrel():
     return (pb.tail - pb.head).normalized()
 
 
-def grip_around(pose, drift=None, prefer=None):
+def grip_around(pose, drift=None, prefer=None, theta=None):
     """Grip a cylinder, choosing where around it the hand sits.
 
     For a shell or a pump the free parameter is not the twist about the palm
@@ -415,13 +419,31 @@ def grip_around(pose, drift=None, prefer=None):
             s -= 300.0 * (arm.pose.bones["Hand." + side].head - t).dot(prefer)
         return s
 
-    best = min(range(-180, 181, 10), key=score)
-    best = min([best + i * 2 for i in range(-5, 6)], key=score)
-    t, fw, pw = frame(best)
-    set_hand(side, t, fw, pw, twist, span=20.0)
-    set_fingers(side, pose)
-    fit_elbow(side)
-    return best
+    def settle(theta):
+        t, fw, pw = frame(theta)
+        _, miss = set_hand(side, t, fw, pw, twist, span=20.0)
+        set_fingers(side, pose)
+        fit_elbow(side)
+        # reach first: a hand that did not get to the pump is worse than any
+        # wrist angle, and pose_violation cannot see it - it only knows about
+        # the arm, not about what the arm was asked to hold
+        return (pose_violation(side) + miss / MISS_NORM, wrist_bend(side))
+
+    # Two passes, because the wrist alone does not see the pronation and this
+    # angle sets it: which side of the pump the hand comes round decides how far
+    # the forearm has to turn, and the cheapest wrist was leaving it at 94
+    # degrees with no elbow angle able to buy it back. The wrist-only sweep is
+    # kept as the shortlist - it is 40 times cheaper than fitting an elbow - and
+    # the shortlist is then judged on the arm it actually produces.
+    # `theta` pins the answer instead of searching it. A hand does not slide
+    # round the sleeve while the action is worked, and re-solving every frame
+    # moved it 7 mm one frame and 14 the next.
+    if theta is None:
+        coarse = sorted(range(-180, 181, 10), key=score)[:5]
+        theta = min(coarse, key=settle)
+        theta = min([theta + i * 3 for i in range(-3, 4)], key=settle)
+    settle(theta)
+    return theta
 
 
 def free_hand(side, pos, fwd, palm, pose):
@@ -433,11 +455,59 @@ def free_hand(side, pos, fwd, palm, pose):
     fit_elbow(side)
 
 
-ROLL_PENALTY = 4.0
+# Everything the elbow has to respect, with the size of "too far" for each. They
+# are all limits, none of them is a goal, and that is the whole design: an elbow
+# angle is judged by how far it breaks a limit as a *fraction* of that limit, so
+# nothing trades against anything until something is actually broken. Weighted
+# sums were tried three times and each time whichever term had the steepest
+# gradient took the whole budget - the roll went to zero and the wrist paid 89
+# degrees, then the elbow dropped and the wrist paid 97.
+ROLL_LIMIT_NORM = ROLL_LIMIT          # pronation, degrees
+ELBOW_DROP = 0.12                     # metres the elbow hangs below the shoulder
+DROP_NORM = 0.30
+# The camera is inside the head, so an arm segment passing near the origin is an
+# arm through the skull. The left upper arm was ending up 3 mm from it during the
+# pump cycle - the near plane hides that in the viewmodel, but it is the same
+# wrong pose and it shows anywhere else.
+HEAD_CLEAR = 0.16
+# The elbow must stay behind the hand or the forearm swings round in front of
+# the eye and the frame is a sleeve.
+AHEAD_NORM = 0.05
+# Neighbouring frames must not pick opposite branches. Several elbow angles can
+# be equally acceptable and 100 degrees apart, so a frame flips and the two keys
+# either side interpolate the elbow straight through the chest.
+CONTINUITY = 0.2
+# How far short of a grip counts as a whole limit broken. The IK stops where the
+# arm runs out, so this is the one condition the arm itself cannot report.
+MISS_NORM = 0.002
+_last_elbow = {}
 
 
-def fit_elbow(side, span=170, step=10):
-    """Swing the elbow round the shoulder-wrist axis until the arm sits straight.
+def _seg_dist(a, b):
+    """Distance from the camera at the origin to the segment ab."""
+    d = b - a
+    n = d.length_squared
+    if n < 1e-9:
+        return a.length
+    t = max(0.0, min(1.0, -a.dot(d) / n))
+    return (a + d * t).length
+
+
+def pose_violation(side):
+    """How far this arm breaks its limits, each as a fraction of its own."""
+    sh = arm.pose.bones["UpperArm." + side].head
+    el = arm.pose.bones["LowerArm." + side].head
+    hd = arm.pose.bones["Hand." + side].head
+    clear = min(_seg_dist(sh, el), _seg_dist(el, hd))
+    return round(max(0.0, wrist_bend(side) - WRIST_LIMIT) / WRIST_LIMIT
+                 + max(0.0, forearm_roll(side) - ROLL_LIMIT) / ROLL_LIMIT_NORM
+                 + max(0.0, (el.z - sh.z) + ELBOW_DROP) / DROP_NORM
+                 + max(0.0, HEAD_CLEAR - clear) / HEAD_CLEAR
+                 + max(0.0, hd.y - el.y) / AHEAD_NORM, 4)
+
+
+def fit_elbow(side, span=170, step=5):
+    """Swing the elbow round the shoulder-wrist axis until the arm sits right.
 
     The elbow was pinned, so every degree the grip asked of the arm had to come
     out of the wrist. It is a free degree of freedom: the hand stays exactly
@@ -445,18 +515,27 @@ def fit_elbow(side, span=170, step=10):
     rotates under it. The reference photograph has the forearm continuing the
     line of the grip - that is this, not a different hand pose.
 
-    It scores the roll as well as the bend, and that is not a refinement - the
-    first version scored only the bend and left the pistol grip at 21 degrees of
-    bend with the hand turned 102 degrees about the forearm. That is the same
-    free parameter paying for one thing and not the other: swinging the elbow
-    changes both at once, so both have to be in the score.
+    Three things are conditions and one is the goal, and mixing them up is what
+    every earlier version of this function did:
 
-    Roll is a ceiling, not a term. Swinging the elbow turns the forearm almost
-    one for one and moves the wrist bend maybe half as fast, so any weighted sum
-    just drives the roll to zero and pays whatever the wrist costs - measured,
-    that was 89 degrees of wrist to save 43 of roll. What a forearm actually has
-    is a pronation budget, so the search spends up to ROLL_LIMIT of it freely and
-    is charged steeply past that.
+      pronation   the forearm turns almost one for one with this swing while the
+                  wrist bend moves half as fast, so any weighted sum drives the
+                  roll to zero and lets the wrist pay - measured, 89 degrees of
+                  wrist to save 43 of roll. A forearm has a pronation budget
+                  (ROLL_LIMIT), not a pronation objective.
+      elbow down  a shooting stance has both elbows below the shoulder. Nothing
+                  in the wrist or the roll says so, and the search was laying
+                  the whole upper arm out sideways - the right elbow 16 mm under
+                  the shoulder and 315 mm outboard of it.
+      elbow back  it must also stay behind the hand, or the forearm swings round
+                  in front of the eye and the frame is a sleeve.
+      wrist       what is left over is spent here, and only here.
+
+    So: gate, then minimise. Weighting these against each other cannot work -
+    they are not the same kind of quantity, and whichever one has the steepest
+    gradient wins regardless of which one matters. The weighted sum survives
+    only as the fallback for when nothing passes, where it decides which
+    condition to break least.
     """
     sh = arm.pose.bones["UpperArm." + side].head.copy()
     wr = arm.pose.bones["Hand." + side].head.copy()
@@ -466,23 +545,24 @@ def fit_elbow(side, span=170, step=10):
     axis = axis.normalized()
     base = POLE[side]
 
-    def score(a):
+    def measure(a):
         p = sh + Matrix.Rotation(math.radians(a), 3, axis) @ (base - sh)
         wloc("CTRL_ElbowPole." + side, p - rest_head("CTRL_ElbowPole." + side))
         bpy.context.view_layer.update()
-        # the elbow has to stay behind the hand. Nothing in the wrist or the
-        # roll cares which way the forearm points, so the search was free to
-        # swing it round in front of the eye - the slide-rack frame came out as
-        # one forearm filling the shot with the pistol behind it.
-        ahead = max(0.0, arm.pose.bones["Hand." + side].head.y
-                    - arm.pose.bones["LowerArm." + side].head.y)
-        return (wrist_bend(side)
-                + ROLL_PENALTY * max(0.0, forearm_roll(side) - ROLL_LIMIT)
-                + 300.0 * ahead)
+        return (a, pose_violation(side), wrist_bend(side))
 
-    best = min(range(-span, span + 1, step), key=score)
-    best = min([best + i * 2 for i in range(-5, 6)], key=score)
-    score(best)
+    last = _last_elbow.get(side)
+
+    def rank(r):
+        c = r[2]
+        if last is not None:
+            c += CONTINUITY * abs(r[0] - last)
+        return (r[1], c)
+
+    rows = [measure(a) for a in range(-span, span + 1, step)]
+    best = min(rows, key=rank)[0]
+    measure(best)
+    _last_elbow[side] = best
     return best
 
 
@@ -563,8 +643,15 @@ def build_pistol_reload():
     what lets either end match PistolIdle exactly.
     """
     _last_quat.clear()
+    _last_elbow.clear()
     act = new_action("Arms_PistolReload")
     L = PISTOL_IDLE
+    # 09-weapons.md read 8 mm off the frame's horizontal seam, which is the
+    # visible join, not the stroke. A slide has to travel past the magazine to
+    # pick a round up, and at 8 mm the rack read as a twitch. 40 mm was tried
+    # and is too far for this model: its frame tang ends only 5 mm behind the
+    # slide, so the slide hung 35 mm out the back of the gun.
+    SLIDE_TRAVEL = 0.025
 
     def gun(f, lift=0.0, roll=0.0, inboard=0.0, pitch=0.0, push=0.0):
         # inboard is towards the body's midline, and the gun is at negative x
@@ -644,7 +731,7 @@ def build_pistol_reload():
             back = (f - 45) / 2.0            # pulled back
         else:
             back = max(0.0, 1.0 - (f - 47) / 1.5)   # released, runs forward
-        set_part("Slide", (0, 0.008 * back, 0))
+        set_part("Slide", (0, SLIDE_TRAVEL * back, 0))
         grip("PistolGrip", span=0.0)
         # around the slide, not about the palm: an overhand slide grip can sit
         # anywhere on the circle round it, and the library solved only one of
@@ -654,12 +741,16 @@ def build_pistol_reload():
         grip_around("SlidePinch", prefer=Vector((-0.4, -0.5, 0.75)).normalized())
         key(f)
 
-    # 52 - hand back towards the support grip
-    gun(52, lift=0.01, roll=4, inboard=0.01, push=0.02)
-    set_part("Slide", (0, 0, 0))
-    grip("PistolGrip", span=0.0)
-    grip("PistolSupport")
-    key(52)
+    # 51..53 - hand back towards the support grip, every frame. The gun is
+    # coming down out of the rack pose and the left hand is coming off the
+    # slide, which is exactly the kind of stretch two keys get wrong.
+    for f in range(51, 54):
+        v = (53 - f) / 2.0
+        gun(f, lift=0.01 * v, roll=4 * v, inboard=0.01 * v, push=0.02 * v)
+        set_part("Slide", (0, 0, 0))
+        grip("PistolGrip", span=0.0)
+        grip("PistolSupport")
+        key(f)
 
     # 54 - exactly the idle pose again. ReloadComplete.
     reset_pose()
@@ -670,13 +761,13 @@ def build_pistol_reload():
     return act
 
 
-def shotgun_idle():
+def shotgun_idle(theta=None):
     set_weapon(**SHOTGUN_IDLE)
     set_part("Pump", (0, 0, 0))
     set_part("Shell", (0, 0, 0))
     poles()
     grip("ShotgunGrip", span=0.0)
-    grip_around("PumpHold")
+    return grip_around("PumpHold", theta=theta)
 
 
 def build_shotgun_reload():
@@ -689,6 +780,7 @@ def build_shotgun_reload():
     idle without working the action leaves it looking loaded when it is not.
     """
     _last_quat.clear()
+    _last_elbow.clear()
     act = new_action("Arms_ShotgunReload")
     S = SHOTGUN_IDLE
 
@@ -710,9 +802,8 @@ def build_shotgun_reload():
     # further out and 60 mm up brings the whole gun into frame and costs 47
     # degrees of wrist instead of the 113 that rolling alone did.
     PUSH_OUT, LIFT_OUT, IN_OUT = 0.16, 0.06, 0.03
-    # The Shell bone already rests at the port - 09-weapons.md puts it there -
-    # so the offset from it is zero. It was being added on top of the bone's own
-    # rest offset, which put the target 55 mm below the receiver.
+    # The Shell bone rests in the loading port - build_arms.py measured it onto
+    # the receiver floor - so the offset from it is zero.
     PORT = Vector((0, 0, 0))
     POUCH = Vector((0.20, -0.16, -0.50))
 
@@ -727,8 +818,12 @@ def build_shotgun_reload():
     pouch_hand = POUCH + Vector((0, 0.04, 0.06))
     for f in range(2, 13):
         u = (f - 1) / 11.0
-        gun(roll=ROLL_OUT * u, lift=LIFT_OUT * u, inboard=IN_OUT * u,
-            push=PUSH_OUT * u)
+        # the gun does not start moving until the left hand is off it. Ramping
+        # both together pulled the pump away from a hand that was still holding
+        # it, and the left elbow came up 103 mm above the shoulder chasing it.
+        w = max(0.0, (u - 0.35) / 0.65)
+        gun(roll=ROLL_OUT * w, lift=LIFT_OUT * w, inboard=IN_OUT * w,
+            push=PUSH_OUT * w)
         set_part("Shell", (0, 0, 0))
         grip("ShotgunGrip", span=0.0)
         if u < 0.35:
@@ -774,9 +869,19 @@ def build_shotgun_reload():
                 gun(roll=ROLL_OUT * (1 - v), lift=LIFT_OUT * (1 - v),
                     inboard=IN_OUT * (1 - v), push=PUSH_OUT * (1 - v))
                 grip("ShotgunGrip", span=0.0)
-                free_hand("L", here.lerp(pump_home, v),
-                          Vector((0, -0.5, -0.87)), Vector((-1, 0, 0)),
-                          "Hand_Relax")
+                if v < 0.95:
+                    free_hand("L", here.lerp(pump_home, v),
+                              Vector((0, -0.5, -0.87)), Vector((-1, 0, 0)),
+                              "Hand_Relax")
+                else:
+                    # on the pump for the last frame of the run rather than
+                    # arriving at f68 out of nowhere. A free hand and a grip pick
+                    # different elbows, and the jump between them left one frame
+                    # with the left elbow up at shoulder height. Only the last
+                    # frame: earlier than that the gun is still out at the reload
+                    # position and gripping the pump there raises the elbow for
+                    # the same reason.
+                    grip_around("PumpHold")
                 key(f)
         else:
             free_hand("L", back, Vector((0, -0.5, -0.87)),
@@ -788,7 +893,7 @@ def build_shotgun_reload():
     place_part("Shell", OFFSCREEN)
     gun()
     grip("ShotgunGrip", span=0.0)
-    grip_around("PumpHold")
+    theta = grip_around("PumpHold")
     key(68)
 
     # 69..76 - work the action. Back over four frames, forward over four; the
@@ -799,8 +904,16 @@ def build_shotgun_reload():
         off = Vector((0, 0.070 * u, 0))
         set_part("Pump", off)
         grip("ShotgunGrip", span=0.0)
-        grip_around("PumpHold", drift=delta("WeaponRoot").to_3x3() @ off)
+        grip_around("PumpHold", theta=theta)
         key(f)
+
+    # 77 - keyed too, so the action closing and the return to idle do not get
+    # one interpolated frame between them. That frame read 89 degrees of
+    # pronation with 70 at the keys on either side.
+    gun()
+    grip("ShotgunGrip", span=0.0)
+    grip_around("PumpHold", theta=theta)
+    key(77)
 
     # 78 - idle again. ReloadComplete.
     reset_pose()
@@ -821,41 +934,56 @@ def build_shotgun_firepump():
     as a drift is the cheap way and keeps the pose library untouched.
     """
     _last_quat.clear()
+    _last_elbow.clear()
     act = new_action("Arms_ShotgunFirePump")
     S = SHOTGUN_IDLE
     TRAVEL = 0.070          # 09-weapons.md
 
-    def gun(roll=0.0, lift=0.0, pitch=0.0, inboard=0.0):
+    def gun(roll=0.0, lift=0.0, pitch=0.0, inboard=0.0, push=0.0):
         m = S["muzzle"].copy()
         m.z += pitch
-        set_weapon(S["loc"] + Vector((inboard, 0, lift)), m, S["roll"] + roll)
+        set_weapon(S["loc"] + Vector((inboard, -push, lift)), m, S["roll"] + roll)
 
     def hands(pump_u):
         off = Vector((0, TRAVEL * pump_u, 0))
         set_part("Pump", off)
         grip("ShotgunGrip", span=0.0)
-        # same offset in the weapon's frame, so the hand stays on the sleeve.
-        # Around the barrel axis, not about the palm: the pump is a cylinder and
-        # that is where its free angle lives.
-        grip_around("PumpHold", drift=delta("WeaponRoot").to_3x3() @ off)
+        # the hand does not travel round the sleeve while the action is worked
+        # PumpHold hangs off the Pump bone, so the hand rides the sleeve without
+        # the travel being passed in. Around the barrel axis, not about the
+        # palm: the pump is a cylinder and that is where its free angle lives.
+        grip_around("PumpHold", theta=theta[0])
 
     reset_pose()
-    shotgun_idle()
+    theta = [shotgun_idle()]
     key(1)
 
-    # 3 - recoil. 07-shotgun.md gives the camera 3.4 deg and asks the arms for
-    # 45% of it, since PlayerLook is already kicking the view.
-    gun(pitch=0.11, lift=0.010, inboard=-0.012)
-    hands(0.0)
-    key(3)
+    # 07-shotgun.md gives the camera 3.4 deg of recoil and asks the arms for 45%
+    # of it, since PlayerLook is already kicking the view. That is the beat at
+    # frame 3 in the table below.
 
-    for f, (pitch, lift, u) in ((6, (0.05, 0.005, 0.0)),
-                                (10, (0.0, 0.0, 0.0)),
-                                (15, (0.0, 0.0, 1.0)),
-                                (18, (0.0, 0.0, 1.0)),
-                                (23, (0.0, 0.0, 0.0)),
-                                (26, (0.0, 0.0, 0.0))):
-        gun(pitch=pitch, lift=lift)
+    # Every frame from here, not just the beats. The pump stroke moves the left
+    # hand 70 mm and turns it a long way doing it, and two keys across that left
+    # the forearm 114 degrees pronated in the middle of a stroke that measured
+    # under 70 at both ends. Interpolating an elbow is not the same as fitting
+    # one.
+    # Recoil at 1.5x what 07-shotgun.md's "45% of the camera's 3.4 degrees"
+    # worked out to. That share was picked before either kick existed; with both
+    # of them running the arms were the quiet one.
+    BEATS = [(1, 0.0, 0.0, 0.0), (3, 0.165, 0.015, 0.0), (6, 0.075, 0.008, 0.0),
+             (10, 0.0, 0.0, 0.0), (15, 0.0, 0.0, 1.0), (18, 0.0, 0.0, 1.0),
+             (23, 0.0, 0.0, 0.0), (26, 0.0, 0.0, 0.0), (30, 0.0, 0.0, 0.0)]
+    for f in range(2, 30):
+        for a, b in zip(BEATS, BEATS[1:]):
+            if a[0] <= f <= b[0]:
+                t = (f - a[0]) / float(b[0] - a[0])
+                pitch, lift, u = (a[i] + (b[i] - a[i]) * t for i in (1, 2, 3))
+                break
+        # the gun goes out as the pump comes back. A real pump stays put and the
+        # hand travels, but the hand travelling 70 mm towards a shoulder that is
+        # already at the limit of its reach ran the left elbow up above it - and
+        # a shooter does push the gun out against the stroke.
+        gun(pitch=pitch, lift=lift, push=0.05 * u)
         hands(u)
         key(f)
 
@@ -1071,11 +1199,10 @@ def main():
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # leave the file openable: the strips above hide whichever weapon they are
-    # not shooting, and saving straight after them ships a blend where half the
-    # meshes never render.
-    for ob in bpy.data.objects:
-        if ob.type == 'MESH':
-            ob.hide_render = False
+    # not shooting and leave the scene on Workbench, so saving straight after
+    # them ships a blend where half the meshes never render and the rest look
+    # untextured.
+    BA.leave_openable()
     arm.animation_data.action = pistol
     sc.frame_start, sc.frame_end, sc.frame_current = 1, 54, 1
     bpy.ops.wm.save_as_mainfile(filepath=OUT_BLEND)

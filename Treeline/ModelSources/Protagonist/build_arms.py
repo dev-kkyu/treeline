@@ -74,7 +74,12 @@ WEAPON_BONES = [
     ("Slide",      (0, 0.008, 0.039), (0, -0.177, 0.039), "WeaponRoot"),
     ("Magazine",   (0, -0.020, -0.083), (0, -0.020, 0.022), "WeaponRoot"),
     ("Pump",       (0, -0.347, 0.035), (0, -0.572, 0.035), "WeaponRoot"),
-    ("Shell",      (0, -0.020, -0.055), (0, -0.088, -0.055), "WeaponRoot"),
+    # In the loading port, which is the floor of the receiver just ahead of the
+    # trigger guard: the guard hangs to z -0.024 between y -0.08 and -0.14, and
+    # the receiver floor is the full-width flat at z +0.023 from y -0.16 on.
+    # This bone used to sit at (0, -0.020, -0.055) - under the trigger guard,
+    # in mid-air - so the reload thumbed shells in beside the trigger.
+    ("Shell",      (0, -0.175, 0.015), (0, -0.243, 0.015), "WeaponRoot"),
 ]
 
 # object in Weapons.blend -> (bone it rides, where its own origin goes)
@@ -85,7 +90,7 @@ WEAPON_MESHES = [
     ("Shotgun",   "WeaponRoot", (0, 0, 0),             "M_Shotgun"),
     ("Pump",      "Pump",       (0, 0, 0),             "M_Shotgun"),
     ("TubeFill",  "WeaponRoot", (0, 0, 0),             "M_TubeFill"),
-    ("Shell",     "Shell",      (0, -0.020, -0.055),   "M_Shell"),
+    ("Shell",     "Shell",      (0, -0.175, 0.015),    "M_Shell"),
 ]
 
 FINGER_NAMES = ["%s%d" % (f, i) for f, _, _ in B.FINGERS for i in (1, 2, 3)]
@@ -374,6 +379,30 @@ def tri_count(ob):
     return sum(len(p.vertices) - 2 for p in ob.data.polygons)
 
 
+def leave_openable():
+    """Save the file the way someone opening it expects to find it.
+
+    A headless build inherits the startup file's viewport, which is Solid, and
+    whatever render engine the script last used - Workbench, for the frame
+    strips. Opened by hand that reads as a model with no textures on it, even
+    though every image is packed and every material is wired.
+    """
+    sc = bpy.context.scene
+    engines = sc.render.bl_rna.properties["engine"].enum_items.keys()
+    for name in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES"):
+        if name in engines:
+            sc.render.engine = name
+            break
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            for space in area.spaces:
+                if space.type == 'VIEW_3D':
+                    space.shading.type = 'MATERIAL'
+    for ob in bpy.data.objects:
+        if ob.type == 'MESH':
+            ob.hide_render = False
+
+
 # ------------------------------------------------------------------ armature
 
 def arms_bone_table():
@@ -596,6 +625,7 @@ def main():
     total = tri_count(arms) + sum(tri_count(p) for p in parts)
     print("TRIS   arms %d, weapons %d, total %d  (02-spec budget: arms 6500/8000)"
           % (tri_count(arms), total - tri_count(arms), total))
+    leave_openable()
     bpy.ops.wm.save_as_mainfile(filepath=OUT_BLEND)
     print("SAVED", OUT_BLEND)
 
