@@ -97,6 +97,24 @@ namespace Treeline
         [Tooltip("착탄 섬광의 최대 세기.")]
         [SerializeField] private float impactPeak = 70f;
 
+        /// <remarks>
+        /// IMPORTANT: <b>광원은 안개를 못 뚫는다.</b> 시야가 17m 인 이 장에서 점광원은
+        /// 제 자리만 밝히고 멀리서는 사라진다. 유도등에서 쓴 것과 같은 방법으로,
+        /// 가산 합성 카드를 빛과 <b>같이</b> 세워 안개 위에 얹는다. 카드는 커졌다
+        /// 작아지며 사라진다 — 알파를 만지는 대신 크기를 0 으로 되돌리면 재질을
+        /// 건드리지 않고도 깔끔하게 꺼진다.
+        /// </remarks>
+        [Tooltip("포구에 겹치는 발광 카드. 빛만으로는 안개를 못 뚫는다.")]
+        [SerializeField] private Transform muzzleGlow;
+
+        [Tooltip("착탄 자리에 겹치는 발광 카드.")]
+        [SerializeField] private Transform impactGlow;
+
+        [Tooltip("발광 카드가 부풀어 오르는 크기(m).")]
+        [SerializeField] private float muzzleGlowScale = 3.2f;
+
+        [SerializeField] private float impactGlowScale = 9f;
+
         [Tooltip("무너지는 동안 깔리는 눈보라. 알아서 켜고 끈다.")]
         [SerializeField] private ParticleSystem slideDust;
 
@@ -106,6 +124,13 @@ namespace Treeline
         [SerializeField] private AudioSource impactSource;
         [SerializeField] private AudioClip impactClip;
         [SerializeField] private AudioClip slideClip;
+
+        [Tooltip("각각의 크기. 1 을 넘겨도 된다 — 제설포는 이 장에서 제일 큰 소리다.")]
+        [SerializeField] private float fireVolume = 1f;
+
+        [SerializeField] private float impactVolume = 1f;
+
+        [SerializeField] private float slideVolume = 0.9f;
 
         [Header("끝나고")]
         [Tooltip("눈이 다 무너진 뒤. 밀려난 잔해를 켜는 자리다.")]
@@ -127,6 +152,43 @@ namespace Treeline
 
             Darken(muzzleLight);
             Darken(impactLight);
+            Shrink(muzzleGlow);
+            Shrink(impactGlow);
+        }
+
+        private static void Shrink(Transform glow)
+        {
+            if (glow != null)
+            {
+                glow.localScale = Vector3.zero;
+                glow.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>발광 카드가 부풀었다 사그라든다.</summary>
+        private IEnumerator Bloom(Transform glow, float peak, float seconds)
+        {
+            if (glow == null)
+            {
+                yield break;
+            }
+
+            glow.gameObject.SetActive(true);
+            float elapsed = 0f;
+            while (elapsed < seconds)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / seconds);
+                // 앞의 15% 에 확 부풀고 나머지 시간에 걸쳐 줄어든다.
+                float s = t < 0.15f
+                    ? Mathf.Lerp(0.2f, 1f, t / 0.15f)
+                    : Mathf.Lerp(1f, 0f, (t - 0.15f) / 0.85f);
+                glow.localScale = Vector3.one * (peak * s);
+                yield return null;
+            }
+
+            glow.localScale = Vector3.zero;
+            glow.gameObject.SetActive(false);
         }
 
         private static void Darken(Light light)
@@ -175,13 +237,14 @@ namespace Treeline
             Vector3 from = muzzle != null ? muzzle.position : transform.position;
             Vector3 to = impactPoint != null ? impactPoint.position : from + transform.forward * 20f;
 
-            Play(fireSource, fireClip);
+            Play(fireSource, fireClip, fireVolume);
             if (muzzleBlast != null)
             {
                 muzzleBlast.Play(true);
             }
 
             StartCoroutine(Flash(muzzleLight, muzzlePeak, 0.12f));
+            StartCoroutine(Bloom(muzzleGlow, muzzleGlowScale, 0.22f));
 
             yield return Travel(from, to);
 
@@ -190,7 +253,7 @@ namespace Treeline
                 shell.SetActive(false);
             }
 
-            Play(impactSource, impactClip);
+            Play(impactSource, impactClip, impactVolume);
             if (impactBurst != null)
             {
                 impactBurst.transform.position = to;
@@ -202,12 +265,18 @@ namespace Treeline
                 impactLight.transform.position = to;
             }
 
+            if (impactGlow != null)
+            {
+                impactGlow.position = to;
+            }
+
             StartCoroutine(Flash(impactLight, impactPeak, flashSeconds));
+            StartCoroutine(Bloom(impactGlow, impactGlowScale, flashSeconds * 2.2f));
 
             // 무너지는 소리는 길게 깔린다. 맞는 소리와 겹쳐야 한 사건으로 들린다.
             if (impactSource != null && slideClip != null)
             {
-                impactSource.PlayOneShot(slideClip, 0.9f);
+                impactSource.PlayOneShot(slideClip, slideVolume);
             }
 
             if (slideDust != null)
@@ -355,11 +424,11 @@ namespace Treeline
             slab.gameObject.SetActive(false);
         }
 
-        private static void Play(AudioSource source, AudioClip clip)
+        private static void Play(AudioSource source, AudioClip clip, float volume)
         {
             if (source != null && clip != null)
             {
-                source.PlayOneShot(clip);
+                source.PlayOneShot(clip, volume);
             }
         }
     }
