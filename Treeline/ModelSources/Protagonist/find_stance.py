@@ -27,31 +27,37 @@ from mathutils import Vector, Matrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hand_poses as HP
+# for fit_elbow only. The elbow is a free degree of freedom and the wrist gate is
+# meaningless without it: pinning the elbow charged every stance for an angle the
+# arm did not have to hold.
+import animate_arms as A
 
-FOV_Y, ASPECT = math.radians(80), 16.0 / 9.0
-WRIST_GATE = 32.0        # slack under the 35 the clips will eat into
+FOV_Y, ASPECT = math.radians(A.FOV_Y), 16.0 / 9.0
+WRIST_GATE = 48.0        # slack under animate_arms.py's 55, which the clips eat into
 MISS_GATE = 0.002
 
 arm = bpy.data.objects["Arms_Armature"]
-POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
+POLE = {"R": Vector((-0.22, 0.30, -0.70)), "L": Vector((0.22, 0.30, -0.70))}
 
 # coverage is the share of the frame the weapon's silhouette should fill;
-# centre is where it sits in normalised screen space, x right and z up, -1..1.
+# centre is where it sits in normalised screen space and z up, -1..1. Screen
+# right is -x in world: the camera looks down -y with +z up, so its right-hand
+# vector is -x, and the shooting side sits at negative x for the same reason.
 WEAPONS = {
     "pistol": dict(
         meshes=("W_Pistol", "W_Slide"), grips=("PistolGrip", "PistolSupport"),
-        coverage=0.16, centre=(0.02, -0.22),
-        loc=((-0.02, 0.02, 0.06, 0.10), (-0.30, -0.26, -0.22, -0.18),
-             (-0.16, -0.12, -0.08, -0.04)),
-        muzzle=((-0.10, 0.0, 0.10), (-0.16, -0.08, 0.0, 0.08)),
-        rolls=(-8, 0, 8)),
+        coverage=0.11, centre=(0.48, -0.52),
+        loc=((-0.18, -0.14, -0.10), (-0.28, -0.24, -0.20),
+             (-0.14, -0.10, -0.06)),
+        muzzle=((0.10, 0.20, 0.32), (0.02, 0.06, 0.10)),
+        rolls=(0, 10)),
     "shotgun": dict(
         meshes=("W_Shotgun", "W_Pump"), grips=("ShotgunGrip", "PumpHold"),
-        coverage=0.30, centre=(-0.10, -0.34),
-        loc=((0.06, 0.10, 0.14, 0.18), (-0.26, -0.20, -0.14),
-             (-0.26, -0.20, -0.14)),
-        muzzle=((-0.45, -0.30, -0.15), (-0.30, -0.18, -0.06, 0.04)),
-        rolls=(0, 12, 24)),
+        coverage=0.29, centre=(0.13, -0.33),
+        loc=((-0.26, -0.22, -0.18), (-0.18, -0.14, -0.10),
+             (-0.16, -0.12, -0.08)),
+        muzzle=((0.45, 0.60, 0.75), (-0.08, -0.02, 0.04)),
+        rolls=(-12, 0)),
 }
 
 
@@ -165,11 +171,13 @@ def grip(pose):
     # the fingers matter for anything that gets looked at: without them the
     # renders showed two open palms and no grip at all
     set_fingers(side, pose)
+    A.fit_elbow(side)
     bpy.context.view_layer.update()
     # measured against the wrist target place() returns, not the grip point: the
     # web sits 56 mm out from the wrist and comparing the two reported a
     # constant 53 mm miss at every stance, which read as unreachable
-    return (arm.pose.bones["Hand." + side].head - want).length, wrist_bend(side)
+    return ((arm.pose.bones["Hand." + side].head - want).length,
+            wrist_bend(side), A.forearm_roll(side))
 
 
 TY = math.tan(FOV_Y * 0.5)
@@ -189,7 +197,11 @@ def screen(meshes):
             if p.y >= -0.03:
                 continue
             d = -p.y
-            sx, sz = p.x / (TX * d), p.z / (TY * d)
+            # screen right is -x: the camera looks down -y with +z up, so its
+            # right-hand vector is forward x up = -x. Reporting raw world x here
+            # meant the shotgun's target centre and its search grid were on
+            # opposite sides of the frame, and the pump left the picture.
+            sx, sz = -p.x / (TX * d), p.z / (TY * d)
             if abs(sx) <= 1 and abs(sz) <= 1:
                 inside += 1
                 xs.append(sx)
@@ -207,13 +219,14 @@ def evaluate(cfg, loc, muzzle, roll):
     for s in ("R", "L"):
         wloc("CTRL_ElbowPole." + s, POLE[s] - rest_head("CTRL_ElbowPole." + s))
     set_weapon(loc, muzzle, roll)
-    misses, wrists = [], []
+    misses, wrists, rolls = [], [], []
     for g in cfg["grips"]:
-        m, w = grip(g)
+        m, w, r = grip(g)
         misses.append(m)
         wrists.append(w)
+        rolls.append(r)
     vis, sx, sz, span = screen(cfg["meshes"])
-    return max(misses), max(wrists), vis, sx, sz, span
+    return max(misses), max(wrists), max(rolls), vis, sx, sz, span
 
 
 def search(name, cfg):
@@ -225,9 +238,10 @@ def search(name, cfg):
                     for mz in cfg["muzzle"][1]:
                         for roll in cfg["rolls"]:
                             m = Vector((mx, -1.0, mz))
-                            miss, w, vis, sx, sz, span = evaluate(
+                            miss, w, rl, vis, sx, sz, span = evaluate(
                                 cfg, Vector((gx, gy, gz)), m, roll)
-                            if miss > MISS_GATE or w > WRIST_GATE or vis < 0.6:
+                            if (miss > MISS_GATE or w > WRIST_GATE
+                                    or rl > A.ROLL_LIMIT or vis < 0.6):
                                 continue
                             gated += 1
                             cx, cz = cfg["centre"]
@@ -238,18 +252,18 @@ def search(name, cfg):
                                   - 0.4 * vis)
                             if best is None or s > best[0]:
                                 best = (s, (gx, gy, gz), (mx, -1.0, mz), roll,
-                                        vis, sx, sz, span, w, miss)
+                                        vis, sx, sz, span, w, rl, miss)
     print("SEARCH %-8s passed the gate %d" % (name, gated))
     if best is None:
         print("       nothing passed")
         return
-    s, loc, mu, roll, vis, sx, sz, span, w, miss = best
+    s, loc, mu, roll, vis, sx, sz, span, w, rl, miss = best
     print("BEST   %-8s loc %s  muzzle %s  roll %d"
           % (name, tuple(round(c, 3) for c in loc),
              tuple(round(c, 2) for c in mu), roll))
     print("       in frame %.0f%%  fills %.0f%%  centre (%+.2f %+.2f)  "
-          "wrist %.1f  miss %.2f mm"
-          % (vis * 100, span * 100, sx, sz, w, miss * 1000))
+          "wrist %.1f  roll %.1f  miss %.2f mm"
+          % (vis * 100, span * 100, sx, sz, w, rl, miss * 1000))
 
 
 for _name, _cfg in WEAPONS.items():

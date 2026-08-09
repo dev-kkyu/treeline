@@ -21,8 +21,10 @@ OUT_DIR = (r"C:\Users\gofla\AppData\Local\Temp\claude"
            r"\D-----------treeline\333f0c0c-3b0b-4771-9a80-63bba730d450"
            r"\scratchpad\armstest")
 
-NEAR_CLIP = 0.03
-FOVS = (70, 80, 90)
+# Player.prefab's ViewModelCamera: the arms have their own lens, 50 degrees
+# vertical with a 0.01 near plane. 70/80/90 belong to the world camera.
+NEAR_CLIP = 0.01
+FOVS = (50, 60, 70)
 
 arm = bpy.data.objects["Arms_Armature"]
 arms_mesh = bpy.data.objects["Arms_Mesh"]
@@ -154,7 +156,7 @@ print("TEST1 ViewModelRoot %s  shoulder.R %s  WeaponRoot %s"
 show({"Arms_Mesh"})
 shot_outside("01_cut_front", (0, -2.0, -0.10), (0, 0, -0.10), 1.9)
 shot_outside("01_cut_back", (0, 2.0, -0.10), (0, 0, -0.10), 1.9)
-shot_outside("01_cut_seam", (0.55, 0.55, 0.20), (0.20, 0.02, -0.20), 0.42)
+shot_outside("01_cut_seam", (-0.55, 0.55, 0.20), (-0.20, 0.02, -0.20), 0.42)
 
 co = evaluated(["Arms_Mesh"])
 print("TEST2 cut  verts %d  x %+.3f..%+.3f  y %+.3f..%+.3f  z %+.3f..%+.3f"
@@ -169,7 +171,7 @@ print("TEST2 chest left behind (|x| < 0.14): %d verts%s"
 # 3. weapons at rest, parked on the right hand's grip web
 for tag, names in (("pistol", PISTOL), ("shotgun", SHOTGUN)):
     show(set(names) | {"Arms_Mesh"})
-    shot_outside("02_park_" + tag, (0.30, -1.2, 0.10), (0.79, 0.00, -0.25), 0.95)
+    shot_outside("02_park_" + tag, (-0.30, -1.2, 0.10), (-0.79, 0.00, -0.25), 0.95)
     w = evaluated(names)
     print("TEST3 %-8s parked  y %+.3f..%+.3f  z %+.3f..%+.3f  tris on %d meshes"
           % (tag, min(c.y for c in w), max(c.y for c in w),
@@ -177,14 +179,14 @@ for tag, names in (("pistol", PISTOL), ("shotgun", SHOTGUN)):
 
 # 4. low ready: both hands and the gun brought in front of the camera. Rough by
 # design - what is being read is the frame, not the grip.
-GUN = Vector((0.10, -0.35, -0.12))
+GUN = Vector((-0.10, -0.35, -0.12))
 for tag, names in (("pistol", PISTOL), ("shotgun", SHOTGUN)):
     reset()
     wloc("WeaponRoot", GUN - head("WeaponRoot"))
-    wloc("CTRL_HandIK.R", Vector((0.10, -0.30, -0.13)) - head("CTRL_HandIK.R"))
-    wloc("CTRL_HandIK.L", Vector((-0.02, -0.33, -0.14)) - head("CTRL_HandIK.L"))
-    for side, sgn in (("R", 1), ("L", -1)):
-        wrot("CTRL_HandIK." + side, (0, 0, 1), -90)
+    wloc("CTRL_HandIK.R", Vector((-0.10, -0.30, -0.13)) - head("CTRL_HandIK.R"))
+    wloc("CTRL_HandIK.L", Vector((0.02, -0.33, -0.14)) - head("CTRL_HandIK.L"))
+    for side, sgn in (("R", -1), ("L", 1)):
+        wrot("CTRL_HandIK." + side, (0, 0, 1), 90)
         # elbows down by the ribs, not out at shoulder height
         wloc("CTRL_ElbowPole." + side,
              Vector((sgn * 0.22, 0.30, -0.70)) - head("CTRL_ElbowPole." + side))

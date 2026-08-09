@@ -45,7 +45,9 @@ SPINE = [
     ("Jaw",        (0, -0.010, 1.645), (0, -0.095, 1.612), "Head", False),
 ]
 
-# Right-side values; the left side is these mirrored in x.
+# Values for the +x half of the mesh, which is the character's LEFT: the model
+# faces -y with +z up, and right = forward x up = -x. The .R bones are these
+# mirrored, which is what the side loop below does.
 # Shoulder joint x 0.155 sits inboard of the deltoid surface at 0.22. Elbow x
 # 0.470 is where the sleeve is narrowest between 0.42 and 0.52. Wrist x 0.750 is
 # the narrow band before the palm widens again.
@@ -133,7 +135,9 @@ def build_bone_table():
     for name, h, t, p, c in SPINE:
         table.append((name, Vector(h), Vector(t), p, c, True))
 
-    for side, sgn in (("R", 1), ("L", -1)):
+    # -x is the character's right. Naming the +x half .R put the viewmodel gun
+    # in the left hand and made Unity's Humanoid mapping mirror the whole body.
+    for side, sgn in (("R", -1), ("L", 1)):
         m = (lambda t: t) if sgn > 0 else mirror
         arm_ax = chain_axis(m(ARM[1][1]), m(ARM[2][1]), m(ARM[3][1]))
         leg_ax = chain_axis(m(LEG[0][1]), m(LEG[1][1]), m(LEG[2][1]))
@@ -182,7 +186,7 @@ def strip_cross_side(mesh_ob, limbs):
     groups = {g.index: g.name for g in mesh_ob.vertex_groups}
     removed = 0
     for vt in mesh_ob.data.vertices:
-        side = "R" if vt.co.x > 0.03 else ("L" if vt.co.x < -0.03 else None)
+        side = "L" if vt.co.x > 0.03 else ("R" if vt.co.x < -0.03 else None)
         if side is None:
             continue
         wrong = ".L" if side == "R" else ".R"

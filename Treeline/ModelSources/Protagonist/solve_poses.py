@@ -66,8 +66,9 @@ DIGITS = ("Thumb", "Index", "Middle", "Ring", "Little")
 
 # where the gun is held while grips are solved, and where the elbows are told to
 # sit. Same numbers arms_test.py frames its low ready with.
-HOLD = Vector((0.10, -0.35, -0.12))
-POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
+# -x is the character's right, so a right-hand grip sits at negative x.
+HOLD = Vector((-0.10, -0.35, -0.12))
+POLE = {"R": Vector((-0.22, 0.30, -0.70)), "L": Vector((0.22, 0.30, -0.70))}
 
 # grip rake of both weapons, read off the pistol's grip cross-sections: the
 # backstrap moves 46 mm back over 75 mm of drop
@@ -95,27 +96,27 @@ PINNED_TWIST = {"PistolGrip", "ShotgunGrip", "PistolSupport"}
 # sits in a clip is 06/07's problem, and 07-shotgun.md now carries the reach
 # number it has to respect.
 GRIPS = [
-    ("PistolGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (0.014, -0.002, -0.020),
-     BORE, Vector((-1, 0, 0)), ("W_Pistol", "W_Slide"), {"Index": 8.0}),
-    ("ShotgunGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (0.014, 0.000, -0.020),
-     BORE, Vector((-1, 0, 0)), ("W_Shotgun",), {"Index": 8.0}),
-    ("PistolSupport", "L", "WeaponRoot", HOLD, (0, 0, 0), (-0.030, -0.014, -0.040),
-     BORE, Vector((1, 0, 0)), ("W_Pistol", "W_Slide", "HandR"), {}),
-    ("PumpHold", "L", "WeaponRoot", Vector((-0.10, 0.11, -0.31)), (0, 0, 0),
-     (0, -0.460, 0.012), Vector((1, 0, 0)), Vector((0, 0, 1)), ("W_Pump",), {}),
+    ("PistolGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (-0.014, -0.002, -0.020),
+     BORE, Vector((1, 0, 0)), ("W_Pistol", "W_Slide"), {"Index": 8.0}),
+    ("ShotgunGrip", "R", "WeaponRoot", HOLD, (0, 0, 0), (-0.014, 0.000, -0.020),
+     BORE, Vector((1, 0, 0)), ("W_Shotgun",), {"Index": 8.0}),
+    ("PistolSupport", "L", "WeaponRoot", HOLD, (0, 0, 0), (0.030, -0.014, -0.040),
+     BORE, Vector((-1, 0, 0)), ("W_Pistol", "W_Slide", "HandR"), {}),
+    ("PumpHold", "L", "WeaponRoot", Vector((0.10, 0.11, -0.31)), (0, 0, 0),
+     (0, -0.460, 0.012), Vector((-1, 0, 0)), Vector((0, 0, 1)), ("W_Pump",), {}),
     # magazine and shell are held away from the gun, the way they are during a
     # reload. Solving them seated in the weapon would close the left hand on the
     # gun instead of on the thing it is carrying.
-    ("MagHold", "L", "Magazine", HOLD, (-0.20, 0.10, -0.10), (-0.011, 0, 0.032),
-     Vector((0, -1, 0)), Vector((1, 0, 0)), ("W_PistolMag",), {}),
-    ("ShellHold", "L", "Shell", HOLD, (-0.20, 0.16, -0.06), (-0.011, -0.030, 0),
-     Vector((0, -0.5, -0.87)), Vector((1, 0, 0)), ("W_Shell",), {}),
+    ("MagHold", "L", "Magazine", HOLD, (0.20, 0.10, -0.10), (0.011, 0, 0.032),
+     Vector((0, -1, 0)), Vector((-1, 0, 0)), ("W_PistolMag",), {}),
+    ("ShellHold", "L", "Shell", HOLD, (0.20, 0.16, -0.06), (0.011, -0.030, 0),
+     Vector((0, -0.5, -0.87)), Vector((-1, 0, 0)), ("W_Shell",), {}),
     # Overhand on the slide, the way a slide is actually run: the hand comes
     # over the top, fingers down the far side, thumb down the near one. The
     # reload was using a relaxed hand here because the library had no pose for
     # it, and it read as the hand hovering rather than gripping.
     ("SlidePinch", "L", "Slide", HOLD, (0, 0, 0), (0, -0.015, 0.021),
-     Vector((1, 0, 0)), Vector((0, 0, -1)), ("W_Slide", "W_Pistol"), {}),
+     Vector((-1, 0, 0)), Vector((0, 0, -1)), ("W_Slide", "W_Pistol"), {}),
 ]
 
 # The lever is a scene prop, so there is no mesh here to close on. Its handle is
@@ -367,7 +368,7 @@ tr.up_axis = 'UP_Y'
 cam.data.type = 'ORTHO'
 
 
-def shot(name, centre, show, scale=0.26, d=Vector((0.8, -0.8, 0.45))):
+def shot(name, centre, show, scale=0.26, d=Vector((-0.8, -0.8, 0.45))):
     """Weapon poses read best from the front quarter; a bare hand does not - a
     curl seen down its own axis looks like an open hand."""
     for ob in bpy.data.objects:
@@ -508,7 +509,7 @@ for side in ("R", "L"):
         solved["LeverGrip"] = angles
         frames["LeverGrip"] = None
         shot("pose_LeverGrip", centre, {"Arms_Mesh"}, 0.24,
-             Vector((0.10, -0.95, 0.28)))
+             Vector((-0.10, -0.95, 0.28)))
     print("SOLVE %-14s %s  %s  %s"
           % ("LeverGrip", side,
              " ".join("%s%5.1f" % (d[:2], angles[d]) for d in DIGITS),
@@ -522,7 +523,7 @@ for name, angles in AUTHORED.items():
     solved[name] = dict(angles)
     b = arm.data.bones["Hand.R"]
     shot("pose_" + name, (b.head_local + b.tail_local) * 0.5, {"Arms_Mesh"},
-         0.26, Vector((0.10, -0.95, 0.28)))
+         0.26, Vector((-0.10, -0.95, 0.28)))
     print("AUTH  %-14s R  %s"
           % (name, " ".join("%s%5.1f" % (d[:2], angles[d]) for d in DIGITS)))
 

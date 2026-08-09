@@ -62,8 +62,9 @@ ARM_EXTENSION = 0.0
 
 # grip web of the right hand: the notch between thumb and index, read off the
 # rest hand. Both weapons have their origin on their own grip web already
-# (prep_weapons.py), so one point parks both.
-WEB = Vector((0.785, 0.026, 1.402))
+# (prep_weapons.py), so one point parks both. Negative x because the model faces
+# -y, so the character's right is -x - see build_rig.py's side loop.
+WEB = Vector((-0.785, 0.026, 1.402))
 
 # weapon bones, as offsets from WEB. Straight off the piece bounds printed by
 # prep_weapons.py: the slide spans y +0.008..-0.177 at z 0.039, the pump
@@ -136,7 +137,7 @@ def stretch_forearms(table, mesh_ob, ext):
         table = out
 
         for vt in mesh_ob.data.vertices:
-            if (vt.co.x > 0) != (side == "R"):
+            if (vt.co.x < 0) != (side == "R"):
                 continue
             u = (vt.co - elbow).dot(axis) / span
             if u <= 0:
@@ -285,6 +286,48 @@ def cap_holes(ob):
     return len(new)
 
 
+# The hands and the outer half of each forearm - everything the viewmodel camera
+# is within half a metre of. LowerArmTwist owns exactly that outer half already,
+# because its weights ramp from nothing at the elbow to all of it at the wrist.
+HAND_GROUPS = {n + "." + s for n in ["Hand", "LowerArmTwist"] + FINGER_NAMES
+               for s in ("L", "R")}
+
+
+def smooth_hands(ob, groups, smooth=0.5):
+    """Subdivide the hands, and only the hands.
+
+    2,520 triangles is plenty for a sleeve seen from the inside and far too few
+    for a knuckle the camera sits 0.2 m from - the fingers read as flat plates
+    with visible corners along the silhouette. Subdividing the whole mesh would
+    triple the count to fix geometry nobody gets close to, so the selection is
+    every face whose vertices all belong mostly to a hand or finger group.
+
+    `smooth` is what makes this worth doing: a plain split adds vertices in the
+    same planes and changes nothing about the silhouette.
+    """
+    idx = {g.index for g in ob.vertex_groups if g.name in groups}
+    keep = {vt.index for vt in ob.data.vertices
+            if sum(g.weight for g in vt.groups if g.group in idx) > 0.5}
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.verts.ensure_lookup_table()
+    faces = [f for f in bm.faces if all(v.index in keep for v in f.verts)]
+    if not faces:
+        bm.free()
+        print("SMOOTH nothing selected")
+        return
+    before = len(bm.faces)
+    edges = list({e for f in faces for e in f.edges})
+    bmesh.ops.subdivide_edges(bm, edges=edges, cuts=1, smooth=smooth,
+                              use_grid_fill=True)
+    bmesh.ops.triangulate(bm, faces=bm.faces[:])
+    after = len(bm.faces)
+    bm.to_mesh(ob.data)
+    bm.free()
+    print("SMOOTH hands %d faces subdivided, mesh %d -> %d tris"
+          % (len(faces), before, after))
+
+
 def spread_twist(mesh_ob, table):
     """Hand the outer half of each forearm's weight to its twist bone.
 
@@ -430,6 +473,9 @@ def main():
     keep = {t[0] for t in table if t[5]}
     prune_groups(arms, keep)
     spread_twist(arms, table)
+    # after spread_twist, because the selection uses LowerArmTwist's ramp to
+    # find the outer half of the forearm and that group does not exist before it
+    smooth_hands(arms, HAND_GROUPS)
 
     arm_data = bpy.data.armatures.new("Arms_Armature")
     arm_ob = bpy.data.objects.new("Arms_Armature", arm_data)

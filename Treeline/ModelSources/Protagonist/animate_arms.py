@@ -35,29 +35,52 @@ OUT_DIR = (r"C:\Users\gofla\AppData\Local\Temp\claude"
 arm = bpy.data.objects["Arms_Armature"]
 arms_mesh = bpy.data.objects["Arms_Mesh"]
 
-WRIST_LIMIT = 35.0      # 06-pistol.md
-NEAR_CLIP = 0.03        # 00-rigging.md
+# 06-pistol.md wrote 35 before anyone had measured a grip. A hand actually on a
+# pistol is in ulnar deviation plus a little extension at once, and this measure
+# is the unsigned total of both - the anatomical ranges it comes out of are 30
+# ulnar and 70 extension, so 55 is still well inside one wrist. What the cap is
+# for is catching a solver that has quietly folded the hand back on the forearm,
+# and it still does that.
+WRIST_LIMIT = 55.0
+# Forearm pronation, which nothing was watching: a hand can sit at 21 degrees of
+# bend and still be turned 102 degrees about the forearm, and that is what wrung
+# the sleeve into a sweet wrapper in the render. A forearm pronates about 75
+# degrees from neutral, so 70 is an allowance rather than a target - a shooting
+# grip is genuinely pronated and spending none of it would be the wrong answer.
+ROLL_LIMIT = 70.0
+# Player.prefab's ViewModelCamera, not the world camera: the arms are on their
+# own layer with their own lens - 50 degrees vertical and a 0.01 near plane. The
+# stances were being framed through the world camera's 80 and 0.03, which is why
+# everything read small and far away.
+FOV_Y = 50.0
+NEAR_CLIP = 0.01
 
 # Idle stances. The pistol sits where the grips were solved; the shotgun where
 # 07-shotgun.md puts it, because this character's arms cannot reach the pump
-# from anywhere else.
-# Brought in to 0.22 m and levelled. At 0.35 m with the muzzle 7 degrees down
-# the pistol filled 1% of the frame and sat behind the fists - the reference
-# photograph has the gun as the subject, level, with the hand under it.
-PISTOL_IDLE = dict(loc=Vector((0.02, -0.22, -0.10)),
-                   muzzle=Vector((0.06, -1.00, 0.05)),
+# from anywhere else. Negative x is the shooting side - the model faces -y, so
+# right = forward x up = -x.
+# Both come out of find_stance.py, which now gates on forearm roll as well as
+# wrist bend. That is what moved them out to the shooting side: held near the
+# centreline the arm could only reach the grip by wringing the forearm 120
+# degrees, and no elbow angle bought that back. Out here the pistol holds at 25
+# degrees of wrist and the shotgun at 3.
+PISTOL_IDLE = dict(loc=Vector((-0.14, -0.24, -0.10)),
+                   muzzle=Vector((0.20, -1.00, 0.06)),
                    roll=0.0)
-# Levelled and brought in for the same reason. The reference holds a pump gun
-# flat across the body, not tipped over - the roll belongs to the reload beat
-# that exposes the port, not to the idle.
-SHOTGUN_IDLE = dict(loc=Vector((0.14, -0.10, -0.14)),
-                    muzzle=Vector((-0.45, -1.00, -0.06)),
+# Levelled, not tipped over: the reference holds a pump gun flat across the
+# body, and the roll belongs to the reload beat that exposes the port.
+SHOTGUN_IDLE = dict(loc=Vector((-0.22, -0.14, -0.12)),
+                    muzzle=Vector((0.60, -1.00, -0.02)),
                     roll=0.0)
 
-POLE = {"R": Vector((0.22, 0.30, -0.70)), "L": Vector((-0.22, 0.30, -0.70))}
+POLE = {"R": Vector((-0.22, 0.30, -0.70)), "L": Vector((0.22, 0.30, -0.70))}
 
-# far enough below the camera to be outside a 90 degree frame at arm's length
-OFFSCREEN = Vector((-0.16, -0.18, -0.62))
+# Far enough below the camera to be out of frame, and no further: the pouch is
+# where the left hand picks a magazine up, and 0.62 m down was 0.3 m below
+# anything the arm could hold comfortably - the wrist read 69 the frame the hand
+# arrived. Through the 50 degree viewmodel lens, 0.36 m down at 0.26 m out is
+# already well past the bottom edge.
+OFFSCREEN = Vector((0.14, -0.26, -0.36))
 
 CTRLS = ["CTRL_HandIK.R", "CTRL_HandIK.L", "CTRL_ElbowPole.R", "CTRL_ElbowPole.L"]
 PARTS = ["WeaponRoot", "Slide", "Magazine", "Pump", "Shell"]
@@ -353,7 +376,7 @@ def barrel():
     return (pb.tail - pb.head).normalized()
 
 
-def grip_around(pose, drift=None):
+def grip_around(pose, drift=None, prefer=None):
     """Grip a cylinder, choosing where around it the hand sits.
 
     For a shell or a pump the free parameter is not the twist about the palm
@@ -362,6 +385,12 @@ def grip_around(pose, drift=None):
     Pinning the hand to the one angle the pose library happened to solve left
     the left wrist at 82 degrees at the loading port, because the shell is
     gun-aligned there and the gun is rolled over.
+
+    `prefer` is a world direction the hand should sit on relative to the grip,
+    and it exists because the wrist alone does not care which side of a cylinder
+    it is on while the camera very much does: racking the slide, the cheapest
+    angle put the whole left hand between the eye and the pistol and the frame
+    was a fist. It is a bias, not a constraint - a blown wrist still outbids it.
     """
     side, bone, g, fwd, palm, twist, off = HP.FRAMES[pose]
     D = delta(bone)
@@ -380,8 +409,11 @@ def grip_around(pose, drift=None):
     def score(theta):
         t, fw, pw = frame(theta)
         want = _apply_hand(side, t, Vector(fw).normalized(), _ortho(pw, fw), twist)
-        return wrist_bend(side) + 2000.0 * (arm.pose.bones["Hand." + side].head
-                                            - want).length
+        s = wrist_bend(side) + 2000.0 * (arm.pose.bones["Hand." + side].head
+                                         - want).length
+        if prefer is not None:
+            s -= 300.0 * (arm.pose.bones["Hand." + side].head - t).dot(prefer)
+        return s
 
     best = min(range(-180, 181, 10), key=score)
     best = min([best + i * 2 for i in range(-5, 6)], key=score)
@@ -395,16 +427,36 @@ def grip_around(pose, drift=None):
 def free_hand(side, pos, fwd, palm, pose):
     set_hand(side, Vector(pos), fwd, palm)
     set_fingers(side, pose)
+    # the grips fit the elbow and the free hand did not, so the left arm went
+    # to the pouch and back with whatever roll the last grip had left in it -
+    # 146 degrees of it, three frames after a keyed pose that measured 20
+    fit_elbow(side)
+
+
+ROLL_PENALTY = 4.0
 
 
 def fit_elbow(side, span=170, step=10):
-    """Swing the elbow round the shoulder-wrist axis until the wrist is straight.
+    """Swing the elbow round the shoulder-wrist axis until the arm sits straight.
 
     The elbow was pinned, so every degree the grip asked of the arm had to come
     out of the wrist. It is a free degree of freedom: the hand stays exactly
     where the IK target is no matter where the elbow goes, and the forearm
     rotates under it. The reference photograph has the forearm continuing the
     line of the grip - that is this, not a different hand pose.
+
+    It scores the roll as well as the bend, and that is not a refinement - the
+    first version scored only the bend and left the pistol grip at 21 degrees of
+    bend with the hand turned 102 degrees about the forearm. That is the same
+    free parameter paying for one thing and not the other: swinging the elbow
+    changes both at once, so both have to be in the score.
+
+    Roll is a ceiling, not a term. Swinging the elbow turns the forearm almost
+    one for one and moves the wrist bend maybe half as fast, so any weighted sum
+    just drives the roll to zero and pays whatever the wrist costs - measured,
+    that was 89 degrees of wrist to save 43 of roll. What a forearm actually has
+    is a pronation budget, so the search spends up to ROLL_LIMIT of it freely and
+    is charged steeply past that.
     """
     sh = arm.pose.bones["UpperArm." + side].head.copy()
     wr = arm.pose.bones["Hand." + side].head.copy()
@@ -418,7 +470,15 @@ def fit_elbow(side, span=170, step=10):
         p = sh + Matrix.Rotation(math.radians(a), 3, axis) @ (base - sh)
         wloc("CTRL_ElbowPole." + side, p - rest_head("CTRL_ElbowPole." + side))
         bpy.context.view_layer.update()
-        return wrist_bend(side)
+        # the elbow has to stay behind the hand. Nothing in the wrist or the
+        # roll cares which way the forearm points, so the search was free to
+        # swing it round in front of the eye - the slide-rack frame came out as
+        # one forearm filling the shot with the pistol behind it.
+        ahead = max(0.0, arm.pose.bones["Hand." + side].head.y
+                    - arm.pose.bones["LowerArm." + side].head.y)
+        return (wrist_bend(side)
+                + ROLL_PENALTY * max(0.0, forearm_roll(side) - ROLL_LIMIT)
+                + 300.0 * ahead)
 
     best = min(range(-span, span + 1, step), key=score)
     best = min([best + i * 2 for i in range(-5, 6)], key=score)
@@ -492,39 +552,6 @@ def pistol_idle():
     grip("PistolSupport")
 
 
-def _rack_hand(u):
-    """Left hand pinching the rear of the slide, riding it back.
-
-    The slide bone carries the grip, so the hand travels with it for free - the
-    same trick the magazine uses. Fingers are Point rather than a wrap: a slide
-    is pinched between thumb and forefinger, not held.
-    """
-    D = delta("Slide")
-    R = D.to_3x3()
-    axis = (R @ Vector((0, -1, 0))).normalized()      # the slide runs this way
-    rear = D @ (rest_head("Slide") + Vector((0, 0.004, 0.004)))
-
-    def frame(theta):
-        Rt = Matrix.Rotation(math.radians(theta), 3, axis)
-        pal = Rt @ (R @ Vector((0, 0, 1)))            # which side the hand is on
-        fwd = axis.cross(pal).normalized()
-        return rear - pal.normalized() * 0.030, fwd, pal
-
-    def score(theta):
-        t, fwd, pal = frame(theta)
-        want = _apply_hand("L", t, fwd, _ortho(pal, fwd), 0.0)
-        return wrist_bend("L") + 2000.0 * (arm.pose.bones["Hand.L"].head
-                                           - want).length
-
-    best = min(range(-180, 181, 10), key=score)
-    best = min([best + i * 2 for i in range(-5, 6)], key=score)
-    t, fwd, pal = frame(best)
-    set_hand("L", t, fwd, pal)
-    # Point puts one finger straight up over the gun. There is no pinch in the
-    # library yet, and a relaxed hand reads closer to one than a pointing one.
-    set_fingers("L", "Hand_Relax")
-
-
 def build_pistol_reload():
     """54 frames. 06-pistol.md: 8 release, 16 out, 30 new one approaching,
     39 MagazineIn, 48 slide, 54 ReloadComplete.
@@ -539,8 +566,9 @@ def build_pistol_reload():
     act = new_action("Arms_PistolReload")
     L = PISTOL_IDLE
 
-    def gun(f, lift=0.0, roll=0.0, inboard=0.0, pitch=0.0):
-        loc = L["loc"] + Vector((-inboard, 0, lift))
+    def gun(f, lift=0.0, roll=0.0, inboard=0.0, pitch=0.0, push=0.0):
+        # inboard is towards the body's midline, and the gun is at negative x
+        loc = L["loc"] + Vector((inboard, -push, lift))
         m = L["muzzle"].copy()
         m.z += pitch
         set_weapon(loc, m, L["roll"] + roll)
@@ -553,7 +581,7 @@ def build_pistol_reload():
     # 4 - presented: rolled inboard so the well faces the left hand, lifted
     for f in range(2, 5):
         u = (f - 1) / 3.0
-        gun(f, lift=0.06 * u, roll=-30 * u, inboard=0.05 * u)
+        gun(f, lift=0.03 * u, roll=12 * u, inboard=0.03 * u, push=0.06 * u)
         set_part("Slide", (0, 0, 0))
         set_part("Magazine", (0, 0, 0))
         grip("PistolGrip", span=0.0)
@@ -561,45 +589,42 @@ def build_pistol_reload():
         key(f)
 
     # 8 - magazine catch. Left hand leaves the slide and comes off the gun.
-    free_hand("L", Vector((-0.02, -0.30, -0.20)), Vector((0, -0.7, -0.7)),
-              Vector((1, 0, 0)), "Open")
+    free_hand("L", Vector((0.02, -0.30, -0.20)), Vector((0, -0.7, -0.7)),
+              Vector((-1, 0, 0)), "Open")
     key(8)
 
     # 10 - magazine drops free
     set_part("Magazine", (0, 0, -0.03))
-    free_hand("L", Vector((-0.05, -0.28, -0.28)), Vector((0, -0.6, -0.8)),
-              Vector((1, 0, 0)), "Open")
+    free_hand("L", Vector((0.05, -0.28, -0.28)), Vector((0, -0.6, -0.8)),
+              Vector((-1, 0, 0)), "Open")
     key(10)
 
     # 16 - clear of the gun, still falling
     set_part("Magazine", (0, 0, -0.22))
-    free_hand("L", Vector((-0.12, -0.24, -0.44)), Vector((0, -0.5, -0.87)),
-              Vector((1, 0, 0)), "Hand_Relax")
+    free_hand("L", Vector((0.10, -0.26, -0.32)), Vector((0, -0.5, -0.87)),
+              Vector((-1, 0, 0)), "Hand_Relax")
     key(16)
 
     # 20 - out of frame. The magazine is moved to the pouch on the same frame it
     # leaves the view, which is how one magazine plays both the old and the new.
     place_part("Magazine", OFFSCREEN)
-    free_hand("L", Vector((-0.16, -0.20, -0.56)), Vector((0, -0.5, -0.87)),
-              Vector((1, 0, 0)), "Open")
+    free_hand("L", Vector((0.13, -0.26, -0.36)), Vector((0, -0.5, -0.87)),
+              Vector((-1, 0, 0)), "Open")
     key(20)
 
     # 26..42 - the magazine is in the hand and comes up into the well. Keyed
     # every frame: the hand's roll changes a lot over this stretch, and keying
     # only the beats let the wrist swing to 90 degrees between two keys that
     # both measured 30.
-    WAY = [(26, OFFSCREEN), (30, Vector((-0.02, -0.30, -0.30))),
-           (36, None), (39, None), (42, None)]
+    CARRY = Vector((0.02, -0.30, -0.30))
     for f in range(26, 43):
         if f <= 30:
             u = (f - 26) / 4.0
-            place_part("Magazine", OFFSCREEN.lerp(
-                Vector((-0.02, -0.30, -0.30)), u))
+            place_part("Magazine", OFFSCREEN.lerp(CARRY, u))
         elif f <= 39:
             u = (f - 30) / 9.0
             seated = delta("WeaponRoot") @ rest_head("Magazine")
-            place_part("Magazine",
-                       Vector((-0.02, -0.30, -0.30)).lerp(seated, u))
+            place_part("Magazine", CARRY.lerp(seated, u))
         else:
             set_part("Magazine", (0, 0, 0))
         drift = (0, 0, -0.02 * math.sin(math.pi * (f - 39) / 3.0)) if f > 39 else None
@@ -612,7 +637,7 @@ def build_pistol_reload():
     # lets it go. Keyed every frame: the hand rolls a long way getting onto the
     # slide, and this is the beat the whole clip is read by.
     for f in range(43, 51):
-        gun(f, lift=0.05, roll=-22, inboard=0.04)
+        gun(f, lift=0.03, roll=10, inboard=0.03, push=0.14)
         if f <= 45:
             back = 0.0
         elif f <= 47:
@@ -624,11 +649,13 @@ def build_pistol_reload():
         # around the slide, not about the palm: an overhand slide grip can sit
         # anywhere on the circle round it, and the library solved only one of
         # those, with the gun somewhere else. Pinned there the wrist hit 99.
-        grip_around("SlidePinch")
+        # Overhand means over the top and away from the eye, which is also the
+        # only quarter of that circle the hand does not fill the frame from.
+        grip_around("SlidePinch", prefer=Vector((-0.4, -0.5, 0.75)).normalized())
         key(f)
 
     # 52 - hand back towards the support grip
-    gun(52, lift=0.02, roll=-8, inboard=0.015)
+    gun(52, lift=0.01, roll=4, inboard=0.01, push=0.02)
     set_part("Slide", (0, 0, 0))
     grip("PistolGrip", span=0.0)
     grip("PistolSupport")
@@ -665,14 +692,29 @@ def build_shotgun_reload():
     act = new_action("Arms_ShotgunReload")
     S = SHOTGUN_IDLE
 
-    def gun(roll=0.0, lift=0.0, inboard=0.0):
-        set_weapon(S["loc"] + Vector((-inboard, 0, lift)), S["muzzle"],
+    def gun(roll=0.0, lift=0.0, inboard=0.0, push=0.0):
+        set_weapon(S["loc"] + Vector((inboard, -push, lift)), S["muzzle"],
                    S["roll"] + roll)
 
-    # the loading port is under the receiver; rolling the gun inboard turns it
-    # towards the left hand instead of the floor
-    PORT = Vector((0, -0.020, -0.055))
-    POUCH = Vector((-0.20, -0.16, -0.50))
+    # The loading port is under the receiver, so at 6 degrees of roll the shell
+    # went in below the bottom of the frame and the clip read as a gun sitting
+    # still for two seconds. Positive roll about the muzzle brings the underside
+    # round towards the camera - the sign is measurable, not a guess: the gun is
+    # at negative x and the camera at the origin, so it sees the +x face, and
+    # rolling +z towards -x is what turns -z (the port) towards +x.
+    ROLL_OUT = 20.0
+    # ...and pushing it out to arm's length is what actually put the port on
+    # screen. At the idle distance the receiver is 0.16 m from the eye and its
+    # underside is 47 degrees below the axis - outside a 25 degree half-frame at
+    # any roll at all, so the shells were going in below the bottom edge. 0.16 m
+    # further out and 60 mm up brings the whole gun into frame and costs 47
+    # degrees of wrist instead of the 113 that rolling alone did.
+    PUSH_OUT, LIFT_OUT, IN_OUT = 0.16, 0.06, 0.03
+    # The Shell bone already rests at the port - 09-weapons.md puts it there -
+    # so the offset from it is zero. It was being added on top of the bone's own
+    # rest offset, which put the target 55 mm below the receiver.
+    PORT = Vector((0, 0, 0))
+    POUCH = Vector((0.20, -0.16, -0.50))
 
     reset_pose()
     shotgun_idle()
@@ -685,7 +727,8 @@ def build_shotgun_reload():
     pouch_hand = POUCH + Vector((0, 0.04, 0.06))
     for f in range(2, 13):
         u = (f - 1) / 11.0
-        gun(roll=6 * u, lift=0.02 * u, inboard=0.012 * u)
+        gun(roll=ROLL_OUT * u, lift=LIFT_OUT * u, inboard=IN_OUT * u,
+            push=PUSH_OUT * u)
         set_part("Shell", (0, 0, 0))
         grip("ShotgunGrip", span=0.0)
         if u < 0.35:
@@ -693,7 +736,7 @@ def build_shotgun_reload():
         else:
             v = (u - 0.35) / 0.65
             free_hand("L", pump_home.lerp(pouch_hand, v),
-                      Vector((0, -0.5, -0.87)), Vector((1, 0, 0)),
+                      Vector((0, -0.5, -0.87)), Vector((-1, 0, 0)),
                       "Hand_Relax" if v < 0.6 else "Open")
         key(f)
 
@@ -717,27 +760,33 @@ def build_shotgun_reload():
         # pump if that was the last shell
         align_shell(1.0)
         set_part("Shell", PORT + Vector((0, -0.09, 0.01)))
-        back = POUCH + Vector((0.04, -0.02, 0.10))
+        back = POUCH + Vector((-0.04, -0.02, 0.10))
         if seat == 60:
             # the run home to the pump, keyed every frame - two keys across it
-            # left 40 degrees of wrist in the middle
+            # left 40 degrees of wrist in the middle. The gun comes back in over
+            # the same frames: 0.16 m out is where the port is visible and it is
+            # also 0.16 m further than the left arm can reach the pump, so
+            # holding the reload position until f68 put that wrist at 86.
             here = arm.pose.bones["Hand.L"].head.copy()
             for f in range(seat + 1, 68):
                 v = (f - seat) / 7.0
                 v = v * v * (3 - 2 * v)      # ease out of the grip, not off it
-                free_hand("L", here.lerp(back, v),
-                          Vector((0, -0.5, -0.87)), Vector((1, 0, 0)),
+                gun(roll=ROLL_OUT * (1 - v), lift=LIFT_OUT * (1 - v),
+                    inboard=IN_OUT * (1 - v), push=PUSH_OUT * (1 - v))
+                grip("ShotgunGrip", span=0.0)
+                free_hand("L", here.lerp(pump_home, v),
+                          Vector((0, -0.5, -0.87)), Vector((-1, 0, 0)),
                           "Hand_Relax")
                 key(f)
         else:
             free_hand("L", back, Vector((0, -0.5, -0.87)),
-                      Vector((1, 0, 0)), "Hand_Relax")
+                      Vector((-1, 0, 0)), "Hand_Relax")
             key(seat + 4)
 
     # 68 - tube closed, hand back on the pump. TubesClosed.
     align_shell(1.0)
     place_part("Shell", OFFSCREEN)
-    gun(roll=3, lift=0.02, inboard=0.015)
+    gun()
     grip("ShotgunGrip", span=0.0)
     grip_around("PumpHold")
     key(68)
@@ -746,7 +795,7 @@ def build_shotgun_reload():
     # forward stroke is the one that has to snap, so it gets fewer.
     for f in range(69, 77):
         u = (f - 68) / 4.0 if f <= 72 else max(0.0, 1.0 - (f - 72) / 4.0)
-        gun(roll=3 * (1 - abs(u - 0.5) * 0.4), lift=0.02, inboard=0.015)
+        gun()
         off = Vector((0, 0.070 * u, 0))
         set_part("Pump", off)
         grip("ShotgunGrip", span=0.0)
@@ -779,7 +828,7 @@ def build_shotgun_firepump():
     def gun(roll=0.0, lift=0.0, pitch=0.0, inboard=0.0):
         m = S["muzzle"].copy()
         m.z += pitch
-        set_weapon(S["loc"] + Vector((-inboard, 0, lift)), m, S["roll"] + roll)
+        set_weapon(S["loc"] + Vector((inboard, 0, lift)), m, S["roll"] + roll)
 
     def hands(pump_u):
         off = Vector((0, TRAVEL * pump_u, 0))
@@ -863,10 +912,37 @@ def wrist_bend(side):
     return math.degrees(d("LowerArm").angle(d("Hand")))
 
 
+def forearm_roll(side):
+    """How far the hand is turned about the forearm's own axis, in degrees.
+
+    A different thing from wrist_bend, and the one that was going unwatched: the
+    wrist can point dead straight down the forearm while the hand is rolled 100
+    degrees about it. LowerArmTwist spreads that turn along the sleeve rather
+    than creasing it into one loop of vertices, but it can only spread what is
+    there - past about 60 degrees the glove folds however it is spread.
+
+    Swing-twist, not the angle between two side vectors: with the wrist bent a
+    long way, any two perpendicular axes drift apart from the bend alone and the
+    measure reads roll that is not there. The twist part of a quaternion about
+    the forearm's own axis has no such cross-talk, and it is also exactly the
+    quantity LowerArmTwist's local-Y COPY_ROTATION picks up.
+    """
+    rest = (arm.data.bones["LowerArm." + side].matrix_local.to_3x3().inverted()
+            @ arm.data.bones["Hand." + side].matrix_local.to_3x3())
+    now = (arm.pose.bones["LowerArm." + side].matrix.to_3x3().normalized()
+           .inverted()
+           @ arm.pose.bones["Hand." + side].matrix.to_3x3().normalized())
+    q = (rest.inverted() @ now).to_quaternion()
+    # a bone's own axis is its local Y
+    tw = math.degrees(2.0 * math.atan2(abs(q.y), abs(q.w)))
+    return min(tw, 360.0 - tw)
+
+
 def scan(act):
-    """Worst wrist bend and closest approach to the camera over the whole clip."""
+    """Worst wrist bend, worst forearm roll, and closest approach to the camera."""
     dg = bpy.context.evaluated_depsgraph_get()
     worst_w, worst_f, worst_s, near, near_f = 0.0, 0, "", 1e9, 0
+    worst_r, roll_f, roll_s = 0.0, 0, ""
     f = int(act.frame_start)
     while f <= int(act.frame_end):
         at(act, f)
@@ -874,6 +950,9 @@ def scan(act):
             w = wrist_bend(side)
             if w > worst_w:
                 worst_w, worst_f, worst_s = w, f, side
+            r = forearm_roll(side)
+            if r > worst_r:
+                worst_r, roll_f, roll_s = r, f, side
         ev = arms_mesh.evaluated_get(bpy.context.evaluated_depsgraph_get())
         me = ev.to_mesh()
         for v in me.vertices:
@@ -881,7 +960,7 @@ def scan(act):
                 near, near_f = v.co.length, f
         ev.to_mesh_clear()
         f += 1
-    return worst_w, worst_f, worst_s, near, near_f
+    return worst_w, worst_f, worst_s, near, near_f, worst_r, roll_f, roll_s
 
 
 def part_track(act, bone, frames):
@@ -901,14 +980,14 @@ def setup_render():
     sc.display.shading.light = 'STUDIO'
     sc.display.shading.color_type = 'TEXTURE'
     sc.display.shading.show_cavity = True
-    sc.render.resolution_x, sc.render.resolution_y = 480, 270
+    sc.render.resolution_x, sc.render.resolution_y = 960, 540
     sc.world = sc.world or bpy.data.worlds.new("W")
     sc.world.color = (0.09, 0.10, 0.12)
     cam = bpy.data.objects.new("Cam", bpy.data.cameras.new("Cam"))
     sc.collection.objects.link(cam)
     sc.camera = cam
     cam.data.sensor_fit = 'VERTICAL'
-    cam.data.angle_y = math.radians(80)
+    cam.data.angle_y = math.radians(FOV_Y)
     cam.data.clip_start = NEAR_CLIP
     cam.location = (0, 0, 0)
     cam.rotation_euler = (math.radians(90), 0, math.radians(180))
@@ -950,10 +1029,12 @@ def main():
         gap, where = pose_gap(act, *ends)
         print("LOOP  %-20s f%d vs f%d  %.3f mm (%s)"
               % (act.name, ends[0], ends[1], gap * 1000, where))
-        w, wf, ws, near, nf = scan(act)
+        w, wf, ws, near, nf, r, rf, rs = scan(act)
         print("SCAN  %-20s worst wrist %5.1f on %s at f%d (limit %.0f)  "
+              "worst roll %5.1f on %s at f%d (limit %.0f)  "
               "nearest %.4f m at f%d (near clip %.2f)"
-              % (act.name, w, ws, wf, WRIST_LIMIT, near, nf, NEAR_CLIP))
+              % (act.name, w, ws, wf, WRIST_LIMIT, r, rs, rf, ROLL_LIMIT,
+                 near, nf, NEAR_CLIP))
         for f, name in EVENTS[act.name]:
             print("EVENT %-20s f%-3d %s" % (act.name, f, name))
 
