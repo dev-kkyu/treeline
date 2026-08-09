@@ -103,6 +103,13 @@ IMPORTANT: 렌더러가 `enabled` 인데 화면에 없으면 셋을 먼저 본�
   `EditorApplication.isPaused = false` 로 풀고 호출 사이에 실제 시간이 흐르게 둔다.
   루프 안에서 `Step()` 을 쓰면 `PlayerLoop ... called recursively` 경고가 콘솔에
   쌓이는데, 이건 게임이 아니라 계측 방식이 낸 것이다.
+- IMPORTANT: **`NavMeshSurface.BuildNavMesh()` 를 직접 부르지 않는다.**
+  `Treeline.LevelEditorTools.NavMeshBaking.BakeAndPersist(surface)` 를 쓴다. 직접
+  부르면 구운 데이터가 **씬 안에 묻히고, `NavMeshData` 는 YAML 로 못 써서 씬 파일
+  전체가 바이너리로 저장된다.** Force Text 여도 그렇다. 한 번 그렇게 저장된 씬은
+  **다시 저장해도 계속 바이너리**다 — 파일을 지우거나 새 경로에 저장해도 소용없고,
+  묻힌 데이터를 `AssetDatabase.CreateAsset` 으로 떼어낸 뒤에야 텍스트로 돌아온다.
+  확인은 `NavMeshBaking.VerifyBeforeSave()`, 또는 파일 첫 바이트가 `%`(37) 인지 본다
 - **메인 스레드를 붙잡고 기다리면 `Update` 가 안 돈다.** `Stopwatch` 로 스핀하면
   오디오(별도 스레드)는 진행하지만 게임 로직은 한 프레임도 안 간다. 게임 상태를
   기다릴 때는 스핀하지 말고 호출을 나눈다.
