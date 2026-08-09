@@ -38,5 +38,11 @@ namespace Treeline
         public override void Deactivate(GameObject source)
         {
         }
+
+        public override void Restore(bool active)
+        {
+            isActive = active;
+            ApplyState(active, notify: false);
+        }
     }
 }

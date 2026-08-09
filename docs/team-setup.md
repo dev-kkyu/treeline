@@ -13,6 +13,35 @@
 git pull --rebase --autostash
 ```
 
+### 2026-08-09 · 체크포인트가 진행 상태까지 되돌린다 — 공용 파일을 손댔다 (A)
+
+IMPORTANT: **C 의 공용 파일 다섯을 고쳤다.** `GameFlow` · `Device` · `InstantDevice`
+· `TimedDevice` · `SustainedDevice` · `Lever`. 새 파일은 `Progress/ChapterState.cs`
+하나다.
+
+이유는 이렇다. **재시작이 씬을 통째로 다시 읽어서**, 체크포인트만 두면 플레이어가
+서는 자리만 앞당겨지고 레버와 장치는 전부 처음으로 돌아간다. 발전기 앞에서
+부활했는데 차단기가 내려가 있으면 시작 지점에서 다시 하는 것보다 헷갈린다.
+
+`ChapterState` 가 `PlayerLoadout` 과 같은 모양으로 그 간극을 메운다 — 체크포인트를
+밟을 때 장치 상태를 베끼고, 같은 장을 다시 읽을 때 되돌린다. 장이 바뀌면 버린다.
+
+각 파일에 더한 것은 **되돌리기 한 함수씩**이다.
+
+| 파일 | 더한 것 |
+| --- | --- |
+| `Device` | `public abstract void Restore(bool)` |
+| 장치 셋 | 그 구현. 전부 `ApplyState(notify: false)` 라 소리가 안 난다 |
+| `Lever` | `public void Restore()` — 자기 `devices` 를 훑어 모습을 맞춘다 |
+| `GameFlow` | 필드 하나와 훅 셋 (`SetCheckpoint` · 장 전환 · `EnterChapter`) |
+
+**기존 동작은 안 건드렸다.** `Restore` 는 `ChapterState` 만 부르고, 체크포인트가
+없는 장(1 · 2 · 3 · 6)은 지금까지와 똑같이 돈다.
+
+**C 가 보고 아니라고 하면 되돌린다.** 원래 「셋으로 안 되는 것이 나오면 왜 안 되는지
+먼저 확인한다」가 규칙인데, 여기는 세 패턴의 문제가 아니라 **재시작이 상태를
+안 들고 간다**는 빈 자리였다. 5 · 6장에서도 같은 것이 필요해질 것으로 본다.
+
 ### 2026-08-09 · 관통이 다섯 장이 됐다 — 3 · 4장이 가운데 들어왔다 (A)
 
 **`Chapters.Order` 를 고쳤다.** 이제 이렇게 간다.

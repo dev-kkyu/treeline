@@ -26,6 +26,7 @@ namespace Treeline
         private bool isTransitioning;
         private PlayerHealth watchedHealth;
         private PlayerLoadout carried;
+        private ChapterState chapterState;
 
         public static GameFlow Instance
         {
@@ -83,6 +84,7 @@ namespace Treeline
         public void StartNewGame()
         {
             hasCheckpoint = false;
+            chapterState = null;
             carried = null;      // 새로 시작하면 빈손이다
             LoadChapter(Chapters.First);
         }
@@ -91,6 +93,7 @@ namespace Treeline
         public void ReturnToTitle()
         {
             hasCheckpoint = false;
+            chapterState = null;
             carried = null;
             LoadChapter(Chapters.Title);
         }
@@ -118,6 +121,10 @@ namespace Treeline
             hasCheckpoint = true;
             checkpointPosition = position;
             checkpointRotation = rotation;
+
+            // 자리만 기억하면 부활했을 때 레버와 장치가 처음으로 돌아가 있다.
+            // 발전기 앞에서 살아났는데 차단기가 내려가 있으면 더 헷갈린다.
+            chapterState = ChapterState.Capture();
         }
 
         /// <summary>
@@ -155,6 +162,7 @@ namespace Treeline
             if (sceneName != CurrentChapter)
             {
                 hasCheckpoint = false;
+                chapterState = null;
 
                 // 나가는 순간의 소지품을 베껴 둔다. 씬이 언로드되면 못 읽는다.
                 //
@@ -211,6 +219,7 @@ namespace Treeline
         {
             PlacePlayer();
             RestoreLoadout();
+            RestoreChapterState();
             WatchPlayerDeath();
         }
 
@@ -232,6 +241,24 @@ namespace Treeline
             }
 
             carried.Apply(GameObject.FindWithTag("Player"));
+        }
+
+        /// <summary>
+        /// 체크포인트를 지난 뒤 죽었으면 그때까지의 레버 · 장치 상태를 되돌린다.
+        /// </summary>
+        /// <remarks>
+        /// <c>sceneLoaded</c> 에서 불리므로 새 씬의 <c>Awake</c> 는 끝났고
+        /// <c>Start</c> 는 아직이다. <see cref="Device"/> 의 초기 정렬이
+        /// <c>Awake</c> 에 있으므로 여기서 덮어쓰면 된다.
+        /// </remarks>
+        private void RestoreChapterState()
+        {
+            if (chapterState == null)
+            {
+                return;
+            }
+
+            chapterState.Apply();
         }
 
         /// <summary>

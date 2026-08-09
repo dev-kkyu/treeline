@@ -61,6 +61,16 @@ namespace Treeline
         public abstract void Deactivate(GameObject source);
 
         /// <summary>
+        /// 재시작 뒤 <b>상태만</b> 되돌린다. 소리도 이벤트도 내지 않는다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="ChapterState"/> 가 부른다. <see cref="Activate"/> 로 되돌리면
+        /// 부활하자마자 차단기 소리와 문 열리는 소리가 한꺼번에 울린다 — 이미 지나온
+        /// 일이라 다시 들릴 이유가 없다.
+        /// </remarks>
+        public abstract void Restore(bool active);
+
+        /// <summary>
         /// 씬에 저장된 상태와 관계없이 <b>발동 전 모습으로 맞춘다.</b>
         /// </summary>
         /// <remarks>

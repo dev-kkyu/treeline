@@ -49,6 +49,27 @@ namespace Treeline
             Set(false);
         }
 
+        public override void Restore(bool active)
+        {
+            isActive = active;
+
+            // 돌던 소리는 켜진 채로 되돌아와야 한다. 조용한 서치라이트는 고장으로 읽힌다.
+            if (runningLoop != null)
+            {
+                if (active)
+                {
+                    runningLoop.loop = true;
+                    runningLoop.Play();
+                }
+                else
+                {
+                    runningLoop.Stop();
+                }
+            }
+
+            ApplyState(active, notify: false);
+        }
+
         private void Set(bool active)
         {
             if (isActive == active)

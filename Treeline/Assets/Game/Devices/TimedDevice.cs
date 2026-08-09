@@ -110,6 +110,22 @@ namespace Treeline
             Complete();
         }
 
+        public override void Restore(bool active)
+        {
+            // 돌던 중이었으면 되돌리지 않는다. 다 돈 것만 살린다 —
+            // 중간에 죽었으면 그 대기는 다시 견디는 것이 맞다.
+            isRunning = false;
+            elapsed = active ? seconds : 0f;
+            isActive = active;
+
+            if (runningLoop != null && runningLoop.isPlaying)
+            {
+                runningLoop.Stop();
+            }
+
+            ApplyState(active, notify: false);
+        }
+
         private void Complete()
         {
             elapsed = seconds;

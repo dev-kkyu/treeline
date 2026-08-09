@@ -119,6 +119,52 @@ namespace Treeline
         }
 
         /// <summary>
+        /// 재시작 뒤 모습을 <b>자기 장치 상태에 맞춘다.</b> 장치는 건드리지 않는다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="ChapterState"/> 가 장치를 되돌린 뒤에 부른다.
+        /// <para>
+        /// IMPORTANT: <b>당겼는지를 따로 기억하지 않는 이유가 있다.</b> 시간 발동
+        /// 장치는 도는 중에 죽으면 그 대기를 되살리지 않는데, 레버만 「당겨짐」으로
+        /// 되돌리면 <see cref="CanInteract"/> 가 거짓이 되어 <b>다시 당길 수 없고 장이
+        /// 막힌다.</b> 4장 발전기 예열에서 실제로 그렇게 갇혔다. 장치에서 끌어내면
+        /// 둘이 어긋날 수가 없다.
+        /// </para>
+        /// </remarks>
+        public void Restore()
+        {
+            bool on = devices != null && devices.Length > 0;
+
+            if (on)
+            {
+                foreach (Device device in devices)
+                {
+                    if (device == null || !device.IsActive)
+                    {
+                        on = false;
+                        break;
+                    }
+                }
+            }
+
+            IsPulled = on;
+
+            if (body != null)
+            {
+                Material next = on ? pulledMaterial : restMaterial;
+                if (next != null)
+                {
+                    body.sharedMaterial = next;
+                }
+            }
+
+            // 되돌리는 것이라 흔들지 않고 그 자세로 놓는다. 코루틴을 쓰면 아직 꺼져
+            // 있는 레버에서 「Coroutine couldn't be started」 가 난다 — 장치가 켜 주는
+            // 레버가 그렇다.
+            handle.localRotation = on ? restRotation * Quaternion.Euler(pulledRotation) : restRotation;
+        }
+
+        /// <summary>
         /// 손잡이 자리에서 한 번 낸다. 3D 라 방향과 거리가 들린다.
         /// </summary>
         /// <remarks>
