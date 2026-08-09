@@ -34,7 +34,7 @@ Assets/Game/Enemy/Materials/M_Clinger.mat     URP/Lit, metallic 0, smoothness 0.
 | `Clinger_Cling_Tremor` | 0..39 | 1.300s | X | — |
 | `Clinger_Unfold_Drop` | 0..23 | 0.767s | X | `AE_DropRelease` f9 |
 | `Clinger_Land` | 0..23 | 0.767s | X | `AE_EnableGroundMode` f14 |
-| `Clinger_Scuttle` | 0..24 | 0.800s | O | — |
+| `Clinger_Scuttle` | 0..16 | 0.533s | O | — |
 | `Clinger_Attack_Underjaw` | 0..25 | 0.833s | X | `AE_AttackHit` f12 |
 | `Clinger_Hit` | 0..13 | 0.433s | X | — |
 | `Clinger_Death_Fall` | 0..17 | 0.567s | X | `AE_DeathRelease` f4 |
@@ -51,7 +51,7 @@ IMPORTANT: `ModelImporterClipAnimation`으로 이벤트를 넣을 때 `Animation
 | 이름 | 타입 | 용도 |
 | --- | --- | --- |
 | `Mode` | Int | 0 천장, 1 낙하, 2 착지, 3 지상, 4 사망 |
-| `Speed` | Float | 지상 Agent 속도, 0→Scuttle 4.2 |
+| `Speed` | Float | 지상 Agent 속도, 0 → Scuttle 3.10 |
 | `Tremor` | Trigger | Folded → Tremor 1회 재생 후 복귀 |
 | `Drop` | Trigger | Unfold_Drop 시작 |
 | `Attack` | Trigger | Underjaw one-shot |
@@ -59,6 +59,10 @@ IMPORTANT: `ModelImporterClipAnimation`으로 이벤트를 넣을 때 `Animation
 | `Dead` | Bool | 최우선 Death, 복귀 없음 |
 
 ## 상태 흐름
+
+IMPORTANT: **GroundPose ↔ Scuttle 전환은 0.12초 crossfade로 건다.** 걸음 주기에는
+네 발이 다 닿아 있는 순간이 없어서 정지 포즈와 0 오차로 못 잇는다(실측 0.33 m / 37°).
+나머지 지상 전환은 GroundPose 기준으로 2.6 cm 이하라 0.05초면 충분하다.
 
 ```text
 Cling_Folded --Tremor--> Cling_Tremor --> Cling_Folded
@@ -99,9 +103,11 @@ Death는 모든 상태를 0.03초 안에 중단하며 Exit transition을 만들�
 
 - 천장: Sphere r 0.52, center = 원점 아래 y −0.90, Agent off.
 - 지상: Capsule h 1.20/r 0.52/center y 0.60.
-- Agent: r 0.55, h 1.27, speed 4.20, angular 240°/s, acceleration 12,
+- Agent: r 0.55, h 1.27, **speed 3.10**, angular 240°/s, acceleration 12,
   stopping distance 0.55. 반지름은 몸통이 아니라 **앞팔 접지점 사이 거리**에서 나온
   값이고, 더 작게 잡으면 여러 마리가 좁은 복도에서 서로를 통과한다.
+- speed 3.10 은 걸음 클립이 미끄러지지 않는 속도다. 이 값을 올리면 발이 끌린다.
+  → [`05-scuttle.md`](05-scuttle.md) 「속도는 보폭이 정한다」
 - 공격: 전방 Capsule h 0.85/r 0.60. 사지별 물리 collider는 만들지 않는다.
 - 피격 Hitbox가 필요하면 Head/Torso/Limbs 세 그룹만 사용한다.
 

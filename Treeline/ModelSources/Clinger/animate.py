@@ -274,14 +274,27 @@ def land(f):
 
 # gait: (phase, plant, stride, lift). Forward is -Y, so a planted contact
 # slides +Y while it carries the body.
-SCUTTLE_N = 24
+#
+# The strides are the most the rig can actually reach - swept in reach.py, the
+# hands stay exact from y -0.85 to -0.13 and the rear hooks from +0.25 to +0.65.
+# Asking for more just parks the IK short of its target and the foot floats.
+#
+# Zero-slip speed is stride / (duty * cycle), NOT stride / cycle: a foot only has
+# to keep up with the body while it is carrying it. Hands 0.65 m over a 0.42 duty
+# of a 16f cycle is 2.90 m/s, which is what MODEL-SPEC now lists as the agent
+# speed. The old 4.20 m/s was inherited from Crawler and would have dragged every
+# foot at seven times its own stride.
+SCUTTLE_N = 16
 GAIT = {
-    "handL": (0.00, Vector((-0.62, -0.55, 0.20)), 0.42, 0.190),
-    "hookRR": (0.04, Vector((0.50, 0.42, 0.00)), 0.20, 0.060),
-    "handR": (0.54, Vector((0.62, -0.55, 0.20)), 0.42, 0.190),
-    "hookLR": (0.46, Vector((-0.50, 0.42, 0.00)), 0.20, 0.060),
+    "handL": (0.00, Vector((-0.62, -0.55, 0.20)), 0.65, 0.220),
+    "hookRR": (0.04, Vector((0.50, 0.42, 0.00)), 0.40, 0.080),
+    "handR": (0.54, Vector((0.62, -0.55, 0.20)), 0.65, 0.220),
+    "hookLR": (0.46, Vector((-0.50, 0.42, 0.00)), 0.40, 0.080),
 }
-DUTY = 0.62
+# 0.42, so each diagonal is down for 42% of the cycle and 16% of it has nothing
+# down at all. That flight phase is what buys the stride - without it this rig
+# tops out near 1.1 m/s.
+DUTY = 0.42
 
 
 def _contact(f, phase, plant, stride, lift):
@@ -453,7 +466,7 @@ def main():
         ("Clinger_Cling_Tremor", [(f, cling_tremor) for f in frames(1, 40)], None, False),
         ("Clinger_Unfold_Drop", [(f, unfold_drop) for f in frames(1, 24)], None, False),
         ("Clinger_Land", [(f, land) for f in frames(1, 24)], None, False),
-        ("Clinger_Scuttle", [(f, scuttle) for f in frames(1, 24)], 25, True),
+        ("Clinger_Scuttle", [(f, scuttle) for f in frames(1, SCUTTLE_N)], SCUTTLE_N + 1, True),
         ("Clinger_Attack_Underjaw", [(f, attack) for f in frames(1, 26)], None, False),
         ("Clinger_Hit", [(f, hit) for f in frames(1, 14)], None, False),
         ("Clinger_Death_Fall", [(f, death_fall) for f in frames(1, 18)], None, False),

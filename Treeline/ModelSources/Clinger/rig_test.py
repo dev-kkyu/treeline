@@ -156,6 +156,37 @@ def stance_contacts():
         check(abs(gap) <= 0.012, "%s touches the floor (%+.4f)" % (tag, gap))
 
 
+def gait_speed():
+    """What speed the walk cycle is actually built for.
+
+    Zero-slip speed is stride / (stance time), not stride / cycle time - a foot
+    only has to keep up with the body while it is carrying it. Stance is read off
+    the IK target's height, which is exact: planted targets sit at their plant z
+    and swing targets arch above it.
+    """
+    act = bpy.data.actions["Clinger_Scuttle"]
+    arm.animation_data.action = act
+    n = int(act.frame_end) - int(act.frame_start)      # cycle without the seam
+    period = n / 30.0
+    print("GAIT   cycle %df = %.3fs" % (n, period))
+    for ctrl, bone in ((P.IK_HAND["R"], "hand R"), (P.IK_HAND["L"], "hand L"),
+                       (P.IK_CEIL["RR"], "hook RR"), (P.IK_CEIL["LR"], "hook LR")):
+        ys, zs = [], []
+        for f in range(int(act.frame_start), int(act.frame_end)):
+            bpy.context.scene.frame_set(f)
+            bpy.context.view_layer.update()
+            t = arm.matrix_world @ arm.pose.bones[ctrl].head
+            ys.append(t.y)
+            zs.append(t.z)
+        floor = min(zs)
+        stance = sum(1 for z in zs if z <= floor + 0.005)
+        duty = stance / float(n)
+        travel = max(ys) - min(ys)
+        v = travel / (duty * period) if duty else 0.0
+        print("       %-8s stride %.3f m  duty %.2f  zero-slip %.2f m/s"
+              % (bone, travel, duty, v))
+
+
 def folded_bound():
     P.reset()
     P.hooks_home()
@@ -176,6 +207,9 @@ def main():
     jaw_sweep()
     folded_bound()
     stance_contacts()
+    constraints(False)
+    gait_speed()
+    constraints(True)
     constraints(False)
     P.reset()
     clip_report()

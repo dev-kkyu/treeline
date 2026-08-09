@@ -47,7 +47,9 @@ blender <scratch>/Clinger_Anim.blend -b --python rig_test.py
 - [ ] `Unfold_Drop` f9에 낙하가 정확히 한 번 시작한다.
 - [ ] `Land` f14 전에 Agent/Capsule이 켜지지 않고 f14에만 전환된다.
 - [ ] `Land` 마지막 프레임 렌더 높이가 1.27±0.03 m다.
-- [ ] 4.2 m/s Scuttle과 240°/s 회전에서 접지 미끄러짐·pole flip이 없다.
+- [ ] 3.1 m/s Scuttle과 240°/s 회전에서 앞손 접지 미끄러짐·pole flip이 없다.
+      뒤 갈고리는 1.5 m/s 로 긁히는 것이 정상이다.
+- [ ] GroundPose ↔ Scuttle 전환에 0.12초 crossfade가 걸려 있다.
 - [ ] `Attack` f12에 전방 Capsule 피해가 정확히 한 번 발생한다.
 - [ ] 천장 피격이 `Cling_Tremor`, 지상 피격이 `Hit`로 갈린다.
 - [ ] 치명타는 `Hit`를 건너뛰고 Death가 최우선이다.
@@ -70,7 +72,7 @@ blender <scratch>/Clinger_Anim.blend -b --python rig_test.py
    있는지 확인. 초판의 0.72 m 기준으로 배치하면 겹친다.
 2. 천장 3.4 m Extended: 전개 2.51 m와 낙하 예고 확인.
 3. 천장 2.6/3.4/4.0 m: 같은 clip 속도, 다른 코드 낙하 시간 시험.
-4. Land 직후 4.2 m/s 직선 10 m와 반경 2 m 회전 시험.
+4. Land 직후 3.1 m/s 직선 10 m와 반경 2 m 회전 시험. 걸으며 공격 진입/복귀도 함께.
 5. Attack 히트 전후로 대상이 범위를 벗어나는 경계 시험. 애니메이션이 260 mm 앞으로
    넘어지지만 Capsule은 제자리인 것을 눈으로 확인한다.
 6. 천장/지상 각각 치명타: Death pose, collider, 바닥 정지 확인.

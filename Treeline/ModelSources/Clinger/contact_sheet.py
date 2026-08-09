@@ -18,7 +18,7 @@ SHEETS = [
     ("Clinger_Cling_Tremor", [1, 3, 7, 11, 17, 19, 25, 40], (0, 0, -0.9), 2.8, False),
     ("Clinger_Unfold_Drop", [1, 4, 8, 10, 13, 16, 18, 24], (0, 0, -1.3), 3.4, False),
     ("Clinger_Land", [1, 3, 5, 9, 12, 15, 18, 24], (0, 0, 0.8), 3.2, True),
-    ("Clinger_Scuttle", [1, 4, 7, 10, 13, 16, 19, 25], (0, 0, 0.7), 3.0, True),
+    ("Clinger_Scuttle", [1, 3, 5, 7, 9, 11, 13, 17], (0, 0, 0.7), 3.0, True),
     ("Clinger_Attack_Underjaw", [1, 5, 9, 11, 13, 16, 20, 26], (0, -0.2, 0.7), 3.4, True),
     ("Clinger_Hit", [1, 3, 5, 7, 9, 11, 12, 14], (0, 0, 0.7), 3.0, True),
     ("Clinger_Death_Fall", [1, 3, 5, 7, 9, 11, 14, 18], (0, 0, -1.1), 3.2, False),
