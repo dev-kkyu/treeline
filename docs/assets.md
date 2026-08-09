@@ -64,6 +64,8 @@ IMPORTANT: OFL 은 **제품에 임베드하고 재배포하는 것을 명시적�
 | Treeline 배경음악 10종 | 음악 (MP3) | ElevenLabs Eleven Music `music_v2` (Starter 유료 플랜) | 유료 플랜에 음악 상업 이용 포함. 대형 스튜디오 게임 배급은 별도 라이선스가 필요하나 이 과제 범위에는 해당 없다 | 타이틀 · 1~6장 · 조명 복구 · 발각 · 엔딩 | 2026-08-08 |
 | Treeline 적 소리 28종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | Crawler · Clinger · Colossus. enemy-sheets 의 클립 명세와 이벤트 프레임에 맞춰 생성 | 2026-08-08 |
 | Treeline 메뉴 클릭음 1종 | 사운드 (WAV) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 타이틀 · 엔딩 메뉴의 버튼 | 2026-08-09 |
+| Treeline 무기음 15종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 권총 · 산탄총의 발사 · 빈 방아쇠 · 탄창 · 슬라이드 · 펌프 · 탄 장전 · 장착 · 탄착 · 탄피 | 2026-08-09 |
+| Treeline 주인공 소리 8종 | 사운드 (WAV · MP3) | ElevenLabs Text to Sound Effects (Starter 유료 플랜) | 유료 플랜 상업 라이선스 | 피격 2종 · 사망 · 도약 · 착지 · 힘쓰기 · 발버둥 · 지친 호흡 루프 | 2026-08-09 |
 | Crawler | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 · 2048 텍스처 3장) | 미확인 | 적 「기는 것」 | 2026-08-08 |
 | Crawler 리그 · 애니메이션 6종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Crawler/`) | 프로젝트 자체 제작 | 적 「기는 것」 | 2026-08-08 |
 | Colossus | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 8,634 tris · 2048 텍스처 3장) | 미확인 | 적 「죽지 않는 것」 | 2026-08-08 |
@@ -91,8 +93,9 @@ IMPORTANT: 소품은 **Meshy 가 준 FBX 를 저장소에 넣지 않는다.** �
 들어가서다. 임포트해 메시를 `.asset` 으로 뽑고 텍스처를 512 로 줄이면 40 MB 가 된다.
 원본 zip 은 `Treeline/ModelSources/meshygen/` 에 있고 `.gitignore` 로 빠진다 —
 **로컬에만 있으므로 다시 뽑을 일이 생기면 사람에게 물어야 한다.**
-| 타이틀 설원 · 침엽수 3종 | 3D 모델 (FBX) | Claude Code 가 작성한 Blender 파이썬 스크립트 | 프로젝트 자체 제작 | 타이틀 화면 배경. 바닥은 위의 월드 눈 텍스처를 그대로 쓴다 | 2026-08-09 |
+| 타이틀 설원 · 침엽수 3종 | 3D 모델 (FBX) | Claude Code 가 작성한 Blender 파이썬 스크립트 | 프로젝트 자체 제작 | **설원만 남음** — 침엽수 3종(`Title_Conifer_A/B/C`)은 아래 Meshy 나무로 교체하고 파일 삭제 | 2026-08-09 |
 | 타이틀 · 엔딩 배경 4종 | 3D 모델 (FBX) | 〃 | 프로젝트 자체 제작 | 설산 능선 · 중계소 철탑 · 삭도 케이블. 두 화면이 같은 모델을 공유한다 | 2026-08-09 |
+| 배경 나무 3종 (모델 · 텍스처 · 머티리얼 · 프리팹) | 3D 모델 · 텍스처 | Meshy AI text-to-3D. 프롬프트는 [`tech-design/props.md`](tech-design/props.md) 31~33 번, 임포트 후처리는 Claude Code 가 Unity MCP 로 | 미확인 | 타이틀 · 엔딩 배경의 수목한계선. 침엽수 · 죽은 침엽수 · 쓰러진 통나무 | 2026-08-09 |
 | 플레이 영상 내레이션 7줄 | 음성 (WAV) | Windows SAPI 5 음성 합성 (Microsoft Heami, ko-KR) — Claude Code 가 `System.Speech` 로 호출 | **확인 필요** (아래 참고) | 제출용 플레이 영상의 한국어 내레이션 | 2026-08-09 |
 
 IMPORTANT: **내레이션 음성의 권리는 아직 확인 안 됐다.** Windows 에 딸려 오는

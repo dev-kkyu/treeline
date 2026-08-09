@@ -1,4 +1,5 @@
-> 상태: 30종 임포트 · 1 · 2 · 6장 완료 · 최종 수정 2026-08-09
+> 상태: 30종 임포트 · 1 · 2 · 6장 완료 · **배경 나무 3종 임포트 · 타이틀 · 엔딩
+> 교체 완료** · 삭도 곤돌라 재생성 대기 · 최종 수정 2026-08-09
 
 # 소품 목록과 Meshy 프롬프트
 
@@ -80,6 +81,11 @@ Neutral desaturated palette only.
 IMPORTANT: **Meshy 는 치수를 안 지킨다.** 프롬프트의 길이는 비율을 잡는 용도이고 실제
 크기는 임포트에서 맞춘다. 그래서 항목마다 **치수 · 축 · 피벗**을 적어 둔다 — 그 숫자가
 없으면 후처리에서 맞출 기준이 사라진다.
+
+IMPORTANT: **Meshy 프롬프트는 800자까지다** (2026-08-09 확인). 위 30종은 500자 안팎이라
+걸리지 않지만, 재질까지 지시하면 금방 넘는다. 넘칠 때는 **형태 묘사부터 깎고 금지
+조항은 그대로 둔다.** 형태가 마음에 안 들면 다시 뽑으면 되지만, 알베도에 구워진 그림자 ·
+불투명하게 칠해진 유리 · 높은 폴리곤은 **임포트 뒤에 고칠 방법이 없다.**
 
 ---
 
@@ -557,21 +563,82 @@ IMPORTANT: **리메시와 틈은 서로를 지운다.** 부품 분리가 걸린 
 - 부품 분리: **커튼 · 가이드 · 롤러함 셋** (덩어리 분리). 커튼만 내려와야 한다
 - 비고: 2장에서 살아남는 수단. 3장 이후 같은 물건이 무기가 된다
 
-### 18. 삭도 곤돌라 `CableCar`
+### 18. 삭도 곤돌라 `CableCar` — 2026-08-09 다시 뽑는다
 
-    Small aerial tramway gondola cabin for two people, riveted steel shell
-    with rounded corners, a large window on each side, a sliding door on one
-    side standing half open with a clear gap between door and body, a curved
-    hanger arm on the roof ending in a grip clamp for the haul rope. Worn matte
-    grey-green paint over steel, bare metal at the edges, light rust at seams.
-    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
-    occlusion. No branding, no text, no decals. Neutral desaturated palette only.
+    Large aerial tramway gondola for a dozen standing passengers. Riveted
+    steel shell, rounded corners, shallow curved roof, plain interior with a
+    handrail and two grab poles. The upper body is one wraparound picture
+    window on all four sides, a low solid skirt below it, slim mullions,
+    glazing carried up into the roof curve. Curved hanger arm on the roof
+    ending in a grip clamp.
 
-- 치수: 1.60 × 2.00 × 2.40m (`Ch6` 의 `Body` 실측)
+    The glass panes are separate thin sheets set in the frame with a clear
+    air gap all around, not fused to it. One pane is cracked in a spider web
+    from an impact point, the cracks modelled as geometry with the shards
+    offset. One pane is missing entirely.
+
+    Worn matte grey-green steel, bare metal at edges. Clear glass. Dark
+    unlit albedo, no baked shadows or AO. Low-poly, clean topology, no text
+    or decals.
+
+`788자.` 문은 뺐다 — 유리 한 판이 통째로 없으므로 열린 구멍은 이미 있고, 문 분리는
+엔딩 화면에 필요 없다.
+
+- 치수: **4.00 × 2.60 × 4.00m** — `Ch6` 의 `CableCar/Car` 데크(`4.00 × 0.30 × 4.00`)에
+  맞췄다. **창 윗변이 2.45m, 아래 스커트가 0.45m** 여야 한다
 - 축: 진행 방향 `+Z` · 피벗: **행어 그립 중심** (케이블에 매달린다)
-- 바꿀 곳: `Ch6` 의 `Body` · `Car` · `CableCar`
-- 부품 분리: **문을 나눈다** (덩어리 분리). 미닫이라 경첩이 없어 깨끗하게 떨어진다
-- 비고: 올라타면 화면이 뒤집힌다. **안이 보이므로 내부도 필요하다**
+- 바꿀 곳: `Ch6` 의 `CableCar/Car`, 그리고 **`Ending` 에 새로 세운다** (지금 엔딩 씬에
+  곤돌라가 없다)
+- 부품 분리: **유리 판 전부 · 문** (덩어리 분리). 유리는 반투명 머티리얼을 따로 줘야 한다
+- 폴리곤: 8,000 tris 이하 · 텍스처 **1024** (카메라가 안에 들어가는 유일한 소품이다)
+
+IMPORTANT: **기존 임포트본(`Assets/Game/Props/CableCar/`)은 버린다.** 1.33 × 2.00 ×
+1.28m 로 들어와 있는데, 이건 자기 바닥판인 4 × 4m 데크보다 작다. 원인은 이 항목의
+옛 치수 「1.60 × 2.00 × 2.40m (`Ch6` 의 `Body` 실측)」가 **잘못 잰 값**이었기
+때문이다 — 그 크기는 `Heater/Body` 이고 삭도가 아니다.
+
+## 왜 커져야 하나 — 창 윗변이 눈높이보다 낮았다 (2026-08-09 실측)
+
+| | 값 |
+| --- | --- |
+| 임포트본 캐빈 | 1.33 × **2.00** × 1.28m (피벗이 위, 캐빈이 y −2.0 ~ 0) |
+| 바닥 · 지붕 두께를 뺀 내부 높이 | 약 1.7m → **창 윗변 1.5m 언저리** |
+| 플레이어 눈높이 | **1.70m** |
+| `Colossus` 실측 | 6.44 × **5.33** × 4.99m |
+
+**서 있으면 시선이 창 윗테두리에 걸린다.** 키 5.33m 짜리를 그 창으로 보려면 웅크려야
+한다. 「적이 안 보인다」는 크기 문제가 아니라 **창 윗변 높이 문제**였다.
+
+새 치수에서 눈높이 1.70m, 창 윗변 2.45m, 유리에서 1.2m 떨어져 서면 위로 32° 가
+열린다. 거리 `d` 에서 보이는 높이는 `1.70 + 0.625d` 이므로 —
+
+| 적까지 거리 | 보이는 높이 | 5.33m 가 다 들어오나 |
+| --- | --- | --- |
+| 5m | 4.8m | 아니오 (머리가 잘린다) |
+| **6m** | **5.5m** | **예** |
+| 10m | 7.9m | 여유 있게 |
+
+IMPORTANT: 그래서 **적을 6m 보다 가까이 붙이면 안 된다.** 지금 `Ch6` 의 `Colossus`
+는 `(-8.43, 0, 14.07)`, 삭도는 `(0, 0, 17)` 이라 8.9m 다 — 새 캐빈이면 들어온다.
+엔딩 씬에 세울 때도 이 거리를 지킨다. **가까울수록 잘 보인다고 생각하면 반대로 된다.**
+
+## 유리는 통째로 뽑으면 안 보인다
+
+IMPORTANT: **Meshy 는 불투명 메시 하나로 내보내므로, 유리를 그냥 시키면 유리처럼
+칠해진 벽이 온다.** 그 창으로는 적이 아니라 아무것도 안 보인다. 통창을 요구하면서
+이걸 안 막으면 크기를 키운 의미가 사라진다.
+
+세 겹으로 막았다.
+
+| 프롬프트의 장치 | 무엇을 보장하나 |
+| --- | --- |
+| `separate thin sheets ... with a clear air gap all around each one` | 유리가 프레임에 안 붙어 나온다 → **덩어리 분리**로 떼어 반투명 머티리얼을 줄 수 있다 |
+| `cracks modelled as real geometry with the shards slightly offset` | 금이 텍스처가 아니라 형태로 남는다. 반투명으로 바꿔도 금은 살아 있고 달빛을 받는다 |
+| **`One pane is missing entirely, leaving an open empty frame`** | **분리가 실패해도 뚫린 창이 하나 남는다.** 이 한 줄이 안전망이다 — 유리를 못 떼어내도 적을 보여줄 시선 하나는 확보된다 |
+
+떼어낸 유리에 줄 머티리얼은 URP `Lit` · Surface Type **Transparent** · alpha 0.12
+근처 · smoothness 0.85. 금이 간 판은 **알파를 조금 올려**(0.2) 금선이 읽히게 한다.
+프레임 · 셸은 다른 소품과 같이 metallic 0 · smoothness 0.25 다.
 
 ### 19. 관제 콘솔 `ControlConsole`
 
@@ -747,6 +814,218 @@ IMPORTANT: **리메시와 틈은 서로를 지운다.** 부품 분리가 걸린 
 - 바꿀 곳: 없음 — **새로 놓는다**
 - 부품 분리: 불필요
 - 비고: 기획의 「커피가 아직 따뜻한데 사람이 없다」가 이것이다
+
+---
+
+# 배경 — 타이틀 · 엔딩의 수목한계선
+
+타이틀과 엔딩은 같은 설원 배경을 공유한다. 원래 `_Backdrop/Treeline` 아래에
+**Blender 로 뽑은 침엽수 3종 74그루**가 서 있었다. 2026-08-09 에 **전부 지우고 Meshy
+나무 3종 34그루로 갈아치웠다.**
+
+`Title_Conifer_A/B/C.fbx` 와 `M_Title_Tree` · `M_Title_TreeSnow` 는 참조가 없어진 것을
+확인하고 지웠다. 새 에셋은 `Assets/Game/Levels/Title/Trees/` 에 있고 두 씬이 공유한다.
+
+## 74 → 34 로 줄인 이유 (2026-08-09 실측)
+
+| | 옛 Blender 나무 | 새 Meshy 나무 |
+| --- | --- | --- |
+| 폴리곤 (한 그루) | 200 · 236 · 272 tris | **25,684 · 20,142 · 21,492 tris** |
+| 그루 수 | 74 | **34** |
+| 씬 전체 | 약 17,000 tris | **812,152 tris** |
+| 텍스처 | 없음 (단색) | 1024 albedo + normal 3벌, 폴더 16 MB |
+
+**한 그루가 옛 숲 전체보다 무겁다.** 74 를 그대로 두면 180만 tris 가 되어 WebGL 에서
+감당이 안 된다. 그래서 그루 수를 절반 이하로 줄이고, **안개가 먹는 자리를 먼저
+버렸다** — 안개가 ExpSq 0.014 라 z 70 밖은 화면 기여가 20% 아래다. 옛 배치는 z 65.7 ·
+x ±80 까지 뿌려져 있었는데 거기를 걷어내고 앞쪽에 몰았다.
+
+IMPORTANT: 가장 크게 달라진 것은 **근경 레이어가 생긴 것**이다. 옛 배치는 가장 가까운
+나무가 카메라에서 **30.4m** 밖이라 z −4 ~ 22 의 26m 가 통째로 비어 있었다. 새 배치는
+z 3~24 에 여섯 그루와 통나무 넷을 넣어 화면 앞을 채운다. **그루 수는 절반인데 화면은
+더 꽉 찬다.**
+
+- 형태를 못 고치는 것은 여기도 같았다 — 옛 3종을 만든 Blender 스크립트가 저장소에
+  없다. `Ch2_CorridorSection.fbx` 와 같은 상황이라 새로 뽑는 쪽이 고치는 쪽보다 쌌다
+
+## 배치할 때 지킨 것
+
+| 씬 | 비워야 하는 자리 | 왜 |
+| --- | --- | --- |
+| 공통 | 화면 중앙 회랑 | 타이틀 문구 · 엔딩 헤드라인이 그 위에 올라간다 |
+| `Title` | `RelayMast` (−16, 54) · `Apparition` (11, 37) 둘레 | 중계소 철탑과 「그것」의 실루엣이 이 화면의 주인공이다 |
+| `Ending` | **`x 4~22` · `z 5~45`** | **삭도 케이블이 지면 위 3.5~8.5m 밖에 안 된다.** 9m 짜리 나무를 그 띠에 두면 케이블을 가린다. 케이블이 끝나는 z 49 부터는 가운데도 쓸 수 있다 |
+| `Ending` | 화면 왼쪽 1/3 | **엔딩 메뉴 패널이 런타임에 왼쪽에 뜬다.** 처음엔 모르고 근경 나무를 거기 세웠다가 패널 뒤에 완전히 가려서 옮겼다 |
+
+지면 높이는 **`Snowfield` 메시 정점을 직접 샘플링해서** 맞췄다. 설원이 좌우 · 앞뒤로
+기울어 있어(타이틀 기준 +0.6 ~ −2.2m) 고정값을 쓰면 뜨거나 묻힌다. 밑동은 0.35m
+파묻었다 — `ConiferDead` 의 넓은 밑동 원반이 그래야 눈에 안 걸린다.
+
+통나무는 **잘린 단면이 카메라를 등지게** `yRot 250~292` 로 돌렸다. 단면이 밝은
+원반이라 정면으로 두면 어두운 화면에서 그것만 눈에 걸린다.
+
+## 이 셋의 공통 규칙 — 소품과 다르다
+
+**위쪽 소품 30종의 공통 블록(`worn matte grey-green industrial paint`)을 쓰지
+않는다.** 강철 도장 규칙이라 나무에 넣으면 초록색 페인트칠한 나무가 나온다.
+
+셋 다 **세 문단**으로 쓴다. 재질을 Meshy 에서 칠해 오므로 형태만 적으면 안 된다.
+
+| 문단 | 무엇을 적나 |
+| --- | --- |
+| ① 형태 | 실루엣과 덩어리. 눈은 여기서 **지오메트리로** 요구한다 |
+| ② `Materials:` | 표면의 성질 — 거칠기 · 광택 · 색. **Meshy 텍스처 단계가 읽는 문단이다** |
+| ③ 명도와 금지 | 알베도를 얼마나 어둡게 뽑을지, 그리고 굽지 말 것들 |
+
+| 넣는 말 | 왜 |
+| --- | --- |
+| **`solid geometry only, no alpha-cut leaf planes, no transparency`** | **이 셋에서 가장 중요한 줄이다.** Meshy 는 메시 하나 · 아틀라스 하나로 내보내므로 알파 컷아웃 잎사귀를 제대로 못 만든다. 사진 같은 침엽수를 시키면 뭉개진 덩어리가 온다. 가지 뭉치를 **덩어리 지오메트리**로 만들게 해야 지금 3종과 실루엣이 이어진다 |
+| `modelled as solid geometry` (눈) | 눈을 텍스처로만 칠하면 실루엣에 안 나온다. 지금 3종은 눈이 서브메시로 따로 있어 형태가 보인다. 그 인상을 이어받아야 한다 |
+| **`Keep the albedo very dark ... five to ten percent grey`** | **재질을 Meshy 에서 하기로 했으므로 여기가 승부처다.** 생성기는 낮 조명 기준으로 칠하는데 기존 74그루의 줄기 값은 `0.03` 이다. 퍼센트로 못 박지 않으면 갈색 나무가 와서 검은 배경 앞에 혼자 뜬다 |
+| `completely matte, no specular highlight, no wet sheen` · `metalness zero` | 젖은 듯이 반짝이면 눈보라 속 나무로 안 보인다. roughness 맵을 안 받고 파라미터로 덮을 것이므로, **광택을 텍스처에 칠해 오면 지울 방법이 없다** |
+| `not ice, not glossy, no sparkle` (눈) | 「snow」만 쓰면 반짝이는 얼음 결정으로 칠해 온다. 이 게임의 눈은 마른 가루눈이다 |
+| `no baked shadows, no baked ambient occlusion, no highlights or sky light painted into the colour map` | 소품과 같은 이유. 달빛 하나로 조명하는 화면이라 구워진 빛이 싸운다 |
+
+IMPORTANT: **수목한계선의 나무는 온전하지 않다.** 기획이 「그 위로는 나무가 자라지
+못하는 고도」로 제목을 정했으므로, 곧고 풍성한 크리스마스트리가 오면 장소가 틀린다.
+아래 셋 중 **둘이 죽은 나무**인 것이 그래서다. 바람에 한쪽으로 쓸린 가지 · 부러진 수관 ·
+벗겨진 껍질이 이 게임의 나무다.
+
+---
+
+### 31. 눈 얹힌 침엽수 `Conifer`
+
+    Tall subalpine spruce, one straight trunk tapering to a narrow spire,
+    seven tiers of short stiff branches getting shorter toward the top, each
+    tier a dense wedge-shaped solid mass of needles. Thick rounded caps of
+    settled snow sit on the upper surface of every tier, modelled as solid
+    geometry.
+
+    Deeply furrowed rough bark, almost black. Needles almost black too,
+    matte and dry. Snow is dry wind-packed powder, soft matte pale
+    grey-blue, not ice, not glossy, no sparkle. Fully rough, metalness zero.
+
+    Keep the albedo very dark, about five to ten percent grey for bark and
+    needles, snow no brighter than mid grey; it must read as a night
+    silhouette. Flat unlit albedo, no baked shadows or AO. Low-poly, clean
+    topology, solid geometry only, no alpha leaf planes, no transparency.
+
+`780자.`
+
+- 치수: 높이 **9.0m** · 폭 3.2m (기존 `Title_Conifer_C` 10.44m 와 나란히 서도 어색하지
+  않은 크기)
+- 축: 위 `+Y` · 피벗: **줄기 밑동 중앙** (설원에 박아 넣는다)
+- 놓을 곳: `Title` · `Ending` 의 `_Backdrop/Treeline` 에 **새 자식으로 추가.** z 4~18,
+  x ±4~10 에 두세 그루. 기존 74그루는 건드리지 않는다
+- 부품 분리: 불필요
+- 비고: 셋 중 **이것 하나만 먼저 뽑아도 된다.** 근경 레이어가 생기는 것만으로 화면이
+  달라진다
+
+### 32. 죽은 침엽수 `ConiferDead`
+
+    Dead weathered conifer at the tree line, bare trunk with the bark peeled
+    away in long patches, broken stubby limbs, all branches swept to one side
+    by the wind, the crown snapped off leaving a splintered stump. No
+    needles. A little snow packed into the crooks of the limbs, modelled as
+    solid geometry.
+
+    Dry dead wood split along the grain, matte, no sheen. Exposed heartwood a
+    dull mid grey, the deep cracks and remaining bark almost black. Snow is
+    dry powder, soft matte pale grey-blue, not ice, no sparkle. Fully rough,
+    metalness zero.
+
+    Keep the albedo dark: the wood no brighter than a low-mid grey, snow no
+    brighter than mid grey; it must read as a night silhouette. Flat unlit
+    albedo, no baked shadows or AO. Low-poly, clean topology, solid geometry
+    only, no transparency.
+
+`776자.`
+
+- 치수: 높이 **6.5m** · 폭 2.4m
+- 축: **가지가 쓸린 방향이 `+Z`** · 피벗: 줄기 밑동 중앙
+- 놓을 곳: 31 번 옆에 섞는다. **바람 방향을 맞춰 세운다** — 여러 그루가 같은 쪽으로
+  쓸려 있어야 눈보라가 한 방향으로 읽힌다
+- 부품 분리: 불필요
+- 비고: **31 번과 실루엣이 정반대라 둘을 섞으면 반복이 안 보인다.** 하나는 눈이 얹힌
+  삼각형, 하나는 앙상한 수직선이다
+
+### 33. 쓰러진 통나무 `FallenLog`
+
+    Fallen dead conifer trunk lying on its side, bark peeled off along the
+    upper face, a ring of broken branch stubs around it, a splintered break
+    at one end and a torn root plate at the other, a low separate stump
+    beside it. A long ridge of drifted snow banked against one side and along
+    the top, modelled as solid geometry.
+
+    Dry dead wood split along the grain, matte, no sheen. The bark left on
+    the underside is rough and almost black, the break end shows paler dry
+    fibres. Snow is dry powder, soft matte pale grey-blue, not ice, no
+    sparkle. Fully rough, metalness zero.
+
+    Keep the albedo dark: wood no brighter than a low-mid grey, snow no
+    brighter than mid grey. Flat unlit albedo, no baked shadows or AO.
+    Low-poly, clean topology, solid geometry only, no transparency.
+
+`771자.`
+
+- 치수: 길이 **4.5m** · 지름 0.55m · 그루터기 높이 0.7m
+- 축: **길이가 `+X`** · 피벗: 바닥면 중앙
+- 놓을 곳: 카메라 바로 앞 z 2~6. **설원 평면이 끝나는 자리를 가리는 데 쓴다**
+- 부품 분리: 불필요 (그루터기는 붙은 채로 온다. 떼고 싶으면 덩어리 분리)
+- 비고: 셋 중 우선순위가 가장 낮다. 다만 **누운 물건이라 화면 아래쪽을 채운다** —
+  서 있는 것만 놓으면 발밑이 계속 빈다
+
+---
+
+## 뽑을 때 — 나무는 소품과 설정이 다르다
+
+| 무엇 | 소품 30종 | **나무 3종** | 왜 다른가 |
+| --- | --- | --- | --- |
+| 파일 형식 | FBX | FBX | 같다 |
+| 텍스처 | base color + normal | **base color + normal** | 같다. **재질을 Meshy 에서 칠해도 metallic · roughness 맵은 안 받는다** — 셋 다 완전 무광 · 비금속이라 파라미터 두 개로 덮는 편이 텍스처가 절반이고 톤도 안 튄다 |
+| 임포트 해상도 | 512 | **1024** | 근경에 서므로 512 는 껍질이 뭉갠다. 소품과 달리 가까이서 본다 |
+| 리메시 | 약하게 | **약하게** | 세게 걸면 가지 뭉치가 하나로 뭉쳐 실루엣이 죽는다 |
+| 폴리곤 | 낮게 | **낮게 — 8,000 tris 이하** | 근경 서너 그루면 충분하다. 74그루에 쓰는 것이 아니다 |
+
+## 임포트 뒤 머티리얼 — 칠은 Meshy 가 한다
+
+색과 표면은 **프롬프트 ②③ 문단이 정했고, 그대로 먹었다.** 화면에서 밤 실루엣으로
+읽혀서 **틴트를 한 번도 안 건드렸다.** `_BaseColor` 는 흰색 그대로다.
+
+`M_Tree_Conifer` · `M_Tree_ConiferDead` · `M_Tree_FallenLog` 셋을
+`Assets/Game/Levels/Title/Trees/` 에 만들었다.
+
+| 항목 | 값 |
+| --- | --- |
+| 셰이더 | `Universal Render Pipeline/Lit` |
+| `_BaseMap` | Meshy albedo (sRGB 켬, 1024) |
+| `_BumpMap` | Meshy normal (`TextureImporterType.NormalMap`) |
+| `_BaseColor` 틴트 | **흰색 그대로** |
+| `_Metallic` | 0 |
+| `_Smoothness` | 0.1 |
+| 그림자 | **끔** (`shadowCastingMode Off`, `receiveShadows false`) — 배경이고 그루가 많다 |
+
+IMPORTANT: **명도는 틴트로 고치는 것이 아니라 뽑을 때 정하는 것이다.** 틴트로 곱해
+내리면 노멀맵이 만드는 껍질 요철까지 같이 눌려 평평해진다. 그래서 프롬프트 ③문단에
+「bark and needles 는 5~10% 회색」을 퍼센트로 못 박았고, 그 한 줄 덕분에 후처리가
+없었다. 근거는 [`world-assets.md`](world-assets.md) 의 「이 게임의 조명에서는 알베도
+색이 화면에 거의 안 나온다」 — **색이 아니라 명도로 맞춰야 하는 화면**이다.
+
+## 임포트에서 손으로 고쳐야 했던 것
+
+프롬프트가 못 막은 것들이다. 다음 모델을 받을 때도 같은 자리를 본다.
+
+| 무엇 | 온 상태 | 고친 방법 |
+| --- | --- | --- |
+| **스케일** | 세 모델 다 **0.01 단위** (9m 나무가 0.008) | 목표 높이에 맞춰 정점을 직접 곱했다. 배율 749 · 342 · 236 |
+| **축** | 세 모델 다 **Z 축이 위** — 누워서 왔다 | 정점 · 노멀 · 탄젠트를 `Euler(-90,0,0)` 으로 돌려 구웠다 |
+| **피벗** | 메시 중심 | 밑동 중앙 `(centerX, minY, centerZ)` 으로 옮겼다 |
+| **폴리곤** | 20,142 ~ 25,684 tris | **못 고친다.** 프롬프트에 8,000 이하를 넣었는데 3배로 왔다. 그루 수를 줄여 흡수했다 |
+| **텍스처** | 2048 PNG (원본 4~9 MB) | 임포터 `maxTextureSize` 만으로는 **원본 파일이 그대로 커밋된다.** PIL 로 1024 로 다시 저장해 48 MB → 16 MB |
+
+IMPORTANT: `maxTextureSize` 는 빌드에만 먹고 저장소 용량에는 안 먹는다. 소품 30종
+때 「텍스처를 512 로 줄이면 40 MB」라고 적힌 것은 **파일 자체를 줄인 것**이다. 임포터
+설정만 바꾸고 넘어가면 저장소가 조용히 세 배가 된다.
 
 ---
 
