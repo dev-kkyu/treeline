@@ -882,6 +882,37 @@ IMPORTANT: **이 게임의 공포는 소리에서 나오고 그 소리는 `Ambie
 `ChaseMusic` 이 페이드로 한다. 발각 순간에 치는 짧은 소리는 `colossus-roar` 이며,
 위 「6 장 음악은 `ChaseMusic` 이 몬다」 참고.
 
+### 어느 장에 무엇이 깔려 있나 (2026-08-10 실측)
+
+**팀원이 자기 장을 열었을 때 무엇이 이미 있는지 보려면 이 표를 본다.** 값은 씬에
+들어 있는 실제 음량이다.
+
+| 장 | 장 음악 | 추격 | `ChaseMusic` | 앰비언스 (2D 바닥) |
+| --- | --- | ---: | :---: | --- |
+| Title | `title-theme` 0.62 | — | — | `blizzard-outside` 0.26 |
+| 1 장 | `ch1-control-room` 0.35 | — | — | `room-tone` 0.30 · `blizzard-muffled` 0.30 · `fluorescent-buzz` 0.22 |
+| 2 장 | `ch2-hide` 0.35 | 0.50 | O | `room-tone` 0.50 · `blizzard-muffled` 0.30 |
+| 3 장 | `ch3-tunnel-combat` 0.35 | 0.50 | O | `generator-rumble` 0.22 · `vent-fan` 0.14 |
+| 4 장 | `ch4-nest` 0.35 | 0.50 | O | `room-tone` 0.30 |
+| 5 장 | `ch5-blizzard` 0.35 | 0.50 | O | `blizzard-outside` 0.70 (플레이어 카메라) |
+| 6 장 | `ch6-colossus` 0.35 | 0.50 | O | `blizzard-outside` 0.50 |
+| Ending | `ending-descent` 0.62 | — | — | `blizzard-outside` 0.26 |
+
+장 음악은 전부 **0.35** 이고 타이틀 · 엔딩만 0.62 다. 두 화면은 그 음악이 주인공이고
+장 안에서는 배경이기 때문이다. 놓는 자리는 씬의 `_Audio` 루트이며 이름은
+`Mus_*` · `Amb_*` 로 맞춘다. 소리가 나는 장치(히터 · 팬 · 발전기 · 삭도)는 3D 로
+그 물건에 붙어 있으므로 이 표에 없다.
+
+**1 장에 `ChaseMusic` 이 없는 것은 빠뜨린 것이 아니다.** 그 장의 `Colossus` 는
+`Props/Silhouette` 이고 컴포넌트 · NavMeshAgent 가 꺼진 채 76 m 밖에 있다 —
+창밖으로 지나가는 실루엣이라 쫓아오지 않는다. 1 장이 도망치는 장이 되면 그때 붙인다.
+
+IMPORTANT: **`ChaseMusic` 은 추격 음악의 목표 음량을 `Awake` 에서 `chaseLoop.volume`
+로 읽는다.** 그래서 씬에서 그 소스의 음량을 **0 으로 두면 추격 음악이 영영 안
+난다** — 페이드 폭도 0 이 되어 아무 일도 일어나지 않는다. 3 장이 실제로 그 상태였고
+(2026-08-10 에 0.50 으로 고쳤다) 콘솔에 아무 경고도 남지 않으므로 눈으로 잡아야 한다.
+새 장을 만들면 **다른 장과 같은 0.50 을 넣고 `playOnAwake` 는 끈다.**
+
 ### 장이 넘어갈 때
 
 음악을 그냥 끊지 말고 1~2 초 페이드로 겹친다. 클립 자체에는 페이드가 없다 —
@@ -1047,6 +1078,14 @@ IMPORTANT: **클리핑은 채널별 피크로 본다.** `-ac 1` 다운믹스로 
 채널별로 0 dBFS 에 **218 샘플**이 붙어 진짜 클리핑이었고, 프롬프트에서 극단적인
 낱말(hauled · hard)을 덜어 다시 뽑아 14 샘플(0.3 ms)로 줄였다.
 
+#### 금속에 맞은 것을 어떻게 고르나
+
+발사 레이캐스트가 `Default` 와 `Enemy` 만 때리므로 **레이어로는 벽과 철판이
+구분되지 않는다.** `WeaponAudio` 는 `metalLayers` 마스크를 먼저 보고, 비어 있으면
+맞은 것의 이름 · 머티리얼 이름에 든 조각(`metal` · `grate` · `steel` · `pipe` ·
+`drum` · `shutter` …)으로 짐작한다. 소품 이름이 규칙을 따르는 동안은 이것으로
+충분하고, 어긋나면 `metalLayers` 에 레이어를 넣어 덮는다.
+
 #### 부정문을 넣으면 소리가 사라진다
 
 「no deep boom, no rumble」 을 넣은 `bullet-impact-concrete` 가 **피크 0.017 로
@@ -1074,20 +1113,17 @@ python docs/sound/normalize.py --category Devices --only avalanche-cannon --appl
 
 ## 5. 아직 없는 것
 
-- **재생 코드 대부분.** 붙은 것은 발소리 · 메뉴 클릭 · 무기 · 주인공 몸이고,
-  앰비언스 · 건물 · 전기 · 장치 · 상호작용 · 음악은 아직 파일만 있다
-- **`generator-stop` 을 걸 자리.** 파일은 있지만 Ch4 에 발전기를 멈추는 순간이
-  아직 없다. 연료가 끊기거나 사람이 세우는 규칙이 생기면 그때 건다
-**`bullet-impact-metal` 은 2026-08-09 에 붙었다.** 발사 레이캐스트가 `Default` 와
-`Enemy` 만 때리므로 레이어로는 벽과 철판이 구분되지 않는다. `WeaponAudio` 가
-**레이어 마스크를 먼저 보고, 비어 있으면 맞은 것의 이름 · 머티리얼 이름에 든
-조각**(`metal` · `grate` · `steel` · `pipe` · `drum` · `shutter` …)으로 짐작한다.
-소품 이름이 규칙을 따르는 동안은 이것으로 충분하고, 어긋나면 `metalLayers` 에
-레이어를 넣어 덮는다.
-- **무기 소리.** 권총 · 산탄총. 담당 폴더(`Player/`)로 간다
-- **`Clinger` · `Colossus` 의 코드.** 소리는 명세대로 만들어 두었지만
-  `Clinger.cs` · `Clinger.prefab` 이 아직 없다. 모델이 명세와 다르게 나오면
-  그때 소리도 다시 본다
+**2026-08-10 기준으로 소리는 대체로 다 난다.** 남은 것만 적는다.
+
+- **`generator-stop` 을 부를 규칙.** 파일도 있고 4 장 `GeneratorDevice.deactivatedClip`
+  에 걸어 두었지만, 발전기를 끄는 규칙이 기획에 아직 없어 실제로 울릴 일이 없다
+- **건물 소리 여섯.** `Structure/` 의 `metal-stair-creak` · `window-wind-rattle` ·
+  `pipe-clank` · `roof-snow-shift` · `door-handle-rattle` · `door-steel-close` 는
+  2026-08-10 확인 결과 **아무 씬에도 없다.** 사건이 아니라 분위기라 코드가 부를
+  자리가 없고, 「어느 계단이 삐걱대고 어느 창이 흔들리는가」는 레벨을 놓는 쪽이
+  정할 일이다. 자리만 정해 주면 3D 소스로 붙이는 것은 금방이다
+- **`valve-turn`.** 밸브를 돌리는 상호작용이 코드에 없다. 6 장 연료 밸브가 실제로
+  돌리는 물건이 되면 그때 붙는다
 - **오디오 믹서.** 지금은 `AudioSource.volume` 으로 맞추면 되지만, 설정 화면에
   볼륨 슬라이더가 들어가면 그때 `AudioMixer` 로 묶는 것이 맞다
 
