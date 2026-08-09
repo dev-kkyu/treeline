@@ -52,6 +52,8 @@ namespace Treeline
 
         private float shakeUntil = float.NegativeInfinity;
         private float shakeStart;
+        private float activeShakeDegrees;
+        private float activeShakeSeconds;
 
         /// <summary>x 는 좌우, y 는 위로 튀는 양(도). 0 으로 감쇠한다.</summary>
         private Vector2 recoil;
@@ -109,8 +111,35 @@ namespace Treeline
         /// </remarks>
         public void Shake()
         {
+            Shake(shakeDegrees, shakeSeconds);
+        }
+
+        /// <summary>
+        /// 세기와 길이를 정해서 떨게 한다. 총을 쏠 때처럼 <b>같은 화면에 다른 크기의
+        /// 흔들림</b>이 필요한 곳에서 부른다.
+        /// </summary>
+        /// <remarks>
+        /// 이미 떨고 있으면 <b>더 센 쪽이 이긴다.</b> 발사 중에 적이 발각을 알렸다고
+        /// 총 반동으로 덮어써 버리면 「놀랐다」가 사라진다. 반대로 매번 덧쌓으면
+        /// 연사할 때 화면이 무한정 커진다.
+        /// </remarks>
+        public void Shake(float degrees, float seconds)
+        {
+            if (seconds <= 0f || degrees <= 0f)
+            {
+                return;
+            }
+
+            float remaining = shakeUntil - Time.time;
+            if (remaining > 0f && activeShakeDegrees > degrees)
+            {
+                return;
+            }
+
+            activeShakeDegrees = degrees;
+            activeShakeSeconds = seconds;
             shakeStart = Time.time;
-            shakeUntil = Time.time + shakeSeconds;
+            shakeUntil = Time.time + seconds;
         }
 
         private void Update()
@@ -148,13 +177,13 @@ namespace Treeline
         /// <summary>놀람 떨림. 시작할 때 가장 세고 끝에서 0 이 된다.</summary>
         private Vector2 EvaluateShake()
         {
-            if (Time.time >= shakeUntil || shakeSeconds <= 0f)
+            if (Time.time >= shakeUntil || activeShakeSeconds <= 0f)
             {
                 return Vector2.zero;
             }
 
-            float left = 1f - (Time.time - shakeStart) / shakeSeconds;
-            float amount = shakeDegrees * left * left;
+            float left = 1f - (Time.time - shakeStart) / activeShakeSeconds;
+            float amount = activeShakeDegrees * left * left;
             float t = Time.time * shakeFrequency;
 
             // 조준 흔들림과 주기를 어긋나게 둬서 두 흔들림이 겹쳐 보이지 않게 한다.

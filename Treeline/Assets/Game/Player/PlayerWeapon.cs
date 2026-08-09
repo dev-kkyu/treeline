@@ -134,6 +134,39 @@ namespace Treeline
         /// <summary>실제로 한 발 나갔을 때. 소리 · 총구 섬광이 여기에 붙는다.</summary>
         public event Action Fired;
 
+        /// <summary>
+        /// 탄창이 빈 채로 방아쇠를 당겼을 때. **딸깍 소리 하나가 곧 탄약 표시다.**
+        /// </summary>
+        /// <remarks>
+        /// 탄약이 부족한 것이 이 게임의 긴장이므로, 비었다는 것은 HUD 를 보지 않아도
+        /// 알아야 한다. 입력이 <c>WasPressedThisFrame</c> 이라 누르고 있어도 한 번만 온다.
+        /// </remarks>
+        public event Action DryFired;
+
+        /// <summary>
+        /// 적이 아닌 것에 맞았을 때. 벽 · 바닥에서 나는 소리가 여기 붙는다.
+        /// </summary>
+        /// <remarks>
+        /// 적에게 맞은 것은 여기 오지 않는다 — 적은 자기 피격음을 스스로 낸다.
+        /// 산탄이 같은 벽을 여러 발 때려도 **한 발사에 한 번만** 온다.
+        /// </remarks>
+        public event Action<RaycastHit> Impacted;
+
+        /// <summary>
+        /// 탄 하나가 지나간 선. 총구에서 <b>실제로 멈춘 지점까지</b>다. 궤적을 그리는
+        /// 쪽이 여기에 붙는다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Impacted"/> 와 따로 둔 이유가 있다. 그쪽은 <b>적이 아닌 것에
+        /// 한 발사당 한 번</b>만 오므로 궤적에는 쓸 수 없다 — 적을 맞히면 안 오고,
+        /// 빗나가면 아예 안 오고, 산탄 아홉 발이 선 하나가 된다. 궤적은 탄마다
+        /// 하나씩 필요하다.
+        /// </remarks>
+        public event Action<Vector3, Vector3> ShotFired;
+
+        /// <summary>재장전 전체 길이(초). 재장전 중간 소리의 시각을 여기서 잰다.</summary>
+        public float ReloadSeconds => reloadSeconds;
+
         private void Awake()
         {
             if (input == null)
@@ -210,7 +243,15 @@ namespace Treeline
                 return;
             }
 
-            if (!input.AttackPressed || Loaded <= 0 || Time.time < nextShotTime)
+            // 비었는데 당겼다. 발사 간격은 보지 않는다 — 안 나가는 총에 연사 제한을
+            // 걸 이유가 없고, 입력이 프레임당 한 번이라 연타로도 겹치지 않는다.
+            if (input.AttackPressed && Loaded <= 0)
+            {
+                DryFired?.Invoke();
+                return;
+            }
+
+            if (!input.AttackPressed || Time.time < nextShotTime)
             {
                 return;
             }
@@ -338,6 +379,7 @@ namespace Treeline
         {
             Vector3 origin = muzzle.position;
             int pellets = Mathf.Max(1, pelletsPerShot);
+            bool impactSent = false;
 
             for (int i = 0; i < pellets; i++)
             {
@@ -346,13 +388,26 @@ namespace Treeline
                 if (!Physics.Raycast(origin, direction, out RaycastHit hit, range,
                         GameLayers.Shot, QueryTriggerInteraction.Ignore))
                 {
+                    // 빗나갔어도 선은 그어진다. 어둠 속에서 어디로 쐈는지 보이는 것이
+                    // 이 게임에서는 맞았는지보다 먼저다.
+                    ShotFired?.Invoke(origin, origin + direction * range);
                     continue;
                 }
+
+                ShotFired?.Invoke(origin, hit.point);
 
                 // 콜라이더가 자식에 달려 있을 수 있어 부모까지 올라가며 찾는다.
                 IDamageable target = hit.collider.GetComponentInParent<IDamageable>();
                 if (target == null || !target.IsAlive)
                 {
+                    // 벽이나 바닥이다. 산탄 아홉 발이 같은 벽을 때려도 소리는 한 번이다 —
+                    // 아홉 겹으로 쌓으면 총성보다 커진다.
+                    if (!impactSent)
+                    {
+                        impactSent = true;
+                        Impacted?.Invoke(hit);
+                    }
+
                     continue;
                 }
 

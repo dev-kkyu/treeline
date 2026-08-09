@@ -147,7 +147,11 @@ namespace Treeline
         private void Awake()
         {
             HudGuideText.AttachTo(transform);
-            ScreenFrostEffect.AttachTo(transform, motor != null ? motor.transform : transform.root);
+            // 서리는 UI 가 아니라 카메라 앞 파티클이다. HUD 가 붙이는 것은 그대로
+            // 두는데, 플레이어에 딸린 것 중 카메라를 알고 있는 자리가 여기라서다.
+            ScreenFrostParticles.AttachTo(
+                GetComponentInParent<Camera>() ?? Camera.main,
+                motor != null ? motor.transform : transform.root);
             Ch1Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
             Ch2Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
 
@@ -291,7 +295,7 @@ namespace Treeline
         {
             cutscene = true;
             HudGuideText.HideImmediate();
-            ScreenFrostEffect.HideImmediate();
+            ScreenFrostParticles.HideImmediate();
 
             SetGroupAlpha(healthGroup);
             SetGroupAlpha(ammoGroup);
