@@ -38,7 +38,19 @@ namespace Treeline
         [Tooltip("상태를 바꿀 때 섞는 시간(초).")]
         [SerializeField, Range(0f, 0.4f)] private float blendSeconds = 0.08f;
 
+        [Header("총열 정렬")]
+        [Tooltip("권총을 들 때 팔 전체를 이만큼 돌린다(도).")]
+        [SerializeField] private float pistolYawDegrees = 11.3f;
+
+        [Tooltip("산탄총을 들 때 팔 전체를 이만큼 돌린다(도).")]
+        [SerializeField] private float shotgunYawDegrees = 32f;
+
+        [Tooltip("돌리는 중심. 오른손이 총을 쥔 자리이며 부모(카메라) 기준이다.")]
+        [SerializeField] private Vector3 gripPivot = new Vector3(0.227f, -0.307f, 0.469f);
+
         private PlayerWeapon subscribed;
+        private Vector3 basePosition;
+        private Quaternion baseRotation;
         private string idleState = StateIdle;
         private float returnToIdleAt = float.PositiveInfinity;
         private Renderer[] armsRenderers;
@@ -53,17 +65,26 @@ namespace Treeline
         /// 되돌려진다.</b> 묶음만 빈 채로 남아 총이 통째로 사라졌다.
         /// </remarks>
         /// <remarks>
-        /// IMPORTANT: 리그에 딸려 온 스킨 무기(<c>W_Pistol</c> 등)는 켜도 화면에
-        /// 안 나온다 — 바인딩이 제대로 안 걸려 있다. 그래서 <b>낱개 FBX 를 손 본
-        /// (<c>WeaponRoot</c>)에 그냥 물렸다.</b> 본은 애니메이션을 따라가므로
-        /// 결과는 같고, 스킨 문제를 손댈 필요가 없다.
+        /// IMPORTANT: <b>리그에 딸려 온 스킨 무기를 그대로 쓴다.</b> 한동안 낱개
+        /// FBX 를 손 본에 물려 놓고 각도를 손으로 맞췄는데, 그러면 클립마다 자세가
+        /// 달라 어느 한 자세에 맞추면 나머지가 어긋난다. 스킨 무기는 애니메이션이
+        /// 직접 잡아 주므로 맞출 것이 없고, 노리쇠 · 펌프 · 탄피까지 같이 움직인다.
+        /// <para>
+        /// 이것들이 「안 나온다」고 판단해 낱개 FBX 로 우회했던 것이 실수였다. 원인은
+        /// 두 가지였다 — <b>오브젝트 자체가 꺼져 있었고</b>(렌더러만 켜서는 안 나온다),
+        /// <c>updateWhenOffscreen</c> 이 꺼져 있어 <b>바인드 포즈 기준 바운즈</b>가
+        /// 팔에서 40 m 떨어진 곳으로 잡혀 프러스텀에서 잘려 나갔다.
+        /// </para>
         /// </remarks>
-        private static readonly string[] PistolParts = { "Held_Pistol" };
+        private static readonly string[] PistolParts = { "W_Pistol", "W_PistolMag", "W_Slide" };
 
-        private static readonly string[] ShotgunParts = { "Held_Shotgun" };
+        private static readonly string[] ShotgunParts = { "W_Shotgun", "W_Pump", "W_TubeFill", "W_Shell" };
 
         private void Awake()
         {
+            basePosition = transform.localPosition;
+            baseRotation = transform.localRotation;
+
             if (animator == null)
             {
                 animator = GetComponentInChildren<Animator>(true);
@@ -132,6 +153,7 @@ namespace Treeline
                 SetArmsVisible(true);
                 ShowParts(PistolParts, false);
                 ShowParts(ShotgunParts, false);
+                AimBarrelForward(0f);
                 return;
             }
 
@@ -144,10 +166,32 @@ namespace Treeline
             bool shotgun = weapon.Kind == WeaponKind.Shotgun;
             ShowParts(shotgun ? ShotgunParts : PistolParts, true);
             ShowParts(shotgun ? PistolParts : ShotgunParts, false);
+            AimBarrelForward(shotgun ? shotgunYawDegrees : pistolYawDegrees);
 
             string prefix = shotgun ? "Arms_Shotgun" : "Arms_Pistol";
             idleState = prefix + "Idle";
             PlayOnce(prefix + "Equip", 0.5f);
+        }
+
+        /// <summary>
+        /// 팔 전체를 쥔 자리를 중심으로 돌려 <b>총열이 조준선을 향하게</b> 한다.
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: 리그는 총을 몸 앞으로 비스듬히 뉘여 쥔다 — 권총 11°, 산탄총 31°
+        /// 왼쪽이다. 자세로는 자연스럽지만 1인칭에서는 <b>총구가 조준점을 안 보는</b>
+        /// 그림이 되고, 탄이 화면 가운데서 나가므로 궤적이 총구에서 시작하지 않는다.
+        /// <para>
+        /// 총을 손에서 떼어 돌리면 그 각도만큼 손과 총이 어긋난다. 그래서 총이 아니라
+        /// <b>팔 전체를</b> 돌리고, 중심을 손이 쥔 자리에 두어 손은 제자리에 남긴다.
+        /// 이 오브젝트의 트랜스폼은 애니메이션이 건드리지 않으므로(클립은
+        /// <c>Arms_Armature</c> 아래만 다룬다) 여기서 한 번 정해 두면 유지된다.
+        /// </para>
+        /// </remarks>
+        private void AimBarrelForward(float yawDegrees)
+        {
+            Quaternion turn = Quaternion.AngleAxis(yawDegrees, Vector3.up);
+            transform.localRotation = turn * baseRotation;
+            transform.localPosition = gripPivot + turn * (basePosition - gripPivot);
         }
 
         private void Unsubscribe()
@@ -240,11 +284,12 @@ namespace Treeline
                     continue;
                 }
 
-                // IMPORTANT: **무기는 건드리지 않는다.** 전부 켜 버렸더니 권총을
-                // 재장전할 때 `AmmoChanged` 를 타고 여기로 들어와 산탄총까지 같이
-                // 켜졌다 — 장전하면 총이 바뀌는 것처럼 보이던 버그가 이것이다.
-                // 어느 총을 보일지는 ShowParts 만 정한다.
-                if (armsRenderers[i].name.StartsWith("Held_"))
+                // IMPORTANT: **팔 살 말고는 건드리지 않는다.** 무기까지 켜 버렸더니
+                // 권총을 재장전할 때 `AmmoChanged` 를 타고 여기로 들어와 산탄총도
+                // 같이 켜졌다 — 장전하면 총이 바뀌는 것처럼 보이던 버그가 이것이다.
+                // 총구 섬광과 탄도도 마찬가지다. 켜고 끌 주인이 따로 있는 것들이라
+                // (ShowParts · WeaponVfx) 여기서 손대면 그쪽 판단을 덮어쓴다.
+                if (!(armsRenderers[i] is SkinnedMeshRenderer) || armsRenderers[i].name.StartsWith("W_"))
                 {
                     continue;
                 }

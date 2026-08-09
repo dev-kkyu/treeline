@@ -61,6 +61,20 @@ git fetch origin -q && git diff --stat HEAD..origin/develop -- <프로젝트>/As
 - **씬을 열면 `Texture2D` 가 파괴된다.** 여러 씬을 돌며 한 장으로 이어 붙이려면
   `hideFlags` 를 주거나, 장면마다 파일로 떨구고 밖에서 잇는다
 
+## 안 보이는 것을 「없다」고 하기 전에
+
+IMPORTANT: 렌더러가 `enabled` 인데 화면에 없으면 셋을 먼저 본다. 이 셋을 안 보고
+「에셋이 깨졌다」로 결론지었다가 총 모델을 손으로 다시 붙이는 우회로를 며칠 탔다.
+
+- **`gameObject.activeInHierarchy`.** `Renderer.enabled` 와 별개다. 오브젝트가
+  꺼져 있으면 렌더러를 켜도 아무 일도 없다
+- **`SkinnedMeshRenderer.updateWhenOffscreen`.** 꺼져 있으면 바운즈를 **바인드
+  포즈**로 잡는다. 1인칭 뷰모델처럼 본이 원점에서 멀리 바인드된 메시는 바운즈가
+  엉뚱한 곳(팔에서 40 m 밖)에 생겨 프러스텀 컬링에 통째로 잘린다.
+  `renderer.bounds` 를 찍어 카메라 근처인지 보면 바로 드러난다
+- **카메라의 `cullingMask` 와 오브젝트 `layer`.** 뷰모델은 `ViewModel`(9) 이고
+  이걸 그리는 것은 `ViewModelCamera`(FOV 50) 다. 본 카메라(FOV 70)와 다르다
+
 ## `execute_code` 의 함정
 
 - **`in` 매개변수를 못 부른다.** 컴파일러가 구버전이라 `TakeDamage(in DamageInfo)`
