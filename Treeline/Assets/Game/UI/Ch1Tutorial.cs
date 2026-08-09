@@ -11,7 +11,6 @@ namespace Treeline
     public sealed class Ch1Tutorial : MonoBehaviour
     {
         private const string SceneName = "Ch1";
-        private const string CompletedKey = "Treeline.Tutorial.Ch1.ControlsComplete";
         private const float ObjectiveRepeatSeconds = 30f;
 
         private enum Stage
@@ -69,13 +68,6 @@ namespace Treeline
             {
                 Debug.LogError($"{nameof(Ch1Tutorial)}: {nameof(PlayerInputReader)}를 찾지 못했다.", this);
                 enabled = false;
-                return;
-            }
-
-            if (PlayerPrefs.GetInt(CompletedKey, 0) != 0)
-            {
-                stage = Stage.Objective;
-                ShowObjective(force: true);
                 return;
             }
 
@@ -166,8 +158,6 @@ namespace Treeline
 
         private void FinishControls()
         {
-            PlayerPrefs.SetInt(CompletedKey, 1);
-            PlayerPrefs.Save();
             stage = Stage.Complete;
             completeUntil = Time.unscaledTime + 2.5f;
             HudGuideText.Show("기본 조작 확인 완료", 2.5f);
