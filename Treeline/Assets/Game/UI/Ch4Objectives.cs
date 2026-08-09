@@ -4,11 +4,12 @@ using UnityEngine.SceneManagement;
 
 namespace Treeline
 {
-    /// <summary>4장의 다섯 목표를 장치 상태에 맞춰 갱신한다.</summary>
+    /// <summary>4장의 여섯 목표를 산탄총 소유와 장치 상태에 맞춰 갱신한다.</summary>
     /// <remarks>
     /// <para>
     /// <see cref="Ch3Objectives"/> 와 같은 자리이고 판정만 다르다. 3장은 권총 하나를
-    /// 보면 되지만 4장은 절차가 다섯이라 <b>장치 넷의 상태를 조합</b>해야 한다.
+    /// 보면 되지만 4장은 절차가 여섯이라 <b>산탄총과 장치 넷의 상태를 조합</b>해야
+    /// 한다.
     /// </para>
     /// <para>
     /// IMPORTANT: <b>순서대로 세지 않는다.</b> 환기 팬은 건너뛸 수 있는 갈림길이다 —
@@ -16,6 +17,13 @@ namespace Treeline
     /// 안 돌리고 축전지실 차단기를 올린 사람에게 「팬을 돌리세요」가 현재 목표로
     /// 남아 있으면 안 된다. 그래서 단계를 하나씩 올리지 않고 <b>지금 상태로 도달
     /// 가능한 가장 앞선 단계</b>를 매번 다시 계산한다.
+    /// </para>
+    /// <para>
+    /// 첫 줄만 장치가 아니라 <b>플레이어가 산탄총을 들었는지</b>로 판정한다. 씬의
+    /// 획득물을 보면 안 된다 — 주우면 그 오브젝트는 꺼지므로 「없어진 것」과 「원래
+    /// 없는 것」이 구분되지 않고, 산탄총은 3장에서 이리로 옮겨 온 물건이라
+    /// (<c>docs/game-design/decisions.md</c>) 다음 장으로도 따라간다. 들고 있는 쪽이
+    /// 사실이다.
     /// </para>
     /// <para>
     /// 장치는 이름으로 찾는다. 인스펙터로 물릴 수가 없어서다 — 이 부품은 씬에 놓인
@@ -38,6 +46,9 @@ namespace Treeline
 
         private const string GeneratorName = "GeneratorDevice";
 
+        private Transform playerRoot;
+
+        private PlayerWeapon shotgun;
         private Device breakerOuter;
         private Device breakerInner;
         private Device fan;
@@ -45,21 +56,36 @@ namespace Treeline
 
         private int lastObjective = -1;
 
-        public static void AttachTo(Transform hudRoot)
+        public static void AttachTo(Transform hudRoot, Transform player)
         {
             if (!string.Equals(SceneManager.GetActiveScene().name, SceneName, StringComparison.Ordinal))
             {
                 return;
             }
 
-            if (hudRoot.GetComponent<Ch4Objectives>() == null)
+            Ch4Objectives tracker = hudRoot.GetComponent<Ch4Objectives>();
+            if (tracker == null)
             {
-                hudRoot.gameObject.AddComponent<Ch4Objectives>();
+                tracker = hudRoot.gameObject.AddComponent<Ch4Objectives>();
             }
+
+            tracker.playerRoot = player;
         }
 
         private void Start()
         {
+            if (playerRoot != null)
+            {
+                foreach (PlayerWeapon weapon in playerRoot.GetComponentsInChildren<PlayerWeapon>(true))
+                {
+                    if (weapon.Kind == WeaponKind.Shotgun)
+                    {
+                        shotgun = weapon;
+                        break;
+                    }
+                }
+            }
+
             foreach (Device device in FindObjectsByType<Device>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 switch (device.name)
@@ -71,6 +97,7 @@ namespace Treeline
                 }
             }
 
+            Warn(shotgun, "플레이어의 " + WeaponKind.Shotgun);
             Warn(breakerOuter, BreakerOuterName);
             Warn(breakerInner, BreakerInnerName);
             Warn(fan, FanName);
@@ -102,33 +129,36 @@ namespace Treeline
             // 예열이 끝났다. 남은 것은 나가는 일뿐이라 목록을 전부 그어 둔다.
             if (generator != null && generator.IsActive)
             {
-                return 5;
+                return 6;
             }
 
             // 기동 레버를 당겼다. 이제 지키는 단계다.
             if (generator != null && generator.IsRunning)
             {
-                return 4;
+                return 5;
             }
 
             bool outer = breakerOuter != null && breakerOuter.IsActive;
             if (!outer)
             {
-                return 0;
+                // 산탄총은 걸어가는 선 위에 놓여 있지만 지나칠 수는 있다. 차단기를
+                // 올린 사람에게 「산탄총을 주우세요」가 현재 목표로 남으면 안 되므로,
+                // 이 줄은 아직 아무것도 안 한 동안에만 산다.
+                return shotgun != null && shotgun.IsOwned ? 1 : 0;
             }
 
             if (breakerInner != null && breakerInner.IsActive)
             {
-                return 3;
+                return 4;
             }
 
             // 팬을 돌렸지만 안쪽 차단기는 아직이다.
             if (fan != null && fan.IsActive)
             {
-                return 2;
+                return 3;
             }
 
-            return 1;
+            return 2;
         }
 
         private void Warn(object device, string wanted)
