@@ -154,6 +154,7 @@ namespace Treeline
             Ch2Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
             Ch3Objectives.AttachTo(transform, motor != null ? motor.transform : transform.root);
             Ch4Objectives.AttachTo(transform);
+            Ch5Objectives.AttachTo(transform);
 
             if (crosshair != null)
             {
