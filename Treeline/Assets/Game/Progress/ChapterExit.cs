@@ -34,6 +34,8 @@ namespace Treeline
                 return;
             }
 
+            // 마지막 목표도 완료 행으로 남긴 뒤 다음 장으로 넘어간다.
+            HudGuideText.AdvanceObjective();
             GameFlow.Instance.NextChapter();
         }
 

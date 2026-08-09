@@ -31,7 +31,8 @@ namespace Treeline
         private Stage stage;
         private float completeUntil;
         private float nextObjectiveReminder;
-        private string lastObjective;
+        private int lastObjective = -1;
+        private int trackedObjective = -1;
 
         public static void AttachTo(Transform hudRoot, Transform player)
         {
@@ -74,6 +75,8 @@ namespace Treeline
 
         private void Update()
         {
+            TrackObjectiveState();
+
             switch (stage)
             {
                 case Stage.Flashlight when input.FlashlightPressed:
@@ -138,27 +141,7 @@ namespace Treeline
 
         private void ShowObjective(bool force)
         {
-            string objective;
-            if (heater == null)
-            {
-                objective = "복도 끝 비상계단으로 이동하세요";
-            }
-            else if (!heater.IsRunning && !heater.IsActive)
-            {
-                objective = "비상계단 옆 배전함에서 히터에 전력을 연결하세요";
-            }
-            else if (heater.IsRunning)
-            {
-                objective = "문이 녹는 동안 사물함 뒤에서 몸을 낮추고 기다리세요";
-            }
-            else if (shutter == null || !shutter.IsActive)
-            {
-                objective = "열린 비상계단으로 달려가 비상 셔터 레버를 당기세요";
-            }
-            else
-            {
-                objective = "셔터 너머 출구로 이동하세요";
-            }
+            int objective = ResolveObjective();
 
             float now = Time.unscaledTime;
             if (!force && objective == lastObjective && now < nextObjectiveReminder)
@@ -168,7 +151,44 @@ namespace Treeline
 
             lastObjective = objective;
             nextObjectiveReminder = now + ObjectiveRepeatSeconds;
-            HudGuideText.ShowObjective(objective);
+            HudGuideText.ShowObjectiveStep(objective);
+        }
+
+        private void TrackObjectiveState()
+        {
+            int objective = ResolveObjective();
+            if (objective == trackedObjective)
+            {
+                return;
+            }
+
+            trackedObjective = objective;
+            HudGuideText.TrackObjectiveStep(objective);
+        }
+
+        private int ResolveObjective()
+        {
+            if (heater == null)
+            {
+                return 0;
+            }
+
+            if (!heater.IsRunning && !heater.IsActive)
+            {
+                return 1;
+            }
+
+            if (heater.IsRunning)
+            {
+                return 2;
+            }
+
+            if (shutter == null || !shutter.IsActive)
+            {
+                return 3;
+            }
+
+            return 4;
         }
 
         private static T FindDevice<T>(string namePart) where T : Component

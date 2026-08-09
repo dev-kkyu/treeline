@@ -40,7 +40,7 @@ namespace Treeline
 
             GameObject root = new GameObject("PlayerColdBreath");
             root.transform.SetParent(camera.transform, false);
-            root.transform.localPosition = new Vector3(-0.08f, -0.14f, camera.nearClipPlane + 0.18f);
+            root.transform.localPosition = new Vector3(0.035f, -0.14f, camera.nearClipPlane + 0.18f);
             root.layer = GameLayers.Default;
 
             PlayerColdBreath effect = root.AddComponent<PlayerColdBreath>();
@@ -88,14 +88,14 @@ namespace Treeline
             main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 0.85f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(0.32f, 0.72f);
             main.startSize3D = false;
-            main.startSize = new ParticleSystem.MinMaxCurve(0.055f, 0.105f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.035f, 0.075f);
             main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
             main.startColor = new ParticleSystem.MinMaxGradient(
-                new Color(0.68f, 0.74f, 0.78f, 0.2f),
-                new Color(0.9f, 0.94f, 0.96f, 0.38f));
+                new Color(0.68f, 0.74f, 0.78f, 0.14f),
+                new Color(0.9f, 0.94f, 0.96f, 0.28f));
             main.simulationSpace = ParticleSystemSimulationSpace.Local;
             main.scalingMode = ParticleSystemScalingMode.Hierarchy;
-            main.maxParticles = 64;
+            main.maxParticles = 96;
             main.gravityModifier = 0f;
 
             ParticleSystem.EmissionModule emission = ps.emission;
@@ -112,7 +112,7 @@ namespace Treeline
             ParticleSystem.VelocityOverLifetimeModule velocity = ps.velocityOverLifetime;
             velocity.enabled = true;
             velocity.space = ParticleSystemSimulationSpace.Local;
-            velocity.x = new ParticleSystem.MinMaxCurve(-0.06f, 0.06f);
+            velocity.x = new ParticleSystem.MinMaxCurve(0.015f, 0.1f);
             velocity.y = new ParticleSystem.MinMaxCurve(-0.025f, 0.055f);
             velocity.z = new ParticleSystem.MinMaxCurve(0.02f, 0.12f);
 
@@ -224,7 +224,7 @@ namespace Treeline
                 }
 
                 bool sprinting = motor != null && motor.IsSprinting;
-                queuedParticles = sprinting ? Random.Range(12, 19) : Random.Range(8, 13);
+                queuedParticles = sprinting ? Random.Range(18, 27) : Random.Range(12, 19);
                 EmitCluster(now);
                 // 소리는 PlayerBodyAudio 가 낸다. 지쳐서 헐떡이는 동안에는 입김
                 // 소리를 빼야 하는데 그 상태를 아는 것이 저쪽이다.
@@ -236,7 +236,7 @@ namespace Treeline
 
         private void EmitCluster(float now)
         {
-            int clusterSize = Mathf.Min(queuedParticles, Random.Range(2, 5));
+            int clusterSize = Mathf.Min(queuedParticles, Random.Range(2, 6));
             breath.Emit(clusterSize);
             queuedParticles -= clusterSize;
             nextCluster = now + Random.Range(0.035f, 0.12f);

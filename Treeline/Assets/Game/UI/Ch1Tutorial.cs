@@ -34,7 +34,7 @@ namespace Treeline
         private Stage stage;
         private float completeUntil;
         private float nextObjectiveReminder;
-        private string lastObjective;
+        private int lastObjective = -1;
 
         public static void AttachTo(Transform hudRoot, Transform player)
         {
@@ -165,18 +165,18 @@ namespace Treeline
 
         private void ShowObjective(bool force)
         {
-            string objective;
+            int objective;
             if (flashlight != null && !flashlight.IsOwned)
             {
-                objective = "관제실 바닥에서 손전등을 찾으세요";
+                objective = 0;
             }
             else if (searchlight == null || !searchlight.IsActive)
             {
-                objective = "계단을 따라 옥상으로 올라가 서치라이트를 켜세요";
+                objective = 1;
             }
             else
             {
-                objective = "서치라이트가 비춘 외부 통로로 이동하세요";
+                objective = 2;
             }
 
             float now = Time.unscaledTime;
@@ -187,7 +187,7 @@ namespace Treeline
 
             lastObjective = objective;
             nextObjectiveReminder = now + ObjectiveRepeatSeconds;
-            HudGuideText.ShowObjective(objective);
+            HudGuideText.ShowObjectiveStep(objective);
         }
 
         private static SustainedDevice FindSearchlight()

@@ -152,6 +152,7 @@ namespace Treeline
             PlayerColdBreath.AttachTo(GetComponentInParent<Camera>() ?? Camera.main, motor);
             Ch1Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
             Ch2Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
+            Ch3Objectives.AttachTo(transform, motor != null ? motor.transform : transform.root);
 
             if (crosshair != null)
             {
@@ -279,6 +280,18 @@ namespace Treeline
         public void HideGuide()
         {
             HudGuideText.Hide();
+        }
+
+        /// <summary>UnityEvent에서 챕터 목표 번호를 직접 선택한다. 첫 목표는 0이다.</summary>
+        public void ShowChapterObjective(int index)
+        {
+            HudGuideText.ShowObjectiveStep(index);
+        }
+
+        /// <summary>UnityEvent에서 현재 목표를 완료하고 다음 목표로 넘긴다.</summary>
+        public void AdvanceChapterObjective()
+        {
+            HudGuideText.AdvanceObjective();
         }
 
         /// <summary>
