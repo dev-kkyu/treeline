@@ -15,12 +15,16 @@ namespace Treeline
     /// 가운데를 잘랐을 때 배운 적 없는 장치로 게임이 끝난다.
     /// </para>
     /// <para>
-    /// IMPORTANT: 기획의 <b>「화면이 뒤집힌다」— 그것의 시점으로 넘어가는 컷은 아직
-    /// 넣지 않았다.</b> 그것이 케이블을 붙잡고 따라 올라오는 연출과 한 덩어리인데,
-    /// 그 연출은 3 · 4 · 5장이 붙은 뒤에 들어간다. 지금은 <b>플레이어 시점 그대로</b>
-    /// 승강장에 남은 그것이 멀어지는 것만 본다. 미룬 이유와 그때 쓸 값은
-    /// <c>docs/tech-design/decisions.md</c> 에 있다. 씬의 <c>WatcherCamera</c> 는
-    /// 그때 쓰려고 꺼둔 채 남겨두었다.
+    /// 순서는 <b>시점 전환 → 붙잡기 → 놓치기 → 닫히기</b>다. 출발과 동시에 차체 위의
+    /// 카메라로 넘어가 승강장을 돌아보고, <see cref="CableChase"/> 가 그것을 케이블에
+    /// 매달아 따라오게 하고, 놓쳐서 떨어뜨리고, <see cref="Letterbox"/> 가 닫히면서
+    /// 다음 장으로 간다. 시각은 전부 여기 한 줄기에 모아 두었다 — 코루틴을 여럿
+    /// 띄우면 어느 것이 언제 도는지 이 파일만 봐서는 알 수 없게 된다.
+    /// </para>
+    /// <para>
+    /// 기획의 「화면이 뒤집힌다」는 <b>상하가 아니라 시점의 주인</b>을 말한 것으로
+    /// 읽었다. 근거는 <c>docs/tech-design/decisions.md</c>. 그것의 머리에 박혀 있던
+    /// <c>WatcherCamera</c> 대신 차체에 카메라를 두었으므로 그쪽은 그대로 남는다.
     /// </para>
     /// </remarks>
     [DisallowMultipleComponent]
@@ -39,17 +43,44 @@ namespace Treeline
         [SerializeField] private Vector3 travel = new Vector3(0f, -8f, 46f);
 
         [Tooltip("삭도가 움직이는 시간.")]
-        [SerializeField] private float rideSeconds = 5f;
+        [SerializeField] private float rideSeconds = 15f;
+
+        [Tooltip("가속의 세기. 1 이면 등속이고 클수록 처음이 느리다. 2(제곱)는 앞이 너무 느려 붙잡는 순간에도 승강장을 못 벗어난다.")]
+        [SerializeField] private float rideEase = 1.4f;
 
         [Header("남는 것")]
         [Tooltip("출발하면 멈춘다. 계속 쫓아오면 멀어지는 그림이 안 나온다.")]
         [SerializeField] private Colossus watcher;
 
-        [Tooltip("그것이 마지막으로 서는 자리. 승강장 가장자리이며, 여기가 플레이어에게 보여야 한다.")]
+        [Tooltip("그것이 뛰어오르기 전에 서는 자리. 케이블 아래 갑판 끝이다.")]
         [SerializeField] private Transform watchStand;
 
         [Tooltip("차체가 멈춘 뒤 더 보는 시간. 끝나면 다음 장으로 간다.")]
         [SerializeField] private float watchSeconds = 3.5f;
+
+        [Header("보는 자리")]
+        [Tooltip("차체에 달린 카메라. 승강장을 등지고 실려 가는 대신 돌아본다.")]
+        [SerializeField] private Camera chaseCamera;
+
+        [Tooltip("출발 후 몇 초에 그 카메라로 넘어가나. 0 이면 출발과 동시다.")]
+        [SerializeField] private float cameraAt;
+
+        [Header("쫓아오는 것")]
+        [Tooltip("케이블 추격 연출. 비우면 그것은 승강장에 선 채로 남는다.")]
+        [SerializeField] private CableChase chase;
+
+        [Tooltip("출발 후 몇 초에 케이블을 붙잡나. 차체가 충분히 멀어진 뒤라야 뒤에서 잡는다.")]
+        [SerializeField] private float gripAt = 5f;
+
+        [Tooltip("출발 후 몇 초에 놓치나.")]
+        [SerializeField] private float letGoAt = 9f;
+
+        [Header("레터박스")]
+        [Tooltip("시점이 넘어가는 순간 잡는 띠. 여기서부터 연출이라는 것을 알린다.")]
+        [SerializeField] private float cinematicBar = 0.08f;
+
+        [Tooltip("마지막에 완전히 닫히는 데 걸리는 시간. 끝나면 다음 장으로 간다.")]
+        [SerializeField] private float letterboxSeconds = 3f;
 
         private bool departed;
 
@@ -129,67 +160,126 @@ namespace Treeline
             }
 
             // 여기서부터는 조작할 것이 없으므로 HUD 를 치운다. 남겨두면 체력 · 탄창이
-            // 엔딩까지 화면에 붙어 있다. 손에 든 총은 그대로 둔다 — 시점이 여전히
-            // 플레이어이고, 들고 탄 것이 보이는 편이 맞다.
+            // 엔딩까지 화면에 붙어 있다. 손에 든 총은 따로 치우지 않는다 — 차체
+            // 카메라가 `ViewModel` 을 컬링 마스크에서 빼므로 저절로 안 보인다.
             foreach (Canvas canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
             {
                 canvas.enabled = false;
             }
 
-            // 「그것이 케이블을 붙잡고 따라 올라온다」— 붙잡는 것 자체는 3 · 4 · 5장이
-            // 붙은 뒤에 넣는다. 지금은 가장자리까지 와서 멈추는 데까지다. 어디서 헤매다
-            // 왔든 같은 그림이 나오도록 자리를 정해준다. 플레이어가 이것이 멀어지는 것을 본다.
-            if (watcher != null)
+            // 「그것이 케이블을 붙잡고 따라 올라온다」— 여기가 그 자리다. 어디서 헤매다
+            // 왔든 같은 그림이 나오도록 뛰어오를 자리를 정해준다.
+            if (watcher != null && watchStand != null)
             {
-                if (watchStand != null)
+                var agent = watcher.GetComponent<UnityEngine.AI.NavMeshAgent>();
+                if (agent != null && agent.isOnNavMesh)
                 {
-                    var agent = watcher.GetComponent<UnityEngine.AI.NavMeshAgent>();
-                    if (agent != null && agent.isOnNavMesh)
-                    {
-                        agent.Warp(watchStand.position);
-                    }
-                    else
-                    {
-                        watcher.transform.position = watchStand.position;
-                    }
-
-                    watcher.transform.rotation = watchStand.rotation;
+                    agent.Warp(watchStand.position);
+                }
+                else
+                {
+                    watcher.transform.position = watchStand.position;
                 }
 
-                // 컴포넌트만 끄면 Speed 파라미터가 마지막 값에 굳어 제자리걸음이 남는다.
+                watcher.transform.rotation = watchStand.rotation;
+
+                // 붙잡을 때까지는 서서 지켜본다. 컴포넌트만 끄면 Speed 파라미터가
+                // 마지막 값에 굳어 제자리걸음이 남으므로 이쪽으로 내린다. 여기서
+                // 안 세우면 그 몇 초 동안 제 갈 길을 가다가 붙잡는 순간 튄다.
                 watcher.StandDown();
             }
 
             Vector3 from = car.position;
             Vector3 to = from + travel;
 
+            Letterbox letterbox = null;
+            float total = rideSeconds + watchSeconds;
+            float closeFrom = Mathf.Max(0f, total - letterboxSeconds);
+            bool cut = false;
+            bool gripped = false;
+            bool letGo = false;
+            bool closing = false;
             float elapsed = 0f;
 
-            while (elapsed < rideSeconds)
+            while (elapsed < total)
             {
                 elapsed += Time.deltaTime;
 
-                // 정지 마찰에서 서서히 풀리듯 시작한다. 플레이어는 승강장을 등지고 선
-                // 것이 아니라 마주 본 채로 실려 가므로, 이 가속이 그대로 「멀어진다」가 된다.
+                // 정지 마찰에서 서서히 풀리듯 시작한다. 이 가속이 그대로 「멀어진다」가 된다.
                 float k = Mathf.Clamp01(elapsed / rideSeconds);
-                car.position = Vector3.Lerp(from, to, k * k);
+                car.position = Vector3.Lerp(from, to, Mathf.Pow(k, rideEase));
+
+                if (!cut && elapsed >= cameraAt)
+                {
+                    // 기본값은 0 — 출발과 동시에 넘긴다. 얼마간 1인칭을 보여주다
+                    // 넘기는 안을 만들어 봤는데, 플레이어가 차체 안에 서 있어서
+                    // 그 몇 초가 통째로 객실 내벽이었다. 값은 남겨 둔다.
+                    cut = true;
+                    LookFromCar();
+                    letterbox = Letterbox.Create();
+                    StartCoroutine(letterbox.To(cinematicBar, 1.2f));
+                }
+
+                if (!gripped && elapsed >= gripAt)
+                {
+                    gripped = true;
+                    if (chase != null)
+                    {
+                        chase.Grip();
+                    }
+                }
+
+                if (!letGo && elapsed >= letGoAt)
+                {
+                    letGo = true;
+                    if (chase != null)
+                    {
+                        chase.LetGo();
+                    }
+                }
+
+                if (!closing && letterbox != null && elapsed >= closeFrom)
+                {
+                    closing = true;
+                    StartCoroutine(letterbox.To(Letterbox.Closed, letterboxSeconds));
+                }
 
                 yield return null;
             }
 
             car.position = to;
 
-            float watched = 0f;
-            while (watched < watchSeconds)
-            {
-                watched += Time.deltaTime;
-                yield return null;
-            }
-
             if (GameFlow.Instance != null)
             {
                 GameFlow.Instance.NextChapter();
             }
+        }
+
+        /// <summary>
+        /// 플레이어 눈에서 차체 위의 카메라로 넘어간다.
+        /// </summary>
+        /// <remarks>
+        /// 카메라 <b>컴포넌트만</b> 끈다. 오브젝트를 끄면 <see cref="AudioListener"/>
+        /// 가 같이 죽어서 엔딩이 통째로 무음이 된다.
+        /// </remarks>
+        private void LookFromCar()
+        {
+            if (chaseCamera == null)
+            {
+                return;
+            }
+
+            GameObject player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                foreach (Camera camera in player.GetComponentsInChildren<Camera>(true))
+                {
+                    camera.enabled = false;
+                }
+            }
+
+            chaseCamera.gameObject.SetActive(true);
+            chaseCamera.enabled = true;
         }
     }
 }

@@ -63,6 +63,12 @@ IMPORTANT: Blend Tree 의 문턱값은 **에이전트 속도**지만, 클립이 
 `Buried`(60f). 셋 다 `Colossus.cs` 가 모르는 상태이며 **엔딩을 진행하는 쪽이
 트리거를 직접 보낸다.** 재생 중에는 `NavMeshAgent` 를 꺼 둔다.
 
+2026-08-10 에 그 「엔딩을 진행하는 쪽」이 생겼다 —
+`Assets/Game/Levels/Ch6/CableChase.cs` 이며 `CableCarDeparture` 가 시각을 준다.
+`Cable_Climb` 은 배속을 올려 쓰되 **세상에서 나아가는 속도를 배속에 묶어** 이
+문서의 0.76 m/s 를 지킨다. 잡은 손은 두 `DEF_Digits` 의 가운데를 케이블에
+맞추는 방식으로 고정한다(Generic 리그라 Animator IK 를 못 쓴다).
+
 IMPORTANT: **`Death` 파라미터도 상태도 만들지 않는다.** `IsAlive` 는 항상 참이다.
 `Grab_Execute` 는 플레이어가 죽는 연출이지 이것이 죽는 것이 아니다.
 
