@@ -1322,6 +1322,295 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
 | 세면장 거울 (`MirrorStrip`) | 머티리얼 | 형태가 아니라 **반사**의 문제다. smoothness 를 올린 판이면 된다 |
 | 벽 · 바닥 · 천장 | 표면 텍스처 | [`world-assets.md`](world-assets.md) |
 
+## 3 · 4 · 5장 점검 (2026-08-09) — 지금 무엇으로 대신하고 있나
+
+앞의 점검은 1 · 2 · 6장만 봤다. 그 사이 **3장과 4장이 지어지고 있고 5장은 아직
+씬이 없다.** 두 씬을 열어 보니 팀이 있는 소품으로 버티고 있었다.
+
+| 어디 | 무엇이어야 하나 | 지금 |
+| --- | --- | --- |
+| 4장 | 디젤 발전기 | `MachineBlock` (범용 기계 덩어리) |
+| 4장 | 축전지 랙 | `ControlConsole` (관제 콘솔) |
+| 4장 | 배전반 | `JunctionBox` (0.45m 짜리 작은 함) |
+| 4장 | 환기 팬 | **없다.** `VentGrille` 은 0.55m 짜리 그릴이다 |
+| 4장 | 둥지 촉수 · 알집 | `Cylinder` 수십 개 (`Web_Ceil_*`) |
+| 3장 | 배터리 | `Crate` (나무상자) |
+| 3장 | 이송 펌프 | 꺼진 `Cube` |
+| 3장 | 연료 탱크 · 연료통 | **없다.** 연료 절차가 아직 미구현이다 |
+
+**무기는 뺐다.** `Pistol` · `Shotgun` · `PistolMag` · `ShotgunShell` 이
+`Player/Models/` 에 이미 들어와 있다. 탄약 픽업이 탄창 메시를 쓰는 것도 맞다.
+
+우선순위는 여기서도 **화면에 오래 있는 순서**다. 연료통이 첫째인 이유는 그것이
+3장과 6장에서 **양손에 안겨 화면 아래를 채운 채 걷는** 물건이기 때문이다.
+
+## 3차 프롬프트 — 3 · 4 · 5장 16종
+
+공통 블록은 앞과 같다. 우선순위 A 는 지금 대역이 어색한 것, B 는 그 장이 지어질 때
+필요한 것이다.
+
+### A1. 연료통 `FuelCan` — 우선순위 A
+
+    Portable jerrycan for diesel, rectangular pressed-steel body with a
+    recessed X-shaped rib on each side, three-piece top carrying handle, short
+    pouring spout with a screw cap, welded seam down the edges. Worn matte
+    grey-green paint over steel, bare metal at the edges, light rust at seams.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals.
+
+- 치수: 0.34 × 0.47 × 0.18m
+- 축: 주둥이가 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: **3장** 펌프실 · **6장** 권양기 주입구 (`CarrySlot` 이 이미 있다)
+- 부품 분리: 불필요
+- 비고: **이번 목록에서 가장 오래 화면에 있는 물건이다.** 양손으로 안고 걷는 동안
+  화면 아래를 채우므로 1인칭 거리에서 견뎌야 한다. 「무거운 것을 들면 총을 못 쓴다」가
+  이 물건 하나로 성립한다
+
+### A2. 디젤 발전기 `DieselGenerator` — 우선순위 A
+
+    Large skid-mounted diesel generator set, a ribbed engine block coupled to a
+    cylindrical alternator on a steel base frame, a boxy radiator with a
+    grille at one end, exhaust pipe rising from the top with a rain cap, a
+    control panel with dials on the side, anti-vibration mounts at the corners.
+    Worn matte grey-green paint over steel, heavy rust at the base, soot
+    staining around the exhaust. Low-poly, game-ready, clean topology. No baked
+    shadows, no baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 3.0 × 1.8 × 1.3m
+- 축: 라디에이터가 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 바꿀 곳: `Ch4` `Props/Generator` (지금 `MachineBlock`)
+- 부품 분리: 불필요
+- 비고: **4장 전체가 이것을 돌리려고 존재한다.** 범용 기계 덩어리로 두면 그 장의
+  목표가 화면에 안 보인다
+
+### A3. 축전지 랙 `BatteryRack` — 우선순위 A
+
+    Industrial battery rack, an open steel shelving frame two tiers high
+    holding rows of large rectangular lead-acid cells, thick insulated
+    interconnect straps running between the terminals, a drip tray under the
+    bottom tier. Worn matte grey-green painted frame, dark cell casings, pale
+    corrosion crust on the terminals. Low-poly, game-ready, clean topology.
+    No baked shadows, no baked ambient occlusion. No branding, no text,
+    no decals.
+
+- 치수: 2.0 × 1.5 × 0.7m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 바꿀 곳: `Ch4` `Props/Battery` (지금 `ControlConsole`)
+- 부품 분리: 불필요
+- 비고: 축전지실이 이 장에서 밀도가 가장 높은 장치다 — 위협 · 제약 · 무기가 한
+  물건에 겹친다. **여기서 쏘면 터진다**는 규칙이 화면에서 읽히려면 축전지로 보여야 한다
+
+### A4. 환기 팬 `VentFan` — 우선순위 A
+
+    Large industrial axial extraction fan set in a square wall housing, four
+    wide blades behind a heavy wire guard, a motor hub at the centre with
+    support struts, a hinged backdraught damper flap, bolted mounting flange
+    around the frame. Worn matte grey-green paint over steel, bare metal at the
+    edges, dust caked on the guard. Low-poly, game-ready, clean topology. No
+    baked shadows, no baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 1.4 × 1.4 × 0.5m
+- 축: 바람이 `+Z`, 위 `+Y` · 피벗: 뒷면 중앙 (벽에 박힌다)
+- 놓을 곳: `Ch4` 축전지실 벽 (`FanDevice` 가 이미 있고 메시가 없다)
+- 부품 분리: **날개.** 돌아야 하므로 허브에서 나눈다. 프롬프트에
+  `the bladed rotor sitting inside the housing with a visible air gap around it,
+  not fused to the frame` 를 덧붙인다
+- 비고: 기획의 「환기 팬을 먼저 돌린다 — 시간이 걸리고 그동안 밖에서 버텨야 한다」가
+  이 물건이다. **도는 것이 보여야 기다리는 시간이 읽힌다**
+
+### A5. 배전반 `Switchboard` — 우선순위 A
+
+    Floor-standing industrial switchboard cabinet, a tall steel enclosure with
+    a hinged front door left ajar, rows of moulded-case circuit breakers on a
+    din rail inside, thick busbars behind them, a large rotary isolator handle
+    on the door, cable gland plate at the bottom. Worn matte grey-green paint
+    over steel, bare metal at the edges, light rust at seams. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals.
+
+- 치수: 0.9 × 2.0 × 0.5m
+- 축: 문이 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: `Ch4` (지금 0.45m 짜리 `JunctionBox` 로 대신) · `Ch6` 배전반 절차
+- 부품 분리: 불필요 (문은 열린 채로 뽑는다)
+- 비고: 「차단기 두 개를 찾아 올린다」의 무대다. 레버는 `WallLever` 가 맡으므로
+  **이것은 배경**이지만, 작은 정션박스로는 「배전반을 찾아다닌다」가 안 된다
+
+### A6. 배터리 `BatteryCell` — 우선순위 A
+
+    Portable sealed lead-acid battery block, a rectangular hard casing with a
+    recessed carry strap on top, two stud terminals under small caps, moulded
+    ribs down the sides. Dark grey-green casing, dull metal terminals with pale
+    corrosion. Low-poly, game-ready, clean topology. No baked shadows, no baked
+    ambient occlusion. No branding, no text, no decals.
+
+- 치수: 0.26 × 0.22 × 0.17m
+- 축: 단자가 `+Y`, 앞 `+Z` · 피벗: 바닥 중앙
+- 바꿀 곳: `Ch3` `Pickup_Battery` (지금 **나무상자**)
+- 부품 분리: 불필요
+- 비고: 손전등 배터리를 줍는 것이라 여러 곳에 놓인다. 나무상자로는 무엇을 줍는지 모른다
+
+### A7. 유기물 덩어리 `NestGrowth` — 우선순위 A
+
+    Cluster of organic growth for a wall and ceiling, thick fibrous strands
+    stretched between lumpy sacs, a few bulbous pods hanging low on cords,
+    membranous webbing filling the gaps, wet ropey texture throughout. Dull
+    dark red-brown flesh tones with paler sinew, damp sheen in the crevices.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals.
+
+- 치수: 2.0 × 1.6 × 1.2m (덩어리 하나)
+- 축: 붙는 면이 `-Z`, 위 `+Y` · 피벗: 붙는 면 중앙
+- 바꿀 곳: `Ch4` `Nest/Web_Ceil_*` (지금 **원통 수십 개**)
+- 부품 분리: 불필요
+- 비고: **이 장의 정체가 이 물건이다.** 표면(`nest` · `nest_floor` · `nest_fiber`)은
+  이미 있으므로 여기서 얻을 것은 **덩어리진 형태**다. 원통은 촉수로 안 읽힌다.
+  세 덩어리쯤 다르게 뽑아 섞으면 반복이 덜 보인다
+
+### B1. 연료 탱크 `FuelTank` — 우선순위 B
+
+    Large horizontal cylindrical fuel storage tank on two steel saddle
+    cradles, a domed end cap with a bolted manway, a filler neck with a screw
+    cap on top, a sight gauge tube down one side, an outlet valve and flange
+    at the bottom. Worn matte grey-green paint over steel, heavy rust
+    streaking below the fittings. Low-poly, game-ready, clean topology. No
+    baked shadows, no baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 길이 3.2m · 지름 1.4m
+- 축: 축이 `+X`, 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: `Ch3` 갱도 아래
+- 부품 분리: 불필요
+
+### B2. 이송 펌프 `TransferPump` — 우선순위 B
+
+    Skid-mounted industrial transfer pump, a squat electric motor coupled to a
+    volute pump casing, suction and discharge flanges with short pipe stubs, a
+    pressure gauge on the discharge side, a small terminal box on the motor,
+    bolted to a low steel base. Worn matte grey-green paint over steel, thick
+    ice crust over the casing and pipe stubs. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding, no
+    text, no decals.
+
+- 치수: 1.1 × 0.8 × 0.6m
+- 축: 토출이 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 바꿀 곳: `Ch3` `Room_Pump/Pump` (지금 꺼진 큐브)
+- 부품 분리: 불필요
+- 비고: 기획은 「이송 펌프가 얼어 죽었다」이므로 **얼음이 형태의 일부**다. 얼음을
+  프롬프트에 넣어 두면 「왜 못 쓰는가」가 화면에서 읽힌다
+
+### B3. 경비 캐비닛 `GunCabinet` — 우선순위 B
+
+    Narrow steel weapons cabinet, a tall thin locker with a single hinged door
+    standing ajar, a keypad lock plate beside the handle, an interior rack with
+    upright slots and a small shelf at the bottom, ventilation slits near the
+    top. Worn matte grey-green paint over steel, bare metal at the edges, light
+    rust at seams. Low-poly, game-ready, clean topology. No baked shadows, no
+    baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 0.5 × 1.9 × 0.4m
+- 축: 문이 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: `Ch3` `Room_Guard` (`Spot_Cabinet` 자리가 이미 있다)
+- 부품 분리: 불필요 (문은 열린 채로 뽑는다)
+- 비고: **1장 근무표의 번호가 여기로 이어진다.** 키패드가 형태에 있어야 그 연결이
+  화면에서 성립한다
+
+### B4. 갱도 지지 프레임 `TunnelFrame` — 우선순위 B
+
+    Mine tunnel support set, two steel H-section legs with an arched top beam
+    bolted across them, tie plates at the joints, timber lagging boards packed
+    between the beam and the rock above. Worn matte grey-green steel with heavy
+    rust at the joints, weathered grey timber. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding, no
+    text, no decals.
+
+- 치수: 폭 3.0m · 높이 2.8m · 두께 0.3m
+- 축: 통로 방향이 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: `Ch3` 갱도 통로에 일정 간격으로 반복
+- 부품 분리: 불필요
+- 비고: 3장을 1장 복도와 구분 짓는 가장 싼 방법이다. 표면(`rock_hewn`)과 짝이 된다
+
+### B5. 손수레 `HandCart` — 우선순위 B
+
+    Two-wheeled industrial hand truck, an L-shaped steel frame with a toe
+    plate at the bottom, a ladder-style back frame, two solid rubber wheels on
+    a fixed axle, a horizontal grab handle at the top. Worn matte grey-green
+    paint over steel, bare metal at the wear points, dark rubber tyres.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals.
+
+- 치수: 0.6 × 1.3 × 0.5m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: `Ch3` 창고 · 갱도
+- 부품 분리: 불필요
+
+### B6. 철탑 구간 `TowerSection` — 우선순위 B
+
+    Section of a lattice steel mast, four corner angle-iron legs joined by
+    diagonal cross bracing and horizontal ties, bolted gusset plates at every
+    joint, a flanged splice at both open ends, a cable ladder running up one
+    face. Galvanised steel with a dull spangled finish, rust bleeding from the
+    bolt heads, snow crust on the upper surfaces. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding, no
+    text, no decals.
+
+- 치수: **높이 4.0m** · 한 변 1.2m
+- 축: 위 `+Y`, 앞 `+Z` · 피벗: 바닥 중앙 (쌓아 올린다)
+- 놓을 곳: **5장** 철탑 셋 · 6장 삭도 지주
+- 부품 분리: 불필요
+- 비고: **격자 구조는 큐브로 못 만든다.** 5장은 철탑이 유일한 지형지물이라 여기가
+  약하면 장 전체가 빈 눈밭이 된다. 4m 로 못 박아 쌓아 올린다. 표면은 `galvanized`
+
+### B7. 유도등 `BeaconLight` — 우선순위 B
+
+    Aviation obstruction beacon for a mast top, a squat cylindrical base
+    housing with cooling fins, a domed glass lens cage above it protected by a
+    heavy wire guard, a conduit stub and bracket underneath. Dark grey-green
+    painted housing, almost black, with only the recessed lens lighter, ice
+    crust on the guard. Low-poly, game-ready, clean topology. No baked shadows,
+    no baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 0.35 × 0.45 × 0.35m
+- 축: 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: **5장** 철탑마다 하나
+- 부품 분리: 불필요
+- 비고: 기획의 「하나를 켜면 다음 철탑이 흐릿하게 보인다. 그 불빛만이 방향이다」가
+  이것이다. **몸체는 어둡게 뽑는다** — 빛은 `Light` 와 발광 카드(`MAT_GuideGlow`)가
+  내므로 알베도가 밝으면 낮에도 켜진 것처럼 보인다
+
+### B8. 로터리 제설기 `SnowBlower` — 우선순위 B
+
+    Walk-behind rotary snow blower, a wide auger housing at the front with a
+    spiral auger inside and a discharge chute curving up from the top, a boxy
+    engine deck behind it, two ribbed crawler tracks, long handlebars with
+    control levers at the rear. Worn matte grey-green paint over steel, bare
+    metal at the auger edges, packed snow in the housing. Low-poly, game-ready,
+    clean topology. No baked shadows, no baked ambient occlusion. No branding,
+    no text, no decals.
+
+- 치수: 1.3 × 1.2 × 1.9m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: **5장** 두 번째 철탑 아래
+- 부품 분리: **오거(나선 날).** 돌아야 한다. 프롬프트에
+  `the auger sitting inside the housing with a visible air gap around it, not
+  fused to the shroud` 를 덧붙인다
+- 비고: 기획의 **움직이는 엄폐물**이다. 「제설기 뒤에 붙어 있는 동안은 안전하지만
+  느리고 소리가 크다」 — 날이 도는 것이 보여야 「닿으면 갈린다」가 성립한다
+
+### B9. 안테나 접시 `AntennaDish` — 우선순위 B
+
+    Parabolic microwave antenna on a mast bracket, a shallow solid dish with a
+    rolled rim, a feed horn on three struts at the focus, a tilt adjustment
+    strut behind, a pipe clamp mount. Worn matte grey-green paint over steel,
+    rust at the clamp, ice crust down one side of the dish. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals.
+
+- 치수: 지름 1.2m · 깊이 0.5m
+- 축: 접시가 보는 쪽이 `+Z`, 위 `+Y` · 피벗: 클램프 중앙
+- 놓을 곳: **5장** 철탑 · 1장 옥상
+- 부품 분리: 불필요
+- 비고: 여기가 **통신 중계소**라는 것을 화면에서 말하는 유일한 물건이다. 기획의
+  제목과 무대가 그것인데 지금 씬 어디에도 안테나가 없다
+
 ## 후순위 — 그 장이 생긴 뒤에 만든다
 
 레벨이 없으면 크기도 배치도 정할 수 없다.
