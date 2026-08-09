@@ -679,10 +679,10 @@ Light:
   serializedVersion: 12
   m_Type: 0
   m_Color: {r: 1, g: 0.96, b: 0.88, a: 1}
-  m_Intensity: 6
-  m_Range: 25
-  m_SpotAngle: 45
-  m_InnerSpotAngle: 22
+  m_Intensity: 22
+  m_Range: 48
+  m_SpotAngle: 44
+  m_InnerSpotAngle: 16
   m_CookieSize2D: {x: 10, y: 10}
   m_Shadows:
     m_Type: 1
@@ -1915,8 +1915,6 @@ MonoBehaviour:
   shotsPerSecond: 2
   startsOwned: 0
   magazineSize: 8
-  maxReserve: 24
-  startingAmmo: 8
   reloadSeconds: 1.8
   recoilUpDegrees: 1.6
   recoilSideDegrees: 0.6
@@ -2921,8 +2919,6 @@ MonoBehaviour:
   shotsPerSecond: 0.9
   startsOwned: 0
   magazineSize: 4
-  maxReserve: 12
-  startingAmmo: 4
   reloadSeconds: 2.6
   recoilUpDegrees: 3.4
   recoilSideDegrees: 1.2
