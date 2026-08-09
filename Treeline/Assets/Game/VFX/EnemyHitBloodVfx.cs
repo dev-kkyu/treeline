@@ -9,7 +9,9 @@ namespace Treeline
     /// </summary>
     public sealed class EnemyHitBloodVfx : MonoBehaviour
     {
-        private const int PoolSize = 12;
+        // 6장 처형이 한 프레임에 16 갈래를 뿌린다. 12 였을 때는 뒤쪽 갈래가 앞쪽 슬롯을
+        // 되잡아 방금 뿌린 피를 지웠다. 슬롯 하나는 안 도는 파티클 시스템 둘뿐이라 싸다.
+        private const int PoolSize = 24;
         private const string MistTexturePath = "EnemyHit/blood-mist";
         private const string DropletTexturePath = "EnemyHit/blood-droplet";
         private const string MistMaterialPath = "EnemyHit/MAT_BloodMist";

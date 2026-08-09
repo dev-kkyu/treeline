@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4818734706104805275}
   - component: {fileID: 7010422271945385429}
   - component: {fileID: 8140976009937379748}
+  - component: {fileID: 3820193036133068302}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -384,6 +385,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Treeline.FallOutGuard
   killBelowY: -30
   checkInterval: 0.25
+--- !u!114 &3820193036133068302
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c410e093eddce1748a576d2467ad1cca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Treeline.HideOnDeath
 --- !u!1 &1100000
 GameObject:
   m_ObjectHideFlags: 0

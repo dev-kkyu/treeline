@@ -71,6 +71,9 @@ namespace Treeline
         [Tooltip("입. 붙잡힌 동안 플레이어 카메라가 이쪽을 본다. DEF_HeadTip.")]
         [SerializeField] private Transform mouthTarget;
 
+        [Tooltip("손아귀에 잡힌 몸. GrabAnchor 밑의 Protagonist_Body 다. 꺼둔 채로 둔다.")]
+        [SerializeField] private GameObject grabbedBody;
+
         [Tooltip("카메라를 뺏는 데 쓰는 시간. 즉시 끊으면 화면이 고장난 줄 안다.")]
         [SerializeField] private float grabHandoverSeconds = 0.3f;
 
@@ -185,6 +188,9 @@ namespace Treeline
         private static readonly int RoarStateHash = Animator.StringToHash("Roar");
 
         private static readonly int GrabStateHash = Animator.StringToHash("GrabExecute");
+
+        /// <summary>몸 쪽 <c>AC_ProtagonistBody</c> 의 유일한 상태다.</summary>
+        private static readonly int BodyGrabbedStateHash = Animator.StringToHash("Grabbed");
 
         private GameObject grabbed;
         private Transform grabbedEye;
@@ -626,6 +632,8 @@ namespace Treeline
 
             grabbed = player.gameObject;
 
+            ShowGrabbedBody(true);
+
             // 걷기 · 시선 · 중력을 전부 끈다. 하나라도 남으면 클립과 싸운다 —
             // 특히 PlayerLook 은 매 프레임 회전을 덮어써서 카메라가 안 넘어간다.
             SetPlayerControl(false);
@@ -638,10 +646,20 @@ namespace Treeline
             // 화면이 튀어 「잡혔다」가 아니라 「끊겼다」로 읽힌다. 대신 아래에서 끌어당긴다.
             grabbed.transform.SetParent(grabAnchor, worldPositionStays: true);
 
-            PlayerHud hud = grabbed.GetComponentInChildren<PlayerHud>(true);
-            if (hud != null)
+            // 팔 · 총 · HUD 를 여기서 걷어낸다. 죽는 것은 89f 인데 잡히는 것은 7f 라,
+            // 죽을 때까지 기다리면 손아귀의 몸 앞으로 자기 팔이 2.7 초 동안 겹쳐 뜬다.
+            HideOnDeath view = grabbed.GetComponent<HideOnDeath>();
+            if (view != null)
             {
-                hud.HideForCutscene();
+                view.Hide();
+            }
+            else
+            {
+                PlayerHud hud = grabbed.GetComponentInChildren<PlayerHud>(true);
+                if (hud != null)
+                {
+                    hud.HideForCutscene();
+                }
             }
 
             // 손이 닫히는 소리는 이쪽이 내고(grabSound), 그 안에서 사람이 내는 소리는
@@ -749,6 +767,46 @@ namespace Treeline
             SetPlayerControl(true);
             grabbed = null;
             grabbedEye = null;
+
+            ShowGrabbedBody(false);
+        }
+
+        /// <summary>
+        /// 손아귀의 몸을 켜고 끈다. 켤 때는 <b>콜로서스 클립이 지금 있는 시각에서</b>
+        /// 시작한다.
+        /// </summary>
+        /// <remarks>
+        /// 두 클립은 길이도 이벤트 프레임도 같게 잡혀 있지만, 이쪽을 켜는 시점이
+        /// 7f(<see cref="AE_GrabLock"/>)라 0 에서 시작하면 그만큼 뒤처진 채로 끝까지
+        /// 간다. 0.23 초면 손이 오므라드는 것과 몸이 접히는 것이 눈에 띄게 어긋난다.
+        /// </remarks>
+        private void ShowGrabbedBody(bool on)
+        {
+            if (grabbedBody == null)
+            {
+                return;
+            }
+
+            grabbedBody.SetActive(on);
+
+            if (!on)
+            {
+                return;
+            }
+
+            Animator bodyAnimator = grabbedBody.GetComponent<Animator>();
+            if (bodyAnimator == null)
+            {
+                return;
+            }
+
+            float at = animator != null
+                ? Mathf.Repeat(animator.GetCurrentAnimatorStateInfo(0).normalizedTime, 1f)
+                : 0f;
+
+            // 지난 처형의 마지막 프레임에서 이어지지 않게 되감아 준다.
+            bodyAnimator.Play(BodyGrabbedStateHash, 0, at);
+            bodyAnimator.Update(0f);
         }
 
         /// <summary>
