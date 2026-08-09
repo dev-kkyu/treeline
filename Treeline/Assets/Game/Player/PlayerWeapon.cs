@@ -411,6 +411,11 @@ namespace Treeline
                     continue;
                 }
 
+                // 맞은 것이 눈에 보여야 한다. 어두운 게임이라 체력 감소는 안 보이고,
+                // 맞았는지 빗나갔는지를 **혈흔 하나로** 판단하게 된다.
+                // 탄마다 부른다 — 산탄 아홉 발이 한 번만 튀면 산탄으로 안 보인다.
+                EnemyHitBloodVfx.Spawn(hit.point, hit.normal, direction);
+
                 target.TakeDamage(new DamageInfo(damagePerPellet, hit.point, direction, gameObject));
             }
         }
