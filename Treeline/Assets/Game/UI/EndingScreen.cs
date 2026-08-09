@@ -113,9 +113,12 @@ namespace Treeline
             Stretch(veil.rectTransform);
             veil.raycastTarget = false;
 
-            GameObject rail = CreateUiObject("RightEndingRail", root.transform);
-            SetRect(rail.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
-                new Vector2(1f, 0.5f), new Vector2(-72f, 0f), new Vector2(650f, 880f));
+            // 왼쪽에 세운다. 오른쪽은 배경의 삭도가 산으로 뻗는 자리라 겹치면
+            // 「케이블은 계속 아래로 움직인다」를 그림이 가려 버린다.
+            // TitleScreen 도 왼쪽이므로 두 화면의 메뉴 위치가 같아지는 이점도 있다.
+            GameObject rail = CreateUiObject("LeftEndingRail", root.transform);
+            SetRect(rail.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                new Vector2(0f, 0.5f), new Vector2(72f, 0f), new Vector2(650f, 880f));
 
             Image frame = CreateImage("RelayFrame", rail.transform, panelFrame, Color.white);
             Stretch(frame.rectTransform);
