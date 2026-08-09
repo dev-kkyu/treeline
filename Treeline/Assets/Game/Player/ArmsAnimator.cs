@@ -44,6 +44,24 @@ namespace Treeline
         private Renderer[] armsRenderers;
         private bool wasCarrying;
 
+        /// <summary>
+        /// 무기별 부품. <b>재부모화하지 않고 이름으로 켜고 끈다.</b>
+        /// </summary>
+        /// <remarks>
+        /// 처음에는 빈 오브젝트로 묶어 <c>viewModel</c> 에 물렸는데, 이 부품들은
+        /// FBX 프리팹 인스턴스의 자식이라 <b>밖으로 옮기면 프리팹 저장에서
+        /// 되돌려진다.</b> 묶음만 빈 채로 남아 총이 통째로 사라졌다.
+        /// </remarks>
+        /// <remarks>
+        /// IMPORTANT: 리그에 딸려 온 스킨 무기(<c>W_Pistol</c> 등)는 켜도 화면에
+        /// 안 나온다 — 바인딩이 제대로 안 걸려 있다. 그래서 <b>낱개 FBX 를 손 본
+        /// (<c>WeaponRoot</c>)에 그냥 물렸다.</b> 본은 애니메이션을 따라가므로
+        /// 결과는 같고, 스킨 문제를 손댈 필요가 없다.
+        /// </remarks>
+        private static readonly string[] PistolParts = { "Held_Pistol" };
+
+        private static readonly string[] ShotgunParts = { "Held_Shotgun" };
+
         private void Awake()
         {
             if (animator == null)
@@ -121,7 +139,11 @@ namespace Treeline
             weapon.AmmoChanged += OnAmmoChanged;
             OnAmmoChanged();
 
-            string prefix = weapon.Kind == WeaponKind.Shotgun ? "Arms_Shotgun" : "Arms_Pistol";
+            bool shotgun = weapon.Kind == WeaponKind.Shotgun;
+            ShowParts(shotgun ? ShotgunParts : PistolParts, true);
+            ShowParts(shotgun ? PistolParts : ShotgunParts, false);
+
+            string prefix = shotgun ? "Arms_Shotgun" : "Arms_Pistol";
             idleState = prefix + "Idle";
             PlayOnce(prefix + "Equip", 0.5f);
         }
@@ -255,6 +277,79 @@ namespace Treeline
             Play(state);
             returnToIdleAt = Time.time + Mathf.Max(0.05f, seconds);
         }
+
+        /// <summary>이름으로 부품 렌더러를 켜고 끈다.</summary>
+        private void ShowParts(string[] names, bool visible)
+        {
+            if (armsRenderers == null || armsRenderers.Length == 0)
+            {
+                armsRenderers = GetComponentsInChildren<Renderer>(true);
+            }
+
+            for (int i = 0; i < armsRenderers.Length; i++)
+            {
+                if (armsRenderers[i] == null)
+                {
+                    continue;
+                }
+
+                for (int k = 0; k < names.Length; k++)
+                {
+                    if (armsRenderers[i].name == names[k])
+                    {
+                        armsRenderers[i].enabled = visible;
+                    }
+                }
+            }
+        }
+
+        // ── 애니메이션 이벤트 수신부 ─────────────────────────────────────────
+        // IMPORTANT: 이벤트는 **Animator 와 같은 오브젝트의 컴포넌트에만** 간다.
+        // 이 컴포넌트가 팔 루트에 붙어 있어 여기가 받는 자리다. 클립에 심어 둔
+        // 이름은 하나라도 빠지면 「has no receiver」 경고가 매 재생마다 쌓인다.
+        //
+        // 지금은 대부분 비어 있다. **소리와 연출을 붙일 자리를 먼저 열어 두는 것**이
+        // 목적이고, WeaponAudio 가 이미 자기 타이밍표로 소리를 내고 있어 여기서
+        // 또 내면 두 번 울린다. 붙일 때는 한쪽을 지운다.
+
+        /// <summary>총이 손에 자리잡았다. 드는 동작의 끝.</summary>
+        public void WeaponReady() { }
+
+        /// <summary>든 물건이 손에 붙는 순간. 6장 연료통이 이 시점에 손에 온다.</summary>
+        public void AttachProp() { }
+
+        /// <summary>든 물건을 놓는 순간.</summary>
+        public void DetachProp() { }
+
+        public void Fire() { }
+
+        public void Eject() { }
+
+        public void PumpBack() { }
+
+        public void PumpClosed() { }
+
+        public void ShellIn() { }
+
+        public void TubesClosed() { }
+
+        public void MagRelease() { }
+
+        public void MagOut() { }
+
+        public void MagazineIn() { }
+
+        public void SlideRelease() { }
+
+        public void ReloadComplete() { }
+
+        /// <summary>레버에 손이 닿았다.</summary>
+        public void HandsOn() { }
+
+        /// <summary>상호작용이 실제로 발동하는 프레임.</summary>
+        public void InteractCommit() { }
+
+        public void Died() { }
 
         private void Play(string state)
         {
