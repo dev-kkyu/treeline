@@ -357,7 +357,10 @@ namespace Treeline
                 return;
             }
 
-            objectiveIndex = Mathf.Clamp(index, 0, definition.objectives.Length - 1);
+            // 위끝이 Length 다. AdvanceInternal 이 Length 를 「전부 완료」로 쓰는데
+            // 여기서만 Length-1 로 잘라 두면, 단계를 직접 넣는 쪽(Ch3Objectives ·
+            // Ch4Objectives)은 마지막 줄에 영영 취소선을 못 긋는다.
+            objectiveIndex = Mathf.Clamp(index, 0, definition.objectives.Length);
             RenderObjectiveList();
             if (reveal)
             {
