@@ -53,8 +53,8 @@ THRESHOLD = 1.6
 PATTERNS = ("*_albedo.png", "*_normal.png", "*Color.jpg", "*NormalGL.jpg")
 
 
-def ratios(path: Path) -> tuple[float, float, bool]:
-    """(가로 비율, 세로 비율, 무늬로 판정됨) 을 돌려준다."""
+def ratios(path: Path) -> tuple[float, float, float]:
+    """(가로 비율, 세로 비율, 끝단 절댓값) 을 돌려준다. 값은 8비트 계단 단위다."""
     a = np.asarray(Image.open(path).convert("RGB"), dtype=np.float64)
 
     seam_h = np.abs(a[:, -1] - a[:, 0]).mean()
@@ -64,7 +64,15 @@ def ratios(path: Path) -> tuple[float, float, bool]:
     dh = np.abs(a[:, 1:] - a[:, :-1]).mean(axis=(0, 2))
     dv = np.abs(a[1:, :] - a[:-1, :]).mean(axis=(1, 2))
 
-    return seam_h / max(dh.mean(), 1e-9), seam_v / max(dv.mean(), 1e-9)
+    return (seam_h / max(dh.mean(), 1e-9), seam_v / max(dv.mean(), 1e-9),
+            max(seam_h, seam_v))
+
+
+# 8비트 한 계단. 끝단 차이가 이보다 작으면 **화면에 나타날 수가 없다.**
+# IMPORTANT: 이건 판정 규칙이 아니라 산수다. 위에 적힌 실패한 자동 판별 둘과
+# 성격이 다르다 — 그 둘은 「이 정도면 무늬겠지」라는 추측이었고 진짜 이음매를
+# 통과시켰지만, 이것은 표현할 수 없는 값에는 이음매가 담길 수 없다는 뜻이다.
+QUANT_STEP = 1.0
 
 
 def write_tile(path: Path, out_dir: Path, cell: int = 240) -> Path:
@@ -90,6 +98,12 @@ def collect(target: Path) -> list[Path]:
 
 
 def main() -> int:
+    # IMPORTANT: Windows 콘솔은 기본이 cp949 라 «—» 같은 글자에서 죽는다. 걸린
+    # 텍스처를 알려주는 그 줄에서 터지므로, 하필 **결과가 나쁠 때만** 죽어서
+    # 통과한 줄만 보고 「이상 없다」로 읽게 된다. 출력 인코딩을 먼저 고정한다.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
     args = sys.argv[1:]
     if not args:
         print(__doc__)
@@ -104,12 +118,18 @@ def main() -> int:
     checked = 0
     for raw in args:
         for f in collect(Path(raw)):
-            h, v = ratios(f)
+            h, v, absmax = ratios(f)
             checked += 1
             bad = h >= THRESHOLD or v >= THRESHOLD
+            if bad and absmax < QUANT_STEP:
+                # 비율은 높지만 절댓값이 한 계단도 안 된다. 나눗셈의 분모가 0 에
+                # 가까워서 나온 수치일 뿐이다.
+                print(f"잡음  H {h:5.2f}  V {v:5.2f}  (끝단 {absmax:.2f}계단)   {f}")
+                continue
             if bad:
                 flagged.append(f)
-            print(f"{'의심' if bad else 'ok  '}  H {h:5.2f}  V {v:5.2f}   {f}")
+            mark = "의심" if bad else "ok  "
+            print(f"{mark}  H {h:5.2f}  V {v:5.2f}  (끝단 {absmax:5.2f}계단)   {f}")
 
     print(f"\n{checked} 장 중 {len(flagged)} 장이 걸렸다.")
     if flagged:
