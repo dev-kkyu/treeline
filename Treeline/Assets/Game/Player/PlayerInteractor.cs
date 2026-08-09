@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Treeline
@@ -24,6 +25,16 @@ namespace Treeline
         public string Prompt =>
             Current != null && Current.CanInteract ? Current.Prompt : string.Empty;
 
+        /// <summary>
+        /// 상호작용이 <b>실제로 일어났다.</b> 팔 동작과 소리가 여기에 붙는다.
+        /// </summary>
+        /// <remarks>
+        /// 무기가 <c>Fired</c> 를 알리는 것과 같은 자리다 — 여기는 「무엇을 했다」만
+        /// 알리고, 그것을 어떻게 보여줄지는 듣는 쪽이 정한다. 대상까지 넘기는 것은
+        /// 레버와 획득물의 손동작이 다르기 때문이다(<see cref="IHandMotion"/>).
+        /// </remarks>
+        public event Action<IInteractable> Interacted;
+
         private void Awake()
         {
             if (input == null)
@@ -47,7 +58,11 @@ namespace Treeline
                 return;
             }
 
-            Current.Interact(gameObject);
+            // 붙잡아 두고 부른다. 획득물은 Interact 안에서 스스로 꺼지므로
+            // 그 뒤에 Current 를 다시 읽으면 이미 다른 것을 보고 있을 수 있다.
+            IInteractable done = Current;
+            done.Interact(gameObject);
+            Interacted?.Invoke(done);
         }
 
         private void OnDisable()

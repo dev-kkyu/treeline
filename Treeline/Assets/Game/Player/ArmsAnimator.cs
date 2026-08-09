@@ -35,6 +35,9 @@ namespace Treeline
         [Tooltip("무기 교체를 알려 주는 쪽. 비우면 부모에서 찾는다.")]
         [SerializeField] private WeaponSwitcher switcher;
 
+        [Tooltip("상호작용을 알려 주는 쪽. 비우면 부모에서 찾는다.")]
+        [SerializeField] private PlayerInteractor interactor;
+
         [Tooltip("상태를 바꿀 때 섞는 시간(초).")]
         [SerializeField, Range(0f, 0.4f)] private float blendSeconds = 0.08f;
 
@@ -55,6 +58,10 @@ namespace Treeline
         private float returnToIdleAt = float.PositiveInfinity;
         private Renderer[] armsRenderers;
         private bool wasCarrying;
+        private bool weaponHidden;
+
+        /// <summary>이번 프레임에 상호작용이 일어났다. <c>Update</c> 가 처리한다.</summary>
+        private IInteractable pendingInteract;
 
         /// <summary>
         /// 무기별 부품. <b>재부모화하지 않고 이름으로 켜고 끈다.</b>
@@ -95,6 +102,11 @@ namespace Treeline
                 switcher = GetComponentInParent<WeaponSwitcher>();
             }
 
+            if (interactor == null)
+            {
+                interactor = GetComponentInParent<PlayerInteractor>();
+            }
+
             if (animator == null)
             {
                 Debug.LogError($"{nameof(ArmsAnimator)}: Animator 를 못 찾았다.", this);
@@ -104,6 +116,11 @@ namespace Treeline
 
         private void OnEnable()
         {
+            if (interactor != null)
+            {
+                interactor.Interacted += OnInteracted;
+            }
+
             if (switcher != null)
             {
                 switcher.Equipped += OnEquipped;
@@ -117,6 +134,11 @@ namespace Treeline
 
         private void OnDisable()
         {
+            if (interactor != null)
+            {
+                interactor.Interacted -= OnInteracted;
+            }
+
             if (switcher != null)
             {
                 switcher.Equipped -= OnEquipped;
@@ -127,7 +149,20 @@ namespace Treeline
 
         private void Update()
         {
-            UpdateCarry();
+            bool carryChanged = UpdateCarry();
+
+            if (pendingInteract != null)
+            {
+                // 든 것이 바뀌었으면 그쪽이 이긴다. 연료통을 집는 것도 상호작용이라
+                // 둘 다 재생하면 손 뻗기가 드는 동작을 덮어쓴다. 어느 쪽이 먼저
+                // 도는지에 기대지 않으려고 판단을 여기 한 곳에 모았다.
+                if (!carryChanged)
+                {
+                    PlayInteract(pendingInteract);
+                }
+
+                pendingInteract = null;
+            }
 
             // 한 번짜리 동작이 끝나면 쉬기로 돌려보낸다. 안 그러면 마지막 프레임에서
             // 팔이 굳는다. 상태 시간을 보지 않고 우리가 잰 시각을 쓰는 이유는,
@@ -135,6 +170,7 @@ namespace Treeline
             if (Time.time >= returnToIdleAt)
             {
                 returnToIdleAt = float.PositiveInfinity;
+                TakeWeaponBack();
                 Play(idleState);
             }
         }
@@ -143,6 +179,7 @@ namespace Treeline
         private void OnEquipped(PlayerWeapon weapon)
         {
             Unsubscribe();
+            weaponHidden = false;
 
             if (weapon == null)
             {
@@ -170,6 +207,68 @@ namespace Treeline
             string prefix = shotgun ? "Arms_Shotgun" : "Arms_Pistol";
             idleState = prefix + "Idle";
             PlayOnce(prefix + "Equip", 0.5f);
+        }
+
+        /// <summary>상호작용이 일어났다. 재생은 <c>Update</c> 로 미룬다.</summary>
+        private void OnInteracted(IInteractable target)
+        {
+            pendingInteract = target;
+        }
+
+        /// <summary>
+        /// 무언가를 조작하는 손동작. 대상이 <see cref="IHandMotion"/> 로 말해 주면
+        /// 그대로 따르고, 아무 말이 없으면 손을 뻗는다.
+        /// </summary>
+        /// <remarks>
+        /// 조작하는 동안 <b>들고 있던 총을 감춘다.</b> 이 클립들은 빈손을 전제로
+        /// 만들어져 있어 총이 붙어 있으면 레버를 총으로 당기는 그림이 된다. 총열을
+        /// 앞으로 돌려 두는 보정도 같이 푼다 — 그대로 두면 레버를 옆에서 더듬는다.
+        /// </remarks>
+        private void PlayInteract(IInteractable target)
+        {
+            HandMotion motion = target is IHandMotion m ? m.Motion : HandMotion.Reach;
+            PutWeaponAway();
+
+            if (motion == HandMotion.Pull)
+            {
+                PlayOnce("Arms_LeverPull", 1.17f);
+                return;
+            }
+
+            PlayOnce("Arms_Interact", 0.57f);
+        }
+
+        private void PutWeaponAway()
+        {
+            if (weaponHidden)
+            {
+                return;
+            }
+
+            weaponHidden = true;
+            ShowParts(PistolParts, false);
+            ShowParts(ShotgunParts, false);
+            AimBarrelForward(0f);
+        }
+
+        /// <summary>조작이 끝났다. 감춰 둔 총을 도로 손에 붙인다.</summary>
+        private void TakeWeaponBack()
+        {
+            if (!weaponHidden)
+            {
+                return;
+            }
+
+            weaponHidden = false;
+
+            if (subscribed == null)
+            {
+                return;
+            }
+
+            bool shotgun = subscribed.Kind == WeaponKind.Shotgun;
+            ShowParts(shotgun ? ShotgunParts : PistolParts, true);
+            AimBarrelForward(shotgun ? shotgunYawDegrees : pistolYawDegrees);
         }
 
         /// <summary>
@@ -215,17 +314,18 @@ namespace Treeline
         /// 무언가를 두 손으로 들고 있는 동안의 자세. <see cref="WeaponSwitcher"/> 가
         /// 총을 봉인하는 것과 같은 신호를 팔도 받는다 — 6장 연료통이 이것이다.
         /// </summary>
-        private void UpdateCarry()
+        /// <returns>이번 프레임에 드는/놓는 것이 바뀌었으면 참.</returns>
+        private bool UpdateCarry()
         {
             if (switcher == null)
             {
-                return;
+                return false;
             }
 
             bool carrying = switcher.IsCarrying;
             if (carrying == wasCarrying)
             {
-                return;
+                return false;
             }
 
             wasCarrying = carrying;
@@ -233,6 +333,7 @@ namespace Treeline
             if (carrying)
             {
                 idleState = "Arms_CarryIdle";
+                PutWeaponAway();
                 PlayOnce("Arms_CarryLift", 0.77f);
             }
             else
@@ -243,6 +344,8 @@ namespace Treeline
                     : (w.Kind == WeaponKind.Shotgun ? "Arms_ShotgunIdle" : "Arms_PistolIdle");
                 PlayOnce("Arms_CarryDrop", 0.57f);
             }
+
+            return true;
         }
 
         /// <summary>
@@ -285,6 +388,9 @@ namespace Treeline
                 return;
             }
 
+            // 조작 중에 방아쇠를 당겼다. 총이 나가는데 손에 없으면 안 된다.
+            TakeWeaponBack();
+
             // 산탄총은 쏘고 펌프질까지 한 클립이라 길다.
             bool shotgun = subscribed.Kind == WeaponKind.Shotgun;
             PlayOnce(shotgun ? "Arms_ShotgunFirePump" : "Arms_PistolFire", shotgun ? 0.97f : 0.23f);
@@ -296,6 +402,8 @@ namespace Treeline
             {
                 return;
             }
+
+            TakeWeaponBack();
 
             if (!reloading)
             {

@@ -20,7 +20,11 @@ namespace Treeline
     [RequireComponent(typeof(BoxCollider))]
     public sealed class Lever : MonoBehaviour
         , IInteractable
+        , IHandMotion
     {
+        /// <summary>레버는 손을 뻗는 게 아니라 잡고 당긴다.</summary>
+        public HandMotion Motion => HandMotion.Pull;
+
         [Tooltip("화면에 띄울 문구.")]
         [SerializeField] private string prompt = "레버를 당긴다";
 
