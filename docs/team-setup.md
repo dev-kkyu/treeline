@@ -13,6 +13,37 @@
 git pull --rebase --autostash
 ```
 
+### 2026-08-09 · 4장 `Ch4.unity` 를 A 가 짓기 시작한다 (A)
+
+**`Assets/Game/Levels/Ch4.unity` 가 생긴다. 소유자는 A 다** — 씬은 한 사람만
+만진다는 규칙 그대로다. 3단계 배정(`roles.md`)에서 4장이 A 로 온 것에 따른다.
+
+셋이 함께 건드리는 파일 하나를 건드린다. **`EditorBuildSettings.asset` 에 `Ch4`
+를 등록한다.** 이름으로 씬을 로드하므로 등록해야 열 수 있다.
+
+IMPORTANT: **`Chapters.Order` 에는 아직 넣지 않는다.** 넣는 순간 2장 다음이
+미완성 4장이 되어 **지금 되는 관통이 끊긴다.** 빌드 목록에만 올려 두면 씬은 열리고
+관통은 그대로다. 넣는 시점은 `SpawnPoint` 에서 `ChapterExit` 까지 실제로 이어질
+때다. **B 의 3장도 같은 방식으로 가자** — 둘 다 관통에 들어오면 그때 `Order` 를
+한 번에 고친다.
+
+| A 가 하는 것 | 남는 것 |
+| --- | --- |
+| `Ch4.unity` 공간 · 동선 · 충돌 · NavMesh | 축전지실 폭발 (수소 → 발포 → 폭발) |
+| 기존 프리팹 배치, 조명, 앰비언스 | `Clinger` 리깅 · 애니메이션 (A, 다른 세션) |
+| 차단기 둘 · 환기 팬 · 발전기 예열의 `Device` 배선 | 전력 복구 후 조명이 켜지는 연출 |
+| `SpawnPoint` · `ChapterExit` · 빌드 설정 등록 | 4장 전용 소품 5종 (아래) |
+
+**4장 전용 소품이 아직 없다** — 디젤 발전기 · 배전반 · 축전지 랙 · 환기 팬 ·
+유기물 데코. [`tech-design/props.md`](tech-design/props.md) 의 후순위에 「레벨
+없음」 으로 미뤄져 있던 것들이다. **이제 레벨이 생기니 치수를 재서 시트에 적는다.**
+그때까지는 기존 30종으로 자리를 세운다(`MachineBlock` · `JunctionBox` ·
+`VentGrille`). 세운 자리가 그대로 치수 근거가 된다.
+
+표면은 **`W_nest` 를 쓴다.** 절차적 생성 7종에 이미 들어 있다. 미술 기준은
+지어내지 않고 [`level-sheets/mockups/codex/ch04-generator-nest/`](level-sheets/mockups/codex/ch04-generator-nest/)
+의 네 시안과 이미 지어진 1 · 2 · 6장에 맞춘다.
+
 ### 2026-08-09 · 청각이 두 벌이었다 — **정해졌다. A 안 그대로** (B)
 
 **`Crawler` 와 `Colossus` 가 서로 다른 규칙으로 소리를 듣는다.** 지금 터지지는
