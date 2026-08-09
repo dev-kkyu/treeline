@@ -291,16 +291,25 @@ def set_hand(side, grip_world, forward, palm, twist=None, span=180.0):
     pal = Vector(palm)
     pal = (pal - pal.dot(fwd) * fwd).normalized()
     centre = 0.0 if twist is None else twist
+    # Same trap as the elbow, one level up. A free hand searches the whole
+    # circle and two twists 180 degrees apart bend the wrist by the same
+    # amount, so a resting hand flipped over between two frames of a breathing
+    # loop and dragged the elbow 160 mm with it.
+    last = _last_twist.get(side)
 
     def score(t):
         want = _apply_hand(side, grip_world, fwd, pal, t)
-        return wrist_bend(side) + 2000.0 * (arm.pose.bones["Hand." + side].head
-                                            - want).length
+        c = wrist_bend(side) + 2000.0 * (arm.pose.bones["Hand." + side].head
+                                         - want).length
+        if last is not None:
+            c += TWIST_CONTINUITY * abs(t - last)
+        return c
 
     lo, hi = centre - span, centre + span
     step = 5.0
     best = min([lo + i * step for i in range(int((hi - lo) / step) + 1)], key=score)
     best = min([best + i for i in range(-4, 5)], key=score)
+    _last_twist[side] = best
     want = _apply_hand(side, grip_world, fwd, pal, best)
     # how far short of the target the arm stopped. The IK target is not a
     # promise - past full stretch the hand simply does not arrive - so anything
@@ -477,6 +486,10 @@ AHEAD_NORM = 0.05
 # be equally acceptable and 100 degrees apart, so a frame flips and the two keys
 # either side interpolate the elbow straight through the chest.
 CONTINUITY = 0.2
+# Per degree of twist, and deliberately small: it breaks a tie between two
+# equally straight wrists without ever outbidding a real difference.
+TWIST_CONTINUITY = 0.05
+_last_twist = {}
 # How far short of a grip counts as a whole limit broken. The IK stops where the
 # arm runs out, so this is the one condition the arm itself cannot report.
 MISS_NORM = 0.002
@@ -566,6 +579,33 @@ def fit_elbow(side, span=170, step=5):
     return best
 
 
+def snapshot():
+    """Every value key() would write, so a loop can be closed by replaying it.
+
+    Re-posing the last frame from the same numbers as the first does not close
+    a loop: the searches behind it - twist, elbow angle - are biased towards the
+    previous frame by design, and after ninety frames of drift they land
+    somewhere else. Replaying the pose itself has no such freedom.
+    """
+    out = {}
+    for name in KEYED:
+        pb = arm.pose.bones[name]
+        out[name] = (pb.location.copy(), pb.rotation_mode,
+                     pb.rotation_quaternion.copy(), pb.rotation_euler.copy())
+    return out
+
+
+def replay(snap, frame):
+    for name, (loc, mode, q, e) in snap.items():
+        pb = arm.pose.bones[name]
+        pb.location = loc
+        pb.rotation_mode = mode
+        pb.rotation_quaternion = q
+        pb.rotation_euler = e
+    bpy.context.view_layer.update()
+    key(frame)
+
+
 def poles(r=None, l=None):
     for side, p in (("R", r), ("L", l)):
         wloc("CTRL_ElbowPole." + side,
@@ -644,6 +684,7 @@ def build_pistol_reload():
     """
     _last_quat.clear()
     _last_elbow.clear()
+    _last_twist.clear()
     act = new_action("Arms_PistolReload")
     L = PISTOL_IDLE
     # 09-weapons.md read 8 mm off the frame's horizontal seam, which is the
@@ -781,6 +822,7 @@ def build_shotgun_reload():
     """
     _last_quat.clear()
     _last_elbow.clear()
+    _last_twist.clear()
     act = new_action("Arms_ShotgunReload")
     S = SHOTGUN_IDLE
 
@@ -935,6 +977,7 @@ def build_shotgun_firepump():
     """
     _last_quat.clear()
     _last_elbow.clear()
+    _last_twist.clear()
     act = new_action("Arms_ShotgunFirePump")
     S = SHOTGUN_IDLE
     TRAVEL = 0.070          # 09-weapons.md
@@ -994,6 +1037,464 @@ def build_shotgun_firepump():
     return act
 
 
+# ------------------------------------------------- the other fourteen clips
+#
+# The two reloads and the pump cycle carried every hard problem: a part leaving
+# the gun, a hand going where the other cannot follow, a wrist and an elbow
+# fighting over the same degree of freedom. What is left is bookkeeping on top
+# of the same three calls - set_weapon, grip, free_hand - and the same measure
+# afterwards.
+
+# Where a bare hand sits with nothing in it. Not authored: through the 50 degree
+# viewmodel lens the bottom of the picture at 0.34 m out is 0.16 m down, so this
+# is that edge plus a centimetre, which puts the knuckles just inside frame and
+# the forearms out of it.
+BARE = {"R": Vector((-0.17, -0.34, -0.17)), "L": Vector((0.17, -0.34, -0.17))}
+BARE_FWD = Vector((0, -0.86, 0.51))
+BARE_PALM = {"R": Vector((1, 0, -0.35)), "L": Vector((-1, 0, -0.35))}
+
+# Carried things ride in front of the chest, low enough to see over. 05-carry.md
+# asks for the centre 0.52 m under the eye; that is a two-handed hold at the
+# bottom of the frame with the elbows in.
+# Carried things ride in front of the chest, low enough to see over, and where
+# the hands can be *seen*. 05-carry.md's "centre 0.52 m under the eye" was
+# written for the full-body spec: through the 50 degree viewmodel lens at 0.44 m
+# out that is 2.8 frame-heights down, and the first attempt rendered an empty
+# picture. The bottom edge is 0.21 m down there, so this sits just inside it.
+#
+# The hands are a hold, not a grip: the palms turn inward as much as up, because
+# flat-up is full supination - 88 degrees of it, measured - and a box is carried
+# by its sides anyway.
+CARRY = {"R": Vector((-0.20, -0.44, -0.17)), "L": Vector((0.20, -0.44, -0.17))}
+CARRY_FWD = Vector((0, -1.0, 0.18))
+CARRY_PALM = {"R": Vector((0.85, 0, 0.53)), "L": Vector((-0.85, 0, 0.53))}
+CARRY_FLOOR = -0.52      # where the hands are when the prop is on the ground
+
+# The lever handle a clip is authored against. Runtime IK moves the hands to the
+# real one; this is only so the pose is a pull and not a mime - but it does have
+# to stay in frame, or nobody can check it. At 0.4 m out the picture is 0.19 m
+# tall, so a 55 degree arc on a 0.26 m arm drops the hands clean out the bottom.
+# The arm is 0.13 m and the handle starts near the middle of the frame.
+LEVER = Vector((0.0, -0.42, -0.02))
+LEVER_ARC = 55.0         # 04-interaction.md
+HAND_SHARE = 0.45
+# How much of the lever's swing the hand takes. Not all of it: a hand that
+# followed the bar rigidly ended the pull pointing backwards and down, which is
+# 161 degrees of forearm and a wrist that is not a wrist. The rest of the arc is
+# the bar turning inside the fingers, which is what actually happens.
+
+
+def breathe(f, period, amp=0.006):
+    """Vertical drift of a resting hand. Sine, so the loop closes on itself."""
+    return Vector((0, 0, amp * math.sin(2 * math.pi * f / period)))
+
+
+def bare_hands(pose="Hand_Relax", offset=None, period=None, f=0):
+    for side in ("R", "L"):
+        p = BARE[side].copy()
+        if offset:
+            p = p + Vector(offset[side] if isinstance(offset, dict) else offset)
+        if period:
+            p = p + breathe(f, period)
+        free_hand(side, p, BARE_FWD, BARE_PALM[side], pose)
+
+
+IK_CURVE = {}
+
+
+def ik_weight(v, frame):
+    """The curve Unity reads to know when the hand belongs to the prop.
+
+    Baked as an object custom property so it travels with the action and can be
+    read off the blend. Whether the FBX carries it is the exporter's problem -
+    what matters is that the numbers are not invented twice.
+    """
+    IK_CURVE[int(frame)] = float(v)
+    arm["IKWeight"] = float(v)
+    arm.keyframe_insert('["IKWeight"]', frame=frame)
+
+
+# --------------------------------------------------------------- bare hands
+
+def build_idle():
+    """90f loop. Hands at rest, breathing. Chapters 1 and 2 are all of this."""
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_Idle")
+    reset_pose()
+    first = None
+    for f in range(1, 90, 10):
+        bare_hands(period=90.0, f=f - 1)
+        key(f)
+        if first is None:
+            first = snapshot()
+    replay(first, 90)
+    act.frame_start, act.frame_end = 1, 90
+    return act
+
+
+def build_interact():
+    """18f. 04-interaction.md: 8 오른손 접촉, 9 InteractCommit, 18 복귀.
+
+    One hand only. The left stays where it was, because a game that makes both
+    hands leave the frame to press a button reads as the player putting
+    something down every time they open a door.
+    """
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_Interact")
+    reset_pose()
+    reach = Vector((-0.10, -0.44, -0.11))
+    for f in range(1, 19):
+        u = min(1.0, f / 8.0) if f <= 8 else max(0.0, 1.0 - (f - 8) / 10.0)
+        u = u * u * (3 - 2 * u)
+        free_hand("L", BARE["L"], BARE_FWD, BARE_PALM["L"], "Hand_Relax")
+        free_hand("R", BARE["R"].lerp(reach, u), BARE_FWD.lerp(
+            Vector((0, -1, 0.1)), u), BARE_PALM["R"],
+            "Point" if u > 0.35 else "Hand_Relax")
+        key(f)
+    act.frame_start, act.frame_end = 1, 18
+    return act
+
+
+def build_lever_pull():
+    """36f. 04-interaction.md: 8 양손 고정, 10~24 -55° 추종, 24 InteractCommit.
+
+    The handle is a bar running left-right, so the finger hinge has to run that
+    way too - forward x palm along x. Authoring the hand as though it were
+    reaching down at the bar instead put the wrist at 139 degrees: a hand on a
+    bar points *across* it, it does not point at it.
+
+    The bar here is a proxy at a fixed place. Runtime IK drags the hands to
+    whatever the scene's lever actually is (README's two-IK split), so all this
+    clip owes is the shape of a pull - both hands on, arms extending as it comes
+    down, elbows following.
+    """
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_LeverPull")
+    reset_pose()
+    pivot = LEVER + Vector((0, 0.13, 0.03))     # hinge behind the handle
+    # Overhand: hand points down the bar's far side, palm down onto it. The
+    # first version had the palm facing up and forward - a grip from underneath,
+    # which is how you press a lever up, not how you pull one down.
+    FWD, PALM = Vector((0, -1, 0)), Vector((0, 0, -1))
+
+    for f in range(1, 37):
+        if f <= 8:
+            u, deg = (f / 8.0) ** 2, 0.0
+        elif f <= 24:
+            u, deg = 1.0, LEVER_ARC * (f - 8) / 16.0
+        else:
+            u, deg = max(0.0, 1.0 - (f - 24) / 12.0), LEVER_ARC
+        R = Matrix.Rotation(math.radians(deg), 3, Vector((1, 0, 0)))
+        # the hand's own turn, applied *after* the blend from resting to holding
+        # so the two vectors being mixed stay near perpendicular. Mixing them
+        # after the swing put nearly opposite directions on either end of the
+        # lerp and the hand tumbled through the degenerate middle.
+        H = Matrix.Rotation(math.radians(deg * HAND_SHARE), 3, Vector((1, 0, 0)))
+        bar = pivot + R @ (LEVER - pivot)
+        for side, dx in (("R", -0.055), ("L", 0.055)):
+            free_hand(side, BARE[side].lerp(bar + Vector((dx, 0, 0)), u),
+                      H @ BARE_FWD.lerp(FWD, u), H @ BARE_PALM[side].lerp(PALM, u),
+                      "LeverGrip" if u > 0.5 else "Hand_Relax")
+        ik_weight(1.0 if u > 0.5 else 0.0, f)
+        key(f)
+    act.frame_start, act.frame_end = 1, 36
+    return act
+
+
+# ------------------------------------------------------------------- carry
+
+def carry_hands(u, lift=0.0, pose="CarryFlat"):
+    for side in ("R", "L"):
+        low = Vector((CARRY[side].x, CARRY[side].y, CARRY_FLOOR))
+        p = low.lerp(CARRY[side] + Vector((0, 0, lift)), u)
+        free_hand(side, p, BARE_FWD.lerp(CARRY_FWD, u),
+                  BARE_PALM[side].lerp(CARRY_PALM[side], u), pose)
+
+
+def build_carry_lift():
+    """24f. 05-carry.md: 6 양손 고정, 8 AttachProp, 18 가슴, 24 Idle."""
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_CarryLift")
+    reset_pose()
+    for f in range(1, 25):
+        u = min(1.0, max(0.0, (f - 6) / 12.0))
+        u = u * u * (3 - 2 * u)
+        carry_hands(u)
+        ik_weight(1.0 if f >= 6 else 0.0, f)
+        key(f)
+    act.frame_start, act.frame_end = 1, 24
+    return act
+
+
+def build_carry_idle():
+    """60f loop. 05-carry.md: 호흡 5 mm 이하."""
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_CarryIdle")
+    reset_pose()
+    first = None
+    for f in range(1, 60, 10):
+        carry_hands(1.0, lift=0.004 * math.sin(2 * math.pi * (f - 1) / 60.0))
+        ik_weight(1.0, f)
+        key(f)
+        if first is None:
+            first = snapshot()
+    ik_weight(1.0, 60)
+    replay(first, 60)
+    act.frame_start, act.frame_end = 1, 60
+    return act
+
+
+def build_carry_drop():
+    """18f. 05-carry.md: 12 바닥 직전, 13 DetachProp, 18 손 해제."""
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_CarryDrop")
+    reset_pose()
+    for f in range(1, 19):
+        u = 1.0 - min(1.0, max(0.0, (f - 1) / 12.0))
+        u = u * u * (3 - 2 * u)
+        if f <= 13:
+            carry_hands(u)
+        else:
+            v = (f - 13) / 5.0
+            for side in ("R", "L"):
+                low = Vector((CARRY[side].x, CARRY[side].y, CARRY_FLOOR))
+                free_hand(side, low.lerp(BARE[side], v), BARE_FWD,
+                          BARE_PALM[side], "Open" if v < 0.6 else "Hand_Relax")
+        ik_weight(1.0 if f <= 13 else 0.0, f)
+        key(f)
+    act.frame_start, act.frame_end = 1, 18
+    return act
+
+
+# ------------------------------------------------------------------ pistol
+
+def build_pistol_idle():
+    """60f loop. The stance find_stance.py settled on, breathing."""
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_PistolIdle")
+    reset_pose()
+    L = PISTOL_IDLE
+    first = None
+    for f in range(1, 60, 10):
+        s = math.sin(2 * math.pi * (f - 1) / 60.0)
+        set_weapon(L["loc"] + Vector((0, 0, 0.005 * s)), L["muzzle"],
+                   L["roll"] + 0.6 * s)
+        set_part("Slide", (0, 0, 0))
+        set_part("Magazine", (0, 0, 0))
+        poles()
+        grip("PistolGrip", span=0.0)
+        grip("PistolSupport")
+        key(f)
+        if first is None:
+            first = snapshot()
+    replay(first, 60)
+    act.frame_start, act.frame_end = 1, 60
+    return act
+
+
+def equip(name, frames, ready, idle_fn, drop=0.30, roll=35.0):
+    """A weapon coming up into frame from below, for both equips.
+
+    The gun starts below the bottom edge and rolled over - a gun is carried
+    muzzle-down and levels off as it comes up, and doing both at once is what
+    stops the move reading as a lift on a string.
+    """
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action(name)
+    reset_pose()
+    for f in range(1, frames + 1):
+        u = min(1.0, (f - 1) / float(ready - 1))
+        u = u * u * (3 - 2 * u)
+        idle_fn(1.0 - u, drop, roll)
+        key(f)
+    act.frame_start, act.frame_end = 1, frames
+    return act
+
+
+def pistol_stance(back, drop, roll):
+    L = PISTOL_IDLE
+    set_weapon(L["loc"] + Vector((0, 0.06 * back, -drop * back)), L["muzzle"],
+               L["roll"] + roll * back)
+    set_part("Slide", (0, 0, 0))
+    set_part("Magazine", (0, 0, 0))
+    poles()
+    grip("PistolGrip", span=0.0)
+    if back < 0.5:
+        grip("PistolSupport")
+    else:
+        free_hand("L", BARE["L"], BARE_FWD, BARE_PALM["L"], "Hand_Relax")
+
+
+def build_pistol_fire():
+    """8f. 06-pistol.md: 2 shots/s, camera recoil is PlayerLook's job.
+
+    The slide runs its full stroke inside eight frames - back by 3, forward by
+    6 - because that is the one thing on the gun that says it fired. The trigger
+    finger is only in on frame 1; the pose library keeps it out everywhere else
+    for exactly this reason.
+    """
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_PistolFire")
+    L = PISTOL_IDLE
+    reset_pose()
+    for f in range(1, 9):
+        kick = math.sin(math.pi * min(1.0, (f - 1) / 5.0))
+        back = min(1.0, (f - 1) / 2.0) if f <= 3 else max(0.0, 1.0 - (f - 3) / 3.0)
+        m = L["muzzle"].copy()
+        m.z += 0.16 * kick
+        set_weapon(L["loc"] + Vector((0, 0.012 * kick, 0.006 * kick)), m,
+                   L["roll"])
+        set_part("Slide", (0, 0.025 * back, 0))
+        set_part("Magazine", (0, 0, 0))
+        poles()
+        grip("PistolTrigger" if f == 1 else "PistolGrip", span=0.0)
+        grip("PistolSupport")
+        key(f)
+    act.frame_start, act.frame_end = 1, 8
+    return act
+
+
+# ----------------------------------------------------------------- shotgun
+
+def shotgun_stance(back, drop, roll):
+    S = SHOTGUN_IDLE
+    set_weapon(S["loc"] + Vector((0, 0.06 * back, -drop * back)), S["muzzle"],
+               S["roll"] + roll * back)
+    set_part("Pump", (0, 0, 0))
+    set_part("Shell", (0, 0, 0))
+    poles()
+    grip("ShotgunGrip", span=0.0)
+    if back < 0.5:
+        grip_around("PumpHold")
+    else:
+        free_hand("L", BARE["L"], BARE_FWD, BARE_PALM["L"], "Hand_Relax")
+
+
+def build_shotgun_idle():
+    """60f loop."""
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_ShotgunIdle")
+    reset_pose()
+    S = SHOTGUN_IDLE
+    theta = None
+    first = None
+    for f in range(1, 60, 10):
+        s = math.sin(2 * math.pi * (f - 1) / 60.0)
+        set_weapon(S["loc"] + Vector((0, 0, 0.005 * s)), S["muzzle"],
+                   S["roll"] + 0.6 * s)
+        set_part("Pump", (0, 0, 0))
+        set_part("Shell", (0, 0, 0))
+        poles()
+        grip("ShotgunGrip", span=0.0)
+        theta = grip_around("PumpHold", theta=theta)
+        key(f)
+        if first is None:
+            first = snapshot()
+    replay(first, 60)
+    act.frame_start, act.frame_end = 1, 60
+    return act
+
+
+# ------------------------------------------------------------ hit and death
+
+def build_hit():
+    """12f additive. 08-damage-death.md: 2 왼쪽 갈비 충격, 6 최대, 12 80% 복원.
+
+    Additive, so frame 1 has to be the pose it will be added to - Unity takes
+    the first frame as the reference and layers the difference. Everything here
+    is therefore a departure from the bare idle and a return most of the way
+    back to it.
+    """
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_Hit")
+    reset_pose()
+    for f in range(1, 13):
+        if f <= 6:
+            u = ((f - 1) / 5.0) ** 0.6
+        else:
+            u = 0.2 + 0.8 * max(0.0, 1.0 - (f - 6) / 6.0)
+            u = min(u, 1.0)
+        push = Vector((0.05, 0.03, -0.05)) * u
+        bare_hands("Hand_Relax", offset={"R": push, "L": push})
+        key(f)
+    act.frame_start, act.frame_end = 1, 12
+    return act
+
+
+def build_death():
+    """36f. Hands fall out of frame and stay there; input is off by then."""
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_Death")
+    reset_pose()
+    for f in list(range(1, 37, 3)) + [36]:
+        u = min(1.0, (f - 1) / 26.0)
+        u = u * u                      # falls, not lowered
+        drop = Vector((0.02 * u, 0.10 * u, -0.42 * u))
+        bare_hands("Open" if u > 0.3 else "Hand_Relax",
+                   offset={"R": drop, "L": drop})
+        key(f)
+    act.frame_start, act.frame_end = 1, 36
+    return act
+
+
+def build_sway():
+    """30f additive loop. One set of arm swing for the whole game.
+
+    README's reason for a single additive clip instead of per-weapon walk
+    cycles: four weapon states times four gaits is sixteen clips of the same
+    figure-eight, and PlayerLook's sway is already doing most of it.
+    """
+    _last_quat.clear()
+    _last_elbow.clear()
+    _last_twist.clear()
+    act = new_action("Arms_Sway")
+    reset_pose()
+    first = None
+    for f in range(1, 30, 3):
+        t = 2 * math.pi * ((f - 1) % 30) / 30.0
+        # figure of eight: the hand goes round twice vertically for once across
+        swing = Vector((0.010 * math.sin(t), 0, 0.006 * math.sin(2 * t)))
+        bare_hands("Hand_Relax", offset={"R": swing, "L": -swing})
+        key(f)
+        if first is None:
+            first = snapshot()
+    replay(first, 30)
+    act.frame_start, act.frame_end = 1, 30
+    return act
+
+
+def build_pistol_equip():
+    return equip("Arms_PistolEquip", 15, 13, pistol_stance)
+
+
+def build_shotgun_equip():
+    return equip("Arms_ShotgunEquip", 18, 16, shotgun_stance)
+
+
 # Frames Unity has to fire on. 06/07 name these; the numbers are theirs.
 EVENTS = {
     "Arms_PistolReload": [(8, "MagRelease"), (16, "MagOut"), (39, "MagazineIn"),
@@ -1003,6 +1504,14 @@ EVENTS = {
                            (72, "PumpBack"), (76, "PumpClosed"),
                            (78, "ReloadComplete")],
     "Arms_ShotgunFirePump": [(1, "Fire"), (16, "Eject"), (23, "PumpClosed")],
+    "Arms_Interact": [(9, "InteractCommit")],
+    "Arms_LeverPull": [(8, "HandsOn"), (24, "InteractCommit")],
+    "Arms_CarryLift": [(8, "AttachProp")],
+    "Arms_CarryDrop": [(13, "DetachProp")],
+    "Arms_PistolEquip": [(13, "WeaponReady")],
+    "Arms_ShotgunEquip": [(16, "WeaponReady")],
+    "Arms_PistolFire": [(1, "Fire")],
+    "Arms_Death": [(1, "Died")],
 }
 
 
@@ -1136,54 +1645,80 @@ def strip(act, frames, show):
 
 # --------------------------------------------------------------------- run
 
+BARE_SHOW = {"Arms_Mesh"}
+PISTOL_SHOW = {"Arms_Mesh", "W_Pistol", "W_Slide", "W_PistolMag"}
+SHOTGUN_SHOW = {"Arms_Mesh", "W_Shotgun", "W_Pump", "W_TubeFill", "W_Shell"}
+
+# builder, what to render it with, the two frames a loop has to match, and the
+# frames worth looking at. `None` for the loop pair means the clip is one-shot.
+JOBS = [
+    (build_idle,            BARE_SHOW,    (1, 90), (1, 23, 45, 68, 90)),
+    (build_interact,        BARE_SHOW,    None,    (1, 5, 8, 12, 18)),
+    (build_lever_pull,      BARE_SHOW,    None,    (1, 8, 16, 24, 30, 36)),
+    (build_carry_lift,      BARE_SHOW,    None,    (1, 6, 12, 18, 24)),
+    (build_carry_idle,      BARE_SHOW,    (1, 60), (1, 20, 40, 60)),
+    (build_carry_drop,      BARE_SHOW,    None,    (1, 6, 13, 18)),
+    (build_pistol_equip,    PISTOL_SHOW,  None,    (1, 5, 9, 13, 15)),
+    (build_pistol_idle,     PISTOL_SHOW,  (1, 60), (1, 20, 40, 60)),
+    (build_pistol_fire,     PISTOL_SHOW,  None,    (1, 2, 3, 5, 8)),
+    (build_pistol_reload,   PISTOL_SHOW,  (1, 54), (1, 4, 10, 16, 26, 36, 39, 45, 47, 54)),
+    (build_shotgun_equip,   SHOTGUN_SHOW, None,    (1, 6, 11, 16, 18)),
+    (build_shotgun_idle,    SHOTGUN_SHOW, (1, 60), (1, 20, 40, 60)),
+    (build_shotgun_firepump, SHOTGUN_SHOW, (1, 30), (1, 3, 10, 15, 18, 23, 30)),
+    (build_shotgun_reload,  SHOTGUN_SHOW, (1, 78), (1, 12, 18, 25, 32, 46, 60, 68, 78)),
+    (build_hit,             BARE_SHOW,    None,    (1, 3, 6, 9, 12)),
+    (build_death,           BARE_SHOW,    None,    (1, 9, 18, 27, 36)),
+    (build_sway,            BARE_SHOW,    (1, 30), (1, 8, 15, 23, 30)),
+]
+
+
 def main():
     sc = bpy.context.scene
     sc.render.fps, sc.render.fps_base = 30, 1.0
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode='POSE')
+    arm["IKWeight"] = 0.0
 
-    pistol = build_pistol_reload()
-    shotgun = build_shotgun_reload()
-    pump = build_shotgun_firepump()
+    built = []
+    for builder, show, ends, frames in JOBS:
+        IK_CURVE.clear()
+        act = builder()
+        built.append((act, show, ends, frames, dict(IK_CURVE)))
+        print("BUILD %-22s %d..%d" % (act.name, act.frame_start, act.frame_end))
 
     setup_render()
-    PISTOL_SHOW = {"Arms_Mesh", "W_Pistol", "W_Slide", "W_PistolMag"}
-    SHOTGUN_SHOW = {"Arms_Mesh", "W_Shotgun", "W_Pump", "W_TubeFill", "W_Shell"}
-
     print("=" * 72)
-    for act, show, ends in ((pistol, PISTOL_SHOW, (1, 54)),
-                            (shotgun, SHOTGUN_SHOW, (1, 78)),
-                            (pump, SHOTGUN_SHOW, (1, 30))):
-        gap, where = pose_gap(act, *ends)
-        print("LOOP  %-20s f%d vs f%d  %.3f mm (%s)"
-              % (act.name, ends[0], ends[1], gap * 1000, where))
+    for act, show, ends, frames, _ik in built:
+        if ends:
+            gap, where = pose_gap(act, *ends)
+            print("LOOP  %-22s f%d vs f%d  %.3f mm (%s)"
+                  % (act.name, ends[0], ends[1], gap * 1000, where))
         w, wf, ws, near, nf, r, rf, rs = scan(act)
-        print("SCAN  %-20s worst wrist %5.1f on %s at f%d (limit %.0f)  "
-              "worst roll %5.1f on %s at f%d (limit %.0f)  "
-              "nearest %.4f m at f%d (near clip %.2f)"
+        print("SCAN  %-22s worst wrist %5.1f on %s at f%-3d (limit %.0f)  "
+              "worst roll %5.1f on %s at f%-3d (limit %.0f)  "
+              "nearest %.4f m at f%-3d (near clip %.2f)"
               % (act.name, w, ws, wf, WRIST_LIMIT, r, rs, rf, ROLL_LIMIT,
                  near, nf, NEAR_CLIP))
-        for f, name in EVENTS[act.name]:
-            print("EVENT %-20s f%-3d %s" % (act.name, f, name))
+        for f, name in EVENTS.get(act.name, []):
+            print("EVENT %-22s f%-3d %s" % (act.name, f, name))
 
+    by = {a.name: a for a, _s, _e, _f, _i in built}
     print("MAG   " + "  ".join(
         "f%d z%+.3f" % (f, p.z) for f, p in
-        part_track(pistol, "Magazine", (1, 10, 16, 20, 26, 36, 39, 54))))
+        part_track(by["Arms_PistolReload"], "Magazine",
+                   (1, 10, 16, 20, 26, 36, 39, 54))))
     print("SLIDE " + "  ".join(
         "f%d y%+.4f" % (f, p.y) for f, p in
-        part_track(pistol, "Slide", (1, 4, 20, 45, 48, 54))))
+        part_track(by["Arms_PistolReload"], "Slide", (1, 4, 20, 45, 47, 54))))
     print("SHELL " + "  ".join(
         "f%d z%+.3f" % (f, p.z) for f, p in
-        part_track(shotgun, "Shell", (1, 8, 18, 22, 32, 60, 68, 78))))
-    print("PUMP  " + "  ".join(
-        "f%d %s" % (f, tuple(round(c, 3) for c in p)) for f, p in
-        part_track(pump, "Pump", (1, 10, 15, 18, 23, 30))))
+        part_track(by["Arms_ShotgunReload"], "Shell",
+                   (1, 8, 18, 22, 32, 60, 68, 78))))
 
-    strip(pistol, (1, 4, 10, 16, 26, 36, 39, 45, 48, 54), PISTOL_SHOW)
-    strip(shotgun, (1, 12, 18, 25, 32, 46, 60, 68, 78), SHOTGUN_SHOW)
-    strip(pump, (1, 3, 10, 15, 18, 23, 30), SHOTGUN_SHOW)
+    for act, show, _e, frames, _i in built:
+        strip(act, frames, show)
 
-    for act in (pistol, shotgun, pump):
+    for act, _s, _e, _f, ik in built:
         arm.animation_data.action = act
         bpy.ops.pose.select_all(action='SELECT')
         bpy.ops.nla.bake(frame_start=int(act.frame_start),
@@ -1191,7 +1726,13 @@ def main():
                          visual_keying=True, clear_constraints=False,
                          clear_parents=False, use_current_action=True,
                          bake_types={'POSE'})
-        print("BAKED %-20s %d curves" % (act.name, len(action_fcurves(act))))
+        # the bake rewrites the action, so the IK weight goes back in after it
+        for f, v in sorted(ik.items()):
+            arm["IKWeight"] = v
+            arm.keyframe_insert('["IKWeight"]', frame=f)
+        print("BAKED %-22s %4d curves%s"
+              % (act.name, len(action_fcurves(act)),
+                 "  + IKWeight %d keys" % len(ik) if ik else ""))
 
     for pb in arm.pose.bones:
         for c in list(pb.constraints):
@@ -1203,8 +1744,8 @@ def main():
     # them ships a blend where half the meshes never render and the rest look
     # untextured.
     BA.leave_openable()
-    arm.animation_data.action = pistol
-    sc.frame_start, sc.frame_end, sc.frame_current = 1, 54, 1
+    arm.animation_data.action = by["Arms_Idle"]
+    sc.frame_start, sc.frame_end, sc.frame_current = 1, 90, 1
     bpy.ops.wm.save_as_mainfile(filepath=OUT_BLEND)
     print("SAVED", OUT_BLEND)
     print("=" * 72)
