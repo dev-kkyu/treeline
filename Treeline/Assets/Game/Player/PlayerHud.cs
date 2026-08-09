@@ -149,6 +149,7 @@ namespace Treeline
             HudGuideText.AttachTo(transform);
             ScreenFrostEffect.AttachTo(transform, motor != null ? motor.transform : transform.root);
             Ch1Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
+            Ch2Tutorial.AttachTo(transform, motor != null ? motor.transform : transform.root);
 
             if (crosshair != null)
             {
