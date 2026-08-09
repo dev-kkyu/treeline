@@ -13360,7 +13360,7 @@ ParticleSystem:
   ringBufferLoopRange: {x: 0, y: 1}
   emitterVelocityMode: 1
   looping: 1
-  prewarm: 0
+  prewarm: 1
   playOnAwake: 1
   useUnscaledTime: 0
   autoRandomSeed: 1
@@ -18458,6 +18458,7 @@ GameObject:
   - component: {fileID: 684627627}
   - component: {fileID: 684627629}
   - component: {fileID: 684627628}
+  - component: {fileID: 684627630}
   m_Layer: 19
   m_Name: HydrogenHaze
   m_TagString: Untagged
@@ -18549,6 +18550,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 11, y: 3, z: 10.6}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &684627630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 684627626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b19e94d3965764d498f1c6cc8a14ab85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Treeline.GasVent
+  fan: {fileID: 1941098795}
 --- !u!1 &687928986
 GameObject:
   m_ObjectHideFlags: 0

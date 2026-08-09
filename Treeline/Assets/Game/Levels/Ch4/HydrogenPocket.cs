@@ -27,7 +27,7 @@ namespace Treeline
     public sealed class HydrogenPocket : MonoBehaviour
     {
         [Header("폭발이 닿는 범위")]
-        [Tooltip("가스 부피에서 이만큼 밖까지 휩쓴다. 문간에서 쏘면 자기도 맞는다.")]
+        [Tooltip("안에서 터뜨렸을 때만 이만큼 밖까지 휩쓴다. 밖에서 쏘면 방 안까지다.")]
         [SerializeField] private float blastMargin = 4f;
 
         [Header("피해")]
@@ -137,11 +137,18 @@ namespace Treeline
                 return;
             }
 
-            Ignite();
+            // 밖에서 안으로 쐈으면 방 안까지만 친다. 문간에서 겨눈 것이 복도의
+            // 물건을 같이 날려 버리면, 이 방이 무기가 아니라 사고가 된다.
+            Ignite(Contains(from));
         }
 
         /// <summary>밖에서도 터뜨릴 수 있게 열어 둔다. 불꽃 · 폭발 연쇄에 쓴다.</summary>
         public void Ignite()
+        {
+            Ignite(true);
+        }
+
+        private void Ignite(bool fromInside)
         {
             if (spent)
             {
@@ -151,7 +158,7 @@ namespace Treeline
             spent = true;
 
             Vector3 center = transform.TransformPoint(volume.center);
-            Blast(center);
+            Blast(center, fromInside ? Mathf.Max(0f, blastMargin) : 0f);
 
             if (burst != null)
             {
@@ -203,10 +210,10 @@ namespace Treeline
         /// 범위 안의 모든 <see cref="IDamageable"/> 을 친다. 적은 쓸려 나가고 플레이어는
         /// 칸을 잃는다.
         /// </summary>
-        private void Blast(Vector3 center)
+        private void Blast(Vector3 center, float margin)
         {
             Vector3 half = Vector3.Scale(volume.size * 0.5f, transform.lossyScale)
-                           + Vector3.one * Mathf.Max(0f, blastMargin);
+                           + Vector3.one * margin;
 
             var struck = new HashSet<IDamageable>();
 
@@ -232,6 +239,17 @@ namespace Treeline
                 target.TakeDamage(new DamageInfo(
                     isPlayer ? playerDamage : enemyDamage, at, away.normalized, gameObject));
             }
+        }
+
+        /// <summary>그 점이 가스 안인지. 「밖에서 쐈다」를 이걸로 가른다.</summary>
+        private bool Contains(Vector3 point)
+        {
+            Vector3 local = transform.InverseTransformPoint(point) - volume.center;
+            Vector3 half = volume.size * 0.5f;
+
+            return Mathf.Abs(local.x) <= half.x
+                   && Mathf.Abs(local.y) <= half.y
+                   && Mathf.Abs(local.z) <= half.z;
         }
 
         /// <summary>선분이 이 상자를 지나는지. 상자 로컬로 옮겨 슬래브로 자른다.</summary>
