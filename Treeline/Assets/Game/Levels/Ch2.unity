@@ -4407,6 +4407,8 @@ MonoBehaviour:
   devices:
   - {fileID: 737638124}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 458128875}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.28
@@ -6216,6 +6218,8 @@ MonoBehaviour:
   devices:
   - {fileID: 948910697}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 916497721}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25

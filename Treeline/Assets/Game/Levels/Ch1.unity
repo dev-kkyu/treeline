@@ -4739,6 +4739,8 @@ MonoBehaviour:
   - {fileID: 1374457691}
   - {fileID: 1451193934}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 1248465138}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25

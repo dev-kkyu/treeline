@@ -37,6 +37,13 @@ namespace Treeline
         [Tooltip("한 번만 당길 수 있는지. 끄면 켰다 껐다 하는 스위치가 된다.")]
         [SerializeField] private bool oneShot = true;
 
+        [Header("선행 조건")]
+        [Tooltip("이것들이 전부 켜져 있어야 당겨진다. 비우면 조건이 없다.")]
+        [SerializeField] private Device[] requires;
+
+        [Tooltip("조건이 안 찼을 때의 문구. 무엇이 막고 있는지를 적는다. 비우면 평소 문구가 뜬다.")]
+        [SerializeField] private string promptWhenLocked = "";
+
         [Header("당겼다는 표시")]
         [Tooltip("실제로 움직일 부분. 손잡이만 넣는다. 비우면 이 오브젝트 전체가 움직인다.")]
         [SerializeField] private Transform handle;
@@ -66,9 +73,49 @@ namespace Treeline
         /// <summary>지금 당겨져 있는지. 스위치면 켜져 있는지와 같다.</summary>
         public bool IsPulled { get; private set; }
 
-        public string Prompt => IsPulled && !string.IsNullOrEmpty(promptWhenOn) ? promptWhenOn : prompt;
+        public string Prompt
+        {
+            get
+            {
+                if (!Ready && !string.IsNullOrEmpty(promptWhenLocked))
+                {
+                    return promptWhenLocked;
+                }
+
+                return IsPulled && !string.IsNullOrEmpty(promptWhenOn) ? promptWhenOn : prompt;
+            }
+        }
 
         public bool CanInteract => !(oneShot && IsPulled);
+
+        /// <summary>
+        /// 선행 장치가 전부 켜져 있는지. 안 찼으면 당겨도 잠김 소리만 난다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="CanInteract"/> 를 끄지 않는 이유가 있다. 끄면 조준해도 문구가 안 떠서
+        /// 레버가 있는지도 모르게 된다. <b>잠긴 문구를 보여주고 눌러도 안 되는 것</b>이
+        /// 6장의 절차를 가르치는 피드백이다.
+        /// </remarks>
+        private bool Ready
+        {
+            get
+            {
+                if (requires == null)
+                {
+                    return true;
+                }
+
+                foreach (Device device in requires)
+                {
+                    if (device != null && !device.IsActive)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
 
         private void Reset()
         {
@@ -106,7 +153,7 @@ namespace Treeline
 
         public void Interact(GameObject interactor)
         {
-            if (!CanInteract)
+            if (!CanInteract || !Ready)
             {
                 // 눌렀다는 것 자체는 알려준다. 무반응이면 조작이 안 먹은 줄 안다.
                 Play(lockedClip);

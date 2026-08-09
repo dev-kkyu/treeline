@@ -27786,6 +27786,8 @@ MonoBehaviour:
   devices:
   - {fileID: 988948173}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 1667857586296429038}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
@@ -28508,6 +28510,8 @@ MonoBehaviour:
   devices:
   - {fileID: 650092182}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 1667857586719704322}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
@@ -35727,6 +35731,8 @@ MonoBehaviour:
   devices:
   - {fileID: 1848328212}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 1667857586792621023}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
@@ -44723,6 +44729,8 @@ MonoBehaviour:
   devices:
   - {fileID: 2041853025}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 1667857586398526500}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
@@ -56051,6 +56059,8 @@ MonoBehaviour:
   devices:
   - {fileID: 1531518245}
   oneShot: 1
+  requires: []
+  promptWhenLocked: 
   handle: {fileID: 1667857586204932538}
   pulledRotation: {x: 120, y: 0, z: 0}
   pullSeconds: 0.25
