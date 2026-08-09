@@ -7854,6 +7854,10 @@ PrefabInstance:
       propertyPath: VelocityModule.z.minMaxState
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 1331361568335640272, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 4831650817998416220, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_Name
       value: HydrogenFire
@@ -7864,27 +7868,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalScale.x
-      value: 2.7
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2.7
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2.7
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -6.2
+      value: -7.5
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.75
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 22.4
+      value: 17.9
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalRotation.w
@@ -7913,6 +7917,14 @@ PrefabInstance:
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8296471658230474248, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8864655511068314063, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -47615,6 +47627,10 @@ PrefabInstance:
       propertyPath: VelocityModule.z.minMaxState
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 1331361568335640272, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 4831650817998416220, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_Name
       value: HydrogenFire_B
@@ -47625,27 +47641,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalScale.x
-      value: 2.1
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2.1
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2.1
+      value: 1.5
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -8.9
+      value: -4.5
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.75
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 19.6
+      value: 21
       objectReference: {fileID: 0}
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalRotation.w
@@ -47674,6 +47690,14 @@ PrefabInstance:
     - target: {fileID: 5514975168551374392, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8296471658230474248, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8864655511068314063, guid: 98498dfc1153bdd40b0f46e2b68a3030, type: 3}
+      propertyPath: EmissionModule.rateOverTime.scalar
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
