@@ -85,6 +85,16 @@ namespace Treeline
         private bool wasGrounded = true;
         private int lastClipIndex = -1;
 
+        /// <summary>
+        /// 착지했다. <b>발이 아닌 소리</b>를 얹는 쪽이 여기 붙는다.
+        /// </summary>
+        /// <remarks>
+        /// 접지 상태의 변화를 여기서만 본다. 몸에서 나는 소리를 내려고 같은 판정을
+        /// 한 벌 더 만들면 <see cref="minAirTimeForLanding"/> 같은 값이 두 곳에서
+        /// 갈리고, 실려 가는 동안 막는 예외도 한쪽에만 남는다.
+        /// </remarks>
+        public event Action Landed;
+
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
@@ -173,6 +183,7 @@ namespace Treeline
                 if (airTime >= minAirTimeForLanding)
                 {
                     Play(landVolume);
+                    Landed?.Invoke();
                     // 착지 직후에 바로 한 걸음이 또 나오지 않게 되감는다.
                     travelled = 0f;
                 }
