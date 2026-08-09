@@ -13,6 +13,21 @@
 git pull --rebase --autostash
 ```
 
+### 2026-08-09 · `PS_FuelFire` 가 콘솔에 경고를 뿌린다 — 원본은 안 건드렸다 (A)
+
+**`VFX/Prefabs/PS_FuelFire.prefab` 의 속도 커브 축이 서로 다른 모드다.** `x` 와 `z`
+는 Constant 인데 `y` 만 TwoConstants 라, 이 프리팹을 놓은 씬에서 매 프레임
+
+```
+Particle Velocity curves must all be in the same mode
+```
+
+가 쏟아진다. 4장에 불을 놓자마자 콘솔이 이걸로 덮였다.
+
+**내 씬 인스턴스에서만 세 축을 맞춰 두었다.** 남의 프리팹이라 원본은 안 고쳤는데,
+**3장 연료 인화에서 같은 프리팹을 쓰면 거기서도 뜬다.** 원본을 고치는 편이 맞다 —
+`x` · `z` 도 TwoConstants 로 두면 된다.
+
 ### 2026-08-09 · 체크포인트가 진행 상태까지 되돌린다 — 공용 파일을 손댔다 (A)
 
 IMPORTANT: **C 의 공용 파일 다섯을 고쳤다.** `GameFlow` · `Device` · `InstantDevice`

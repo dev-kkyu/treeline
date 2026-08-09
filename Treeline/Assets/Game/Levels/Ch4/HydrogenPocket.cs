@@ -47,6 +47,20 @@ namespace Treeline
         [Header("연출")]
         [SerializeField] private ParticleSystem burst;
         [SerializeField] private AudioSource blast;
+
+        [Tooltip("터지는 순간의 빛. 꺼둔 채로 두면 여기서 켜고 꺼준다.")]
+        [SerializeField] private Light flash;
+
+        [SerializeField] private float flashIntensity = 90f;
+
+        [Tooltip("섬광이 남는 시간. 짧아야 번쩍인다.")]
+        [SerializeField] private float flashSeconds = 0.45f;
+
+        [Tooltip("화면 흔들림. 각도와 시간.")]
+        [SerializeField] private float shakeDegrees = 3.4f;
+
+        [SerializeField] private float shakeSeconds = 1.1f;
+
         [SerializeField] private UnityEvent exploded;
 
         private BoxCollider volume;
@@ -81,6 +95,7 @@ namespace Treeline
                 Listen();
             }
         }
+
 
         private void Listen()
         {
@@ -147,6 +162,31 @@ namespace Treeline
             if (blast != null)
             {
                 blast.Play();
+            }
+
+            if (flash != null)
+            {
+                // 코루틴은 이 오브젝트가 꺼지면 죽는다. 빛 쪽에 붙여 끝까지 사그라들게 한다.
+                FlashFade fade = flash.gameObject.GetComponent<FlashFade>();
+                if (fade == null)
+                {
+                    fade = flash.gameObject.AddComponent<FlashFade>();
+                }
+
+                fade.Begin(flashIntensity, flashSeconds);
+            }
+
+            // 폭발이 몸으로 오게 한다. 소리와 빛만으로는 멀리서 터진 것처럼 읽힌다.
+            GameObject who = GameObject.FindWithTag("Player");
+            PlayerLook look = who != null ? who.GetComponentInChildren<PlayerLook>() : null;
+            if (look == null && who != null)
+            {
+                look = who.GetComponentInParent<PlayerLook>();
+            }
+
+            if (look != null)
+            {
+                look.Shake(shakeDegrees, shakeSeconds);
             }
 
             exploded?.Invoke();
