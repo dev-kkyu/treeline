@@ -368,6 +368,10 @@ MonoBehaviour:
   exert: {fileID: 8300000, guid: 0fc41797f681c5641b6d7172996d4267, type: 3}
   struggle: {fileID: 8300000, guid: 34e42616a1ff60849be6ce3231d54ab3, type: 3}
   exhaustedBreath: {fileID: 8300000, guid: 4d8797d75dd4dfb4e833d1f4d4817a2b, type: 3}
+  coldBreath:
+  - {fileID: 8300000, guid: 8816a71de7c858243beb990c3c043e59, type: 3}
+  - {fileID: 8300000, guid: 226897fd209c4084aa2abd200fe3c591, type: 3}
+  coldBreathVolume: 0.55
   volume: 1
   breathVolume: 0.75
   breathFadeSeconds: 0.7

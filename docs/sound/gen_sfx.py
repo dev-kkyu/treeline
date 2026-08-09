@@ -357,6 +357,23 @@ PROMPTS = [
      "mouth and a dry throat, fast and without pause, close enough that the "
      "airflow scrapes and rasps on every pass. Low pitched, wordless, "
      + STEADY, 8.0, True),
+    # 입김. PlayerColdBreath 가 하늘에 노출된 구간에서 2.3~3.8 초마다 한 번 뿜는다.
+    # 위 지친 호흡과 **다른 소리**여야 한다 — 저쪽은 스태미너가 다 빠진 상태이고
+    # 이쪽은 그냥 추운 데 서 있는 것이다. 같은 실수를 피하려고 여기서도 상태어를
+    # 쓰지 않고 공기가 지나가는 길로 지시한다. 두 종을 만드는 이유는 3 초마다
+    # 나는 소리라 한 종이면 두 번째부터 티가 나기 때문이다 (발소리와 같은 이유).
+    ("Protagonist", "player-breath-cold-01",
+     "One unhurried exhale from an adult standing still in freezing air: air "
+     "leaves the nose and half open mouth in a single steady push, close enough "
+     "that it brushes the microphone, thinning into a faint dry rasp at the end. "
+     "Low pitched, wordless, nothing before or after it", 1.5, False),
+    # 「quiet」 를 넣은 1 판이 피크 0.017 로 왔다. 호흡은 조용하다고 적으면 아예
+    # 없는 것이 온다 — 크기는 형용사가 아니라 **마이크와의 거리**로 준다
+    ("Protagonist", "player-breath-cold-02",
+     "Air pushed up out of a chest and out through a dry throat and lips in one "
+     "long release, the mouth right against the microphone so the airflow hisses "
+     "and rasps the whole way past it, tailing off at the end. An adult, low "
+     "pitched, wordless, nothing before or after it", 1.5, False),
     # Carriable 을 들 때. carriable-lift 는 통 쪽 소리이고 이쪽은 사람 쪽이다
     ("Protagonist", "player-exert",
      "Adult person straining to lift something heavy, breath held then "

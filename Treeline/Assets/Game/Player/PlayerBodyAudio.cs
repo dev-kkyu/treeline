@@ -53,6 +53,12 @@ namespace Treeline
         [Tooltip("스태미너가 다 빠졌을 때 깔리는 호흡. 루프다.")]
         [SerializeField] private AudioClip exhaustedBreath;
 
+        [Tooltip("추운 데 서 있을 때의 입김. 둘 이상 넣으면 번갈아 낸다.")]
+        [SerializeField] private AudioClip[] coldBreath = Array.Empty<AudioClip>();
+
+        [Tooltip("입김 소리 크기. 파티클과 함께 나므로 작게 둔다.")]
+        [SerializeField, Range(0f, 1f)] private float coldBreathVolume = 0.55f;
+
         [Header("크기")]
         [SerializeField, Range(0f, 1f)] private float volume = 1f;
 
@@ -61,10 +67,13 @@ namespace Treeline
         [Tooltip("호흡이 들어오고 나가는 시간(초). 갑자기 켜지면 소리가 튄다.")]
         [SerializeField] private float breathFadeSeconds = 0.7f;
 
+        private static PlayerBodyAudio instance;
+
         private AudioSource source;
         private AudioSource breathSource;
         private int lastHealth;
         private int lastHurtIndex = -1;
+        private int lastColdIndex = -1;
         private bool wasCarrying;
 
         /// <summary>
@@ -79,8 +88,63 @@ namespace Treeline
             Play(struggle);
         }
 
+        /// <summary>
+        /// 입김 한 번. <see cref="PlayerColdBreath"/> 가 파티클을 뿜을 때 부른다.
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: <b>정적 진입점을 둔 것은 저쪽 파일을 한 줄만 건드리기 위해서다.</b>
+        /// 입김 파티클은 <see cref="PlayerHud"/> 가 런타임에 붙이는 것이라 참조를
+        /// 인스펙터로 물릴 수 없고, 저쪽에 필드와 찾는 코드를 넣으면 담당이 다른 파일에
+        /// 남기는 자리가 늘어난다. 플레이어는 씬에 하나뿐이라 정적으로 잡아도 된다.
+        /// </remarks>
+        public static void PlayColdBreathOnce()
+        {
+            if (instance != null)
+            {
+                instance.PlayColdBreath();
+            }
+        }
+
+        /// <summary>
+        /// 입김 한 번. 위 정적 진입점이 부른다.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// 소리를 저쪽이 직접 내지 않는 이유는 둘이다. 하나는 <b>몸에서 나는 소리를
+        /// 한 곳에서 내기 위해서</b>이고, 다른 하나가 더 중요하다 —
+        /// <b>지쳐서 헐떡이는 동안에는 입김 소리를 내지 않아야 한다.</b> 이미 깔려
+        /// 있는 호흡 위에 느긋한 숨을 얹으면 두 사람이 숨 쉬는 것으로 들린다.
+        /// 그 상태를 아는 것은 이 컴포넌트뿐이다.
+        /// </para>
+        /// <para>
+        /// 파티클은 그대로 나온다. 보이는 것을 멈추면 추운 구간을 벗어난 것처럼
+        /// 읽히는데, 지친 것과 추운 것은 다른 일이다.
+        /// </para>
+        /// </remarks>
+        public void PlayColdBreath()
+        {
+            if (coldBreath.Length == 0 || motor == null)
+            {
+                return;
+            }
+
+            if (motor.IsExhausted && breathSource.isPlaying)
+            {
+                return;
+            }
+
+            lastColdIndex = PickIndex(coldBreath.Length, lastColdIndex);
+            AudioClip clip = coldBreath[lastColdIndex];
+            if (clip != null)
+            {
+                source.PlayOneShot(clip, volume * coldBreathVolume);
+            }
+        }
+
         private void Awake()
         {
+            instance = this;
+
             if (health == null)
             {
                 health = GetComponent<PlayerHealth>();
@@ -137,6 +201,15 @@ namespace Treeline
             if (footsteps != null)
             {
                 footsteps.Landed += OnLanded;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            // 장이 넘어가면 새 플레이어가 생긴다. 죽은 것을 잡고 있으면 안 된다.
+            if (instance == this)
+            {
+                instance = null;
             }
         }
 
@@ -247,26 +320,42 @@ namespace Treeline
         /// <summary>바로 앞에 낸 것을 빼고 고른다. 발소리와 같은 이유다.</summary>
         private AudioClip Pick()
         {
-            if (hurt.Length <= 1)
+            if (hurt.Length == 0)
             {
-                return hurt.Length == 1 ? hurt[0] : null;
+                return null;
+            }
+
+            lastHurtIndex = PickIndex(hurt.Length, lastHurtIndex);
+            return hurt[lastHurtIndex];
+        }
+
+        /// <summary>
+        /// <paramref name="count"/> 중 <paramref name="last"/> 를 뺀 하나를 고른다.
+        /// </summary>
+        /// <remarks>
+        /// 피격 둘과 입김 둘이 같은 규칙을 쓴다. 같은 소리가 두 번 이어지면 티가
+        /// 나고, 특히 입김은 3 초마다 나므로 두 번째부터 바로 들킨다.
+        /// </remarks>
+        private static int PickIndex(int count, int last)
+        {
+            if (count <= 1)
+            {
+                return 0;
             }
 
             // 첫 소리에는 뺄 것이 없다. 이 분기가 없으면 0 번이 영영 안 나온다.
-            if (lastHurtIndex < 0)
+            if (last < 0)
             {
-                lastHurtIndex = UnityEngine.Random.Range(0, hurt.Length);
-                return hurt[lastHurtIndex];
+                return UnityEngine.Random.Range(0, count);
             }
 
-            int index = UnityEngine.Random.Range(0, hurt.Length - 1);
-            if (index >= lastHurtIndex)
+            int index = UnityEngine.Random.Range(0, count - 1);
+            if (index >= last)
             {
                 index++;
             }
 
-            lastHurtIndex = index;
-            return hurt[index];
+            return index;
         }
 
         private void Play(AudioClip clip)
