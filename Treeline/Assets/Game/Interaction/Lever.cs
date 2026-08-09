@@ -34,6 +34,9 @@ namespace Treeline
         [SerializeField] private bool oneShot = true;
 
         [Header("당겼다는 표시")]
+        [Tooltip("실제로 움직일 부분. 손잡이만 넣는다. 비우면 이 오브젝트 전체가 움직인다.")]
+        [SerializeField] private Transform handle;
+
         [Tooltip("당기면 이 각도만큼 눕는다. 회색 박스에서 유일한 시각 신호다.")]
         [SerializeField] private Vector3 pulledRotation = new Vector3(-55f, 0f, 0f);
 
@@ -70,9 +73,20 @@ namespace Treeline
 
         private void Awake()
         {
-            restRotation = transform.localRotation;
+            // 손잡이를 지정하지 않았으면 예전처럼 통째로 움직인다. 회색 박스
+            // 시절의 레버가 그대로 돌아가야 하기 때문이다.
+            if (handle == null)
+            {
+                handle = transform;
+            }
 
-            body = GetComponent<Renderer>();
+            restRotation = handle.localRotation;
+
+            body = handle.GetComponent<Renderer>();
+            if (body == null)
+            {
+                body = GetComponent<Renderer>();
+            }
             if (body != null)
             {
                 restMaterial = body.sharedMaterial;
@@ -174,14 +188,14 @@ namespace Treeline
                 : restRotation;
 
             StopAllCoroutines();
-            StartCoroutine(Swing(transform.localRotation, target, pullSeconds));
+            StartCoroutine(Swing(handle.localRotation, target, pullSeconds));
         }
 
         private IEnumerator Swing(Quaternion from, Quaternion to, float seconds)
         {
             if (seconds <= 0f)
             {
-                transform.localRotation = to;
+                handle.localRotation = to;
                 yield break;
             }
 
@@ -189,11 +203,11 @@ namespace Treeline
             {
                 // 끝에서 부드럽게 멎도록 한 번 감쇠한다.
                 float k = t / seconds;
-                transform.localRotation = Quaternion.Slerp(from, to, k * k * (3f - 2f * k));
+                handle.localRotation = Quaternion.Slerp(from, to, k * k * (3f - 2f * k));
                 yield return null;
             }
 
-            transform.localRotation = to;
+            handle.localRotation = to;
         }
     }
 }
