@@ -59,7 +59,14 @@ namespace Treeline
         [SerializeField] private float roamSpeed = 1.2f;
 
         [Tooltip("쫓을 때의 속도. 걷기(2.8)보다 빠르고 달리기(4.6)보다 느리다 — 뛰어야 벗어난다.")]
-        [SerializeField] private float chaseSpeed = 3.4f;
+        [SerializeField] private float chaseSpeed = 3.9f;
+
+        [Header("돌진 — 알아챈 직후 한 번")]
+        [Tooltip("돌진 속도. 달리기(4.6)보다 빨라서 그 순간만큼은 도망이 안 된다.")]
+        [SerializeField] private float chargeSpeed = 7f;
+
+        [Tooltip("돌진이 이어지는 최대 시간. 지나면 정상 추격으로 내려온다.")]
+        [SerializeField] private float chargeSeconds = 3.5f;
 
         [Header("애니메이션")]
         [Tooltip("AC_Colossus. 비우면 모델 없이 돌던 회색 박스 동작 그대로다.")]
@@ -173,6 +180,10 @@ namespace Treeline
 
         private int damageSinceStagger;
         private float staggerUntil = float.NegativeInfinity;
+
+        private bool chargePending;
+        private float chargeUntil = float.NegativeInfinity;
+        private Vector3 chargeTarget;
 
         // 애니메이터 파라미터는 이름을 매 프레임 해싱하지 않는다.
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
@@ -326,6 +337,7 @@ namespace Treeline
                     if (!IsChasing)
                     {
                         IsChasing = true;
+                        chargePending = true;
                         roarUntil = Time.time + roarSeconds;
                         if (animator != null)
                         {
@@ -373,12 +385,54 @@ namespace Treeline
                 return;
             }
 
+            // 포효가 끝난 직후 한 번, 마지막으로 본 자리를 향해 직선으로 돌진한다.
+            // 목표를 다시 조준하지 않는 것이 요점이다 — 몸을 피하면 지나쳐 가고,
+            // 그 「스쳐 지나가는 덩치」가 이 돌진의 값이다. 끝나면 정상 속도로 온다.
+            if (chargePending)
+            {
+                chargePending = false;
+                chargeTarget = lastSeenPosition;
+                chargeUntil = Time.time + chargeSeconds;
+            }
+
+            if (Time.time < chargeUntil)
+            {
+                Charge();
+                return;
+            }
+
             if (agent.isOnNavMesh)
             {
                 agent.speed = chaseSpeed;
             }
 
             Chase();
+        }
+
+        /// <summary>돌진 — 정한 자리로만 간다. 닿거나 시간이 다하면 끝난다.</summary>
+        private void Charge()
+        {
+            if (!agent.isOnNavMesh)
+            {
+                chargeUntil = float.NegativeInfinity;
+                return;
+            }
+
+            agent.speed = chargeSpeed;
+            agent.SetDestination(chargeTarget);
+
+            Vector3 flat = chargeTarget - transform.position;
+            flat.y = 0f;
+            if (flat.sqrMagnitude < 4f)
+            {
+                chargeUntil = float.NegativeInfinity;
+            }
+
+            if (Vector3.Distance(transform.position, player.position) <= attackRange
+                && Time.time >= nextAttackTime)
+            {
+                Attack();
+            }
         }
 
         /// <summary>멈춰 서서 플레이어 쪽으로 돈다. 다 돌면 쫓기 시작한다.</summary>
@@ -991,6 +1045,30 @@ namespace Treeline
             Stagger(-damage.Direction);
         }
 
+        /// <summary>
+        /// 밖에서 한 번 크게 눕힌다. 6장 제설포가 부른다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Stagger"/> 와 같은 상태를 쓰고 시간만 길다. 새 상태를 만들지
+        /// 않는 이유는 총과 같다 — 죽지 않고 밀려날 뿐이라는 규칙이 여기서도 유지된다.
+        /// </remarks>
+        public void Daze(float seconds, Vector3 away)
+        {
+            if (IsBuried || IsGrabbing)
+            {
+                return;
+            }
+
+            damageSinceStagger = 0;
+            if (animator != null)
+            {
+                animator.SetTrigger(StaggerHash);
+            }
+
+            Stagger(away);
+            staggerUntil = Time.time + Mathf.Max(seconds, staggerSeconds);
+        }
+
         /// <summary>뒤로 밀려나고 잠시 멈춘다. 총이 만드는 유일한 효과다.</summary>
         private void Stagger(Vector3 away)
         {
@@ -1030,10 +1108,15 @@ namespace Treeline
 
             if (IsChasing)
             {
+                // 이미 쫓는 중에 또 소리가 나면 그 자리로 다시 돌진한다.
+                // 배전반 투입음이 이것이다 — 소리를 낸 대가가 즉시 온다.
+                chargeTarget = lastSeenPosition;
+                chargeUntil = Time.time + chargeSeconds;
                 return;
             }
 
             IsChasing = true;
+            chargePending = true;
             roarUntil = Time.time + roarSeconds;
             if (animator != null)
             {

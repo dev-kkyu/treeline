@@ -1701,6 +1701,8 @@ MonoBehaviour:
   roamPauseSeconds: 3
   roamSpeed: 1.2
   chaseSpeed: 3.4
+  chargeSpeed: 7
+  chargeSeconds: 3.5
   animator: {fileID: 6772804453786002143}
   grabAnchor: {fileID: 5178012966422302615}
   mouthTarget: {fileID: 492983935250318908}
@@ -2461,6 +2463,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 459e9a755101b05419c9a83f3cf609ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Treeline.GrabbedBody
+  burstsPerWave: 4
+  waveInterval: 0.18
   snatchBursts: 4
   killBursts: 8
   spread: 0.45
