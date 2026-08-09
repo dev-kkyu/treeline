@@ -1072,6 +1072,256 @@ IMPORTANT: `maxTextureSize` 는 빌드에만 먹고 저장소 용량에는 안 �
 
 ---
 
+## 30종 전수 점검 (2026-08-09) — 씬을 열어 세고, 손전등 아래서 봤다
+
+1 · 2 · 6장에 실제로 무엇이 놓였는지 세고, 30종을 **손전등만 켠 조건에서** 한 장으로
+뽑아 봤다. 스킬이 정한 확인 조건이다 — 천장 조명을 켜고 판단하면 안 된다.
+
+IMPORTANT: 처음에는 물건 크기에 비례해 카메라를 붙였더니 **작은 것들이 통째로 하얗게
+날아갔다.** 0.16m 짜리 컵에 손전등을 코앞에 댄 셈이라 텍스처가 흰 것인지 조명이 센
+것인지 구분이 안 됐다. **최소 거리를 1.4m 로 두고** 다시 재야 진짜가 갈린다. 그렇게
+하니 대부분 0.0% 로 떨어졌고, 남은 셋이 진짜 문제였다.
+
+### 배치 현황
+
+| 장 | 소품 종수 | 인스턴스 | 남은 프리미티브 |
+| --- | --- | --- | --- |
+| 1 관제동 | 21 | 70 | 데칼 9 · 뷰모델 11(꺼짐) |
+| 2 숙소동 | 17 | 74 | 조명 튜브 15 · 케이블 3 · 거울 · 웅덩이 |
+| 6 승강장 | 14 | 56 | 연료 주입구 |
+
+**밀도는 모자라지 않다.** 6장이 14종으로 가장 적지만 실외라 지형과 구조물이 화면을
+채운다. 문제는 개수가 아니라 **어떤 것이 튀는가**다.
+
+### 그대로 두는 것 — 19종
+
+`Bunk` `CableCar` `Chair` `ControlConsole` `Crate` `Desk` `Drum` `HeaterUnit`
+`LightHousing` `Locker` `MachineBlock` `Mattress` `NoticeBoard` `Searchlight`
+`Shelf` `Shutter` `SteelDoor` `ValveWheel` `WallLever` `WashPartition`
+
+무광 회녹색으로 톤이 맞고 손전등 아래서 형태가 읽힌다. 손대지 않는다.
+
+### 다시 뽑을 것
+
+IMPORTANT: 처음에 **소화기가 빨간 것**을 결함으로 적었는데 **틀렸다.** 이 문서 위쪽에
+「색이 튀는 것은 소화기와 비상등 둘뿐이다. 어둠 속에서 그 둘만 눈에 걸리게 한다」고
+이미 적혀 있다 — **의도된 것**이다. 눈에 띄는 것과 잘못된 것을 구분해야 한다.
+그래서 아래는 **의도로 설명되지 않는 것만** 남겼다.
+
+| 소품 | 무엇이 문제인가 | 쓰는 곳 |
+| --- | --- | --- |
+| `Extinguisher` | 색은 의도대로다. 다만 **흰 라벨에 글자가 구워져 있다** | 1장 4 · 6장 2 |
+| `JunctionBox` | 표면에 **글자가 찍혀 있다** (「TDAY J3CJ8」). 시대 · 국적을 특정한다 | 2장 1 · 6장 1 |
+| `Mug` | 순백 도자기. 1.4m 거리에서도 **90% 가 날아간다.** 눈에 띄어야 할 이유가 없는 물건이다 | 1장 2 |
+| `EmergencyLight` | 눈에 띄는 것은 의도지만 **70% 가 날아가 형태가 없다.** 발광은 `Light` 가 하므로 알베도는 어두워도 된다 | 1장 3 · 6장 4 |
+| `Basin` | 크림색이라 회녹색 세계에서 톤이 다르다 | 2장 3 |
+| `Logbook` | 검은 판 두 장. 「펼쳐진 무전 일지」로 안 읽힌다 | 1장 1 |
+
+IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나왔다.** 배전함과
+소화기 둘이다. 프롬프트로 막는 것에는 한계가 있으므로 **받은 즉시 텍스처를 눈으로
+확인**한다. 글자는 알베도에 구워져 들어와 지울 수 없다.
+
+### 형태가 요구와 다른 것
+
+| 소품 | 무엇이 문제인가 | 쓰는 곳 |
+| --- | --- | --- |
+| `CableTray` | **케이블 트레이가 아니다.** 가로등 갓처럼 뽑혔다 | 1장 1 · 6장 4 |
+| `PipeRun` | 「직선 · 엘보 4m 모듈」이어야 하는데 **짧은 토막 다발**이다. 이어 붙일 수 없다 | 1장 10 · 2장 24 · 6장 3 |
+
+`PipeRun` 이 37 개로 가장 많이 배치된 소품인데 모듈이 아니라는 것이 가장 크다.
+지금은 벽에 다발째 붙여 쓰고 있어 **배관이 어디서 와서 어디로 가는지 안 읽힌다.**
+
+### 없어서 다른 것으로 대신하고 있는 것
+
+| 무엇 | 지금 | 왜 문제인가 |
+| --- | --- | --- |
+| **삭도 권양기** | `MachineBlock` 2 + **연료 드럼통** + 밸브 + 배관 | 케이블을 감는 드럼이 있어야 하는데 연료통을 쓰고 있다. 6장의 주 장치다 |
+| **형광등 튜브** | 큐브 15 개 (`LightTube`) | `LightHousing` 과 짝인데 튜브가 각졌다 |
+| **세면장 거울** | 큐브 + 얼음 머티리얼 | 반사가 없으면 거울로 안 읽힌다 |
+| **제설포** | 없음 | 6장 피날레의 물건. 5장 작업과 같이 온다 |
+
+## 2차 프롬프트 — 점검에서 나온 10종
+
+앞의 30종과 **같은 공통 블록**을 쓴다. 글자가 뚫린 둘(`Extinguisher` · `JunctionBox`)
+에는 금지 문구를 한 겹 더 얹었다.
+
+### R1. 소화기 `Extinguisher` (재생성)
+
+    Wall-mounted fire extinguisher, cylindrical body with a domed top, black
+    squeeze handle, curved hose clipped to the side, pressure gauge at the
+    neck, mounting bracket behind. Faded dark red paint, chipped and dulled by
+    age, bare steel showing at the base rim. Completely blank surface with no
+    label, no sticker, no printed panel, no writing anywhere. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals.
+
+- 치수: 높이 0.55m · 지름 0.16m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 바꿀 곳: `Ch1` 4 · `Ch6` 2 (`Winch_Ext` 포함)
+- 부품 분리: 불필요
+- 비고: **빨간 것은 의도다.** 어둠에서 눈에 걸려야 하는 둘 중 하나이므로 색은 유지하고
+  채도만 조금 낮춘다. 고칠 것은 **라벨의 글자**뿐이다
+
+### R2. 배전함 `JunctionBox` (재생성)
+
+    Industrial wall junction box, rectangular steel enclosure with a hinged
+    front door, four corner latches, a conduit gland entering the bottom and
+    one at the side, small hinge barrels along one edge. Worn matte grey-green
+    industrial paint over steel, bare metal at the edges, light rust at seams.
+    Completely blank door with no plate, no sticker, no printed marking, no
+    writing anywhere. Low-poly, game-ready, clean topology. No baked shadows,
+    no baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 0.45 × 0.60 × 0.20m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 뒷면 중앙 (벽에 붙는다)
+- 바꿀 곳: `Ch2` 1 · `Ch6` 1
+- 부품 분리: 불필요 (문은 안 연다)
+
+### R3. 커피잔 `Mug` (재생성)
+
+    Heavy enamelware mug, straight tapered sides, thick rolled rim, single
+    sturdy handle, slight dent in the side. Dark grey-green enamel with the rim
+    chipped to bare dark metal, stained interior. Low-poly, game-ready, clean
+    topology. No baked shadows, no baked ambient occlusion. No branding, no
+    text, no decals. Neutral desaturated palette only.
+
+- 치수: 높이 0.10m · 지름 0.09m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 바꿀 곳: `Ch1` 관제 콘솔 · 책상
+- 부품 분리: 불필요
+- 비고: 지금 것은 **순백 도자기라 1.4m 거리에서도 90% 가 날아간다.** 눈에 띄어야 할
+  이유가 없는 물건이다. 「커피가 아직 따뜻하다」는 김이나 내용물이 보여줄 것이지
+  흰 컵이 보여줄 것이 아니다
+
+### R4. 비상등 `EmergencyLight` (재생성)
+
+    Industrial emergency light fixture, dark boxy housing with a wire cage over
+    a small rectangular lens, conduit stub at one end, wall bracket behind.
+    Dark grey-green painted steel housing, almost black, with only the recessed
+    lens lighter. Low-poly, game-ready, clean topology. No baked shadows, no
+    baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 0.24 × 0.16 × 0.12m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 뒷면 중앙
+- 바꿀 곳: `Ch1` 3 · `Ch6` 4 (`Winch_EmLight` 포함)
+- 부품 분리: 불필요
+- 비고: **눈에 걸리는 것은 의도지만 지금은 70% 가 날아가 형태가 없다.** 붉게 빛나는
+  일은 씬의 `Light` 가 이미 하므로 **알베도는 어두워야** 한다. 몸체를 어둡게 하면
+  켜졌을 때 렌즈만 살아난다
+
+### R5. 세면대 `Basin` (재생성)
+
+    Wall-hung utilitarian washbasin, rectangular bowl with rounded inner
+    corners, a single mixer tap, exposed P-trap and supply pipes below, wall
+    bracket. Chipped grey-green enamel over cast iron with bare dark metal at
+    the chips, dull steel pipework. Low-poly, game-ready, clean topology. No
+    baked shadows, no baked ambient occlusion. No branding, no text, no decals.
+    Neutral desaturated palette only.
+
+- 치수: 0.60 × 0.45 × 0.40m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 뒷면 중앙
+- 바꿀 곳: `Ch2` 세면장 3
+- 부품 분리: 불필요
+
+### R6. 무전 일지 `Logbook` (재생성)
+
+    Open hardbound logbook lying flat, thick cover folded back, a visible block
+    of pages with slightly uneven edges, a pen resting in the gutter, a ribbon
+    marker hanging out. Dark grey-green worn cover, pale grey pages left
+    completely blank with no writing, no ruling, no printed lines. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals.
+
+- 치수: 펼친 상태 0.42 × 0.30 × 0.05m
+- 축: 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 바꿀 곳: `Ch1` `RadioLog_Reach`
+- 부품 분리: 불필요
+- 비고: 내용은 `Readable` 이 화면에 띄우므로 **종이에 글자를 넣지 않는다.** 지금 것은
+  검은 판 두 장이라 펼쳐진 책으로 안 읽힌다
+
+### R7. 케이블 트레이 `CableTray` (재생성)
+
+    Straight run of industrial cable tray, a horizontal steel ladder rack with
+    two side rails and evenly spaced rungs, filled with a bundle of thick
+    cables running along its length, mounted on two L-shaped wall brackets.
+    Worn matte grey-green paint over steel, bare metal at the edges, light rust
+    at seams, dark grey cable insulation. Low-poly, game-ready, clean topology.
+    No baked shadows, no baked ambient occlusion. No branding, no text, no
+    decals.
+
+- 치수: **길이 4.0m** · 폭 0.30m · 높이 0.20m
+- 축: 길이가 `+Z`, 위 `+Y` · 피벗: 한쪽 끝 중앙 (이어 붙인다)
+- 바꿀 곳: `Ch1` 1 · `Ch6` 4 (`Winch_Tray` 포함)
+- 부품 분리: 불필요
+- 비고: 지금 것은 **케이블 트레이가 아니라 가로등 갓처럼 뽑혔다.** 명백한 오생성이라
+  형태부터 다시 잡는다. 길이를 4m 로 못 박아 복도 칸과 맞춘다
+
+### R8. 배관 모듈 `PipeRun` (재생성 · 두 벌)
+
+직선과 엘보를 **따로 뽑는다.** 이어 붙이려면 끝면이 같아야 한다.
+
+    Straight horizontal run of three parallel industrial pipes of slightly
+    different diameters, held together by two evenly spaced pipe clamps, with a
+    flanged joint in the middle and bolted flanges at both open ends. Worn
+    matte grey-green paint over steel, bare metal at the edges, light rust at
+    seams. Low-poly, game-ready, clean topology. No baked shadows, no baked
+    ambient occlusion. No branding, no text, no decals.
+
+엘보는 첫 문장만 바꾼다.
+
+    Ninety-degree elbow bend of three parallel industrial pipes turning
+    together, bolted flanges at both open ends
+
+- 치수: 직선 **길이 4.0m** · 다발 폭 0.35m / 엘보 0.6 × 0.6m
+- 축: 길이가 `+Z`, 위 `+Y` · 피벗: 한쪽 끝 중앙
+- 바꿀 곳: `Ch1` 10 · `Ch2` 24 · `Ch6` 3 — **가장 많이 배치된 소품이다**
+- 부품 분리: 불필요
+- 비고: 지금 것은 짧은 토막 다발이라 **배관이 어디서 와서 어디로 가는지 안 읽힌다.**
+  양끝 플랜지가 핵심이다 — 이음매가 보여야 이어진 것으로 읽힌다
+
+### N1. 삭도 권양기 `CableWinch` (신규)
+
+    Large industrial cable winch, a wide horizontal drum wound with steel rope
+    mounted between two heavy end frames, the drum sitting between the frames
+    with a visible air gap on both sides and not fused to them, a toothed
+    reduction gear on one side, an electric drive motor bolted to the base, a
+    band brake lever on top, anchored to a steel bedplate. Worn matte
+    grey-green paint over steel, heavy rust at the drum flanges. Low-poly,
+    game-ready, clean topology. No baked shadows, no baked ambient occlusion.
+    No branding, no text, no decals.
+
+- 치수: 2.2 × 1.6 × 1.4m
+- 축: 드럼 축이 `+X`, 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: `Ch6` `Winch` — 지금은 `MachineBlock` 둘과 **연료 드럼통**으로 대신하고 있다
+- 부품 분리: **드럼.** 감기는 것을 보여주려면 축 둘레로 돌려야 하므로 프롬프트에 틈을
+  넣어 두었다. 리메시를 약하게 걸어 달라고 같이 말한다
+- 비고: 6장의 주 장치인데 전용 모델이 없다. **연료통을 케이블 드럼으로 쓰고 있는 것이
+  이번 점검에서 가장 어색한 자리다**
+
+### N2. 눈사태 제설포 `AvalancheCannon` (신규)
+
+    Fixed avalanche control gas cannon, a long angled barrel on a swivel yoke
+    mounted on a heavy tripod base anchored to concrete, a gas cylinder rack
+    strapped beside it, a control box with a lever on one leg, guy wires to the
+    ground. Worn matte grey-green paint over steel, heavy rust at the base,
+    snow crust on the upper surfaces. Low-poly, game-ready, clean topology. No
+    baked shadows, no baked ambient occlusion. No branding, no text, no decals.
+
+- 치수: 높이 2.4m · 포신 길이 2.0m
+- 축: 포구가 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
+- 놓을 곳: **5장** 세 번째 철탑 옆 · **6장** 승강장 옆
+- 부품 분리: **포신.** 사면을 겨누는 동작이 있으면 요크에서 돌린다
+- 비고: 기획의 5장과 6장 피날레가 같이 쓰는 물건이다. 6장 마지막은
+  [`decisions.md`](decisions.md) 대로 5장이 붙을 때 하므로 **모델만 미리 받아 둔다**
+
+### Meshy 로 만들지 않는 것
+
+| 무엇 | 대신 | 왜 |
+| --- | --- | --- |
+| 형광등 튜브 (`LightTube` 15) | Unity 실린더 | 매끈한 원통 하나다. 받을 이유가 없고 텍스처 한 벌이 더 붙는다 |
+| 세면장 거울 (`MirrorStrip`) | 머티리얼 | 형태가 아니라 **반사**의 문제다. smoothness 를 올린 판이면 된다 |
+| 벽 · 바닥 · 천장 | 표면 텍스처 | [`world-assets.md`](world-assets.md) |
+
 ## 후순위 — 그 장이 생긴 뒤에 만든다
 
 레벨이 없으면 크기도 배치도 정할 수 없다.
