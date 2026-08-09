@@ -17460,6 +17460,9 @@ MonoBehaviour:
   chase: {fileID: 1817032955}
   gripAt: 6.2
   hitAt: 11.5
+  tugSeconds: 0.5
+  tugPower: 0.6
+  tremble: 0.09
   shakeSeconds: 2.6
   shakeRate: 7
   shakeRoll: 16

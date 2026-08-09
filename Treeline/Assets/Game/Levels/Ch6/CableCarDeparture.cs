@@ -76,6 +76,17 @@ namespace Treeline
         [Tooltip("출발 후 몇 초에 차체를 들이받나. 여기서 떨어진다.")]
         [SerializeField] private float hitAt = 11.5f;
 
+        [Header("다가올 때 — 줄을 타고 오는 충격")]
+        [Tooltip("한 번 당길 때마다 오는 충격이 잦아드는 시간.")]
+        [SerializeField] private float tugSeconds = 0.5f;
+
+        [Tooltip("가장 가까울 때의 충격 세기. 부딪히는 것에 대한 비율이다.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float tugPower = 0.3f;
+
+        [Tooltip("당김과 별개로 계속 떠는 정도. 가까울수록 세다.")]
+        [SerializeField] private float tremble = 0.05f;
+
         [Header("들이받힌 차체")]
         [Tooltip("흔들리는 시간.")]
         [SerializeField] private float shakeSeconds = 2.6f;
@@ -100,6 +111,10 @@ namespace Treeline
         [SerializeField] private float letterboxSeconds = 3f;
 
         private bool departed;
+        private float shakeLeft;
+        private float shakeFor = 1f;
+        private float shakePower;
+        private float shakeSide = 1f;
 
         private void Awake()
         {
@@ -218,7 +233,6 @@ namespace Treeline
             bool struck = false;
             bool closing = false;
             float elapsed = 0f;
-            float shakeLeft = 0f;
 
             while (elapsed < total)
             {
@@ -228,12 +242,22 @@ namespace Treeline
                 float k = Mathf.Clamp01(elapsed / rideSeconds);
                 Vector3 at = Vector3.Lerp(from, to, Mathf.Pow(k, rideEase));
 
-                if (shakeLeft > 0f)
+                // 다가오는 동안은 당길 때마다 한 번씩, 가까울수록 세게. 그 사이는
+                // 잔떨림으로 메운다 — 당김 사이가 조용하면 매번 처음부터 놀란다.
+                if (!struck && chase != null)
                 {
-                    shakeLeft -= Time.deltaTime;
-                    at = Sway(at, hang, Mathf.Clamp01(shakeLeft / shakeSeconds));
+                    if (chase.TakePull())
+                    {
+                        // 바닥을 깔아 둔다. 비례만 주면 붙잡은 직후 몇 초가 아무
+                        // 일도 없는 화면이 되어, 저것이 줄에 올라탔다는 것이 안 온다.
+                        Jolt(tugSeconds, tugPower * (0.25f + 0.75f * chase.Closeness));
+                    }
+
+                    float near = chase.Closeness * chase.Closeness;
+                    at += Random.insideUnitSphere * (tremble * near);
                 }
 
+                at = Sway(at, hang);
                 car.position = at;
 
                 if (!cut && elapsed >= cameraAt)
@@ -259,7 +283,7 @@ namespace Treeline
                 if (!struck && elapsed >= hitAt)
                 {
                     struck = true;
-                    shakeLeft = shakeSeconds;
+                    Jolt(shakeSeconds, 1f);
                     if (chase != null)
                     {
                         chase.Hit();
@@ -283,22 +307,52 @@ namespace Treeline
             }
         }
 
+        /// <summary>충격을 하나 시작한다. 세기는 들이받히는 것을 1 로 본 비율이다.</summary>
+        private void Jolt(float seconds, float power)
+        {
+            // 약한 것이 센 것을 덮어쓰지 않는다. 당기는 충격이 계속 오는 중에
+            // 들이받히므로, 이 판단이 없으면 다음 당김이 충돌을 지운다.
+            if (shakeLeft > 0f && power < shakePower * (shakeLeft / shakeFor))
+            {
+                return;
+            }
+
+            shakeFor = Mathf.Max(0.01f, seconds);
+            shakeLeft = shakeFor;
+            shakePower = power;
+            shakeSide = -shakeSide;
+        }
+
         /// <summary>
-        /// 얻어맞은 차체가 매달린 채 흔들린다. <b>카메라도 같이 흔들린다</b> —
-        /// 차체의 자식이라 따로 흔들 것이 없다.
+        /// 매달린 차체가 흔들린다. <b>카메라도 같이 흔들린다</b> — 차체의 자식이라
+        /// 따로 흔들 것이 없다.
         /// </summary>
         /// <remarks>
         /// 난수만 뿌리면 「고장난 화면」이지 「얻어맞은 것」이 아니다. 줄 하나에
         /// 매달린 것이므로 몸통은 <b>감쇠하는 진자</b>로 돌리고, 금속이 부딪힌
         /// 잔떨림만 앞쪽 짧은 구간에 난수로 얹는다(<c>f³</c> 이라 훨씬 빨리 잦아든다).
+        /// <para>
+        /// 들이받히는 것과 <b>당길 때마다 줄을 타고 오는 충격이 같은 모양</b>이다.
+        /// 세기와 길이만 다르다 — 둘 다 한 줄에 매달린 것이 한 번 얻어맞는 일이라,
+        /// 따로 만들면 같은 것을 두 벌 갖게 된다.
+        /// </para>
         /// </remarks>
-        private Vector3 Sway(Vector3 at, Quaternion hang, float left)
+        private Vector3 Sway(Vector3 at, Quaternion hang)
         {
-            float swing = Mathf.Sin(left * shakeRate) * left * left;
+            if (shakeLeft <= 0f)
+            {
+                car.rotation = hang;
+                return at;
+            }
+
+            shakeLeft -= Time.deltaTime;
+
+            float left = Mathf.Clamp01(shakeLeft / shakeFor);
+            float swing = Mathf.Sin(left * shakeRate) * left * left * shakePower * shakeSide;
 
             car.rotation = hang * Quaternion.Euler(swing * shakePitch, 0f, swing * shakeRoll);
 
-            float jolt = left * left * left;
+            float jolt = left * left * left * shakePower;
             return at
                 + Vector3.up * (swing * 0.3f)
                 + Random.insideUnitSphere * (shakeJolt * jolt);

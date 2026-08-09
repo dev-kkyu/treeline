@@ -131,7 +131,36 @@ namespace Treeline
         private int nextPullClip;
         private bool roared;
         private bool farewelled;
+        private bool pulled;
         private bool running;
+
+        /// <summary>
+        /// 차체까지 얼마나 좁혔나. 붙잡을 때 0, 닿을 때 1.
+        /// </summary>
+        /// <remarks>
+        /// 연출이 이 값으로 차체의 떨림을 키운다. 시간이 아니라 <b>거리</b>로 주는
+        /// 이유는, 시간으로 주면 아직 멀리 있는데도 화면이 흔들려서 무엇이 흔드는지
+        /// 안 보이기 때문이다.
+        /// </remarks>
+        public float Closeness { get; private set; }
+
+        /// <summary>
+        /// 방금 한 번 당겼는지. <b>가져가면 지워진다.</b>
+        /// </summary>
+        /// <remarks>
+        /// 당기는 박자에 차체가 같이 흔들려야 <b>줄을 타고 오는 충격</b>으로 읽힌다.
+        /// 계속 떨기만 하면 그냥 화면이 흔들리는 것이지 무엇 때문인지는 안 보인다.
+        /// </remarks>
+        public bool TakePull()
+        {
+            if (!pulled)
+            {
+                return false;
+            }
+
+            pulled = false;
+            return true;
+        }
 
         /// <summary>
         /// 붙잡는다. 여기서부터 <see cref="Colossus"/> 는 손을 뗀다.
@@ -297,6 +326,8 @@ namespace Treeline
             float moved = Mathf.Max(0f, carAt - gap - distance);
             distance += moved;
 
+            Closeness = 1f - Mathf.Clamp01((carAt - distance - hitGap) / Mathf.Max(0.01f, startGap - hitGap));
+
             Pace(moved);
 
             if (!roared && now >= hitAt - roarBefore)
@@ -331,6 +362,7 @@ namespace Treeline
             if (pull != lastPull)
             {
                 lastPull = pull;
+                pulled = true;
                 PlayPull();
             }
         }
