@@ -15,11 +15,12 @@ namespace Treeline
     /// 가운데를 잘랐을 때 배운 적 없는 장치로 게임이 끝난다.
     /// </para>
     /// <para>
-    /// 순서는 <b>시점 전환 → 붙잡기 → 놓치기 → 닫히기</b>다. 출발과 동시에 차체 위의
-    /// 카메라로 넘어가 승강장을 돌아보고, <see cref="CableChase"/> 가 그것을 케이블에
-    /// 매달아 따라오게 하고, 놓쳐서 떨어뜨리고, <see cref="Letterbox"/> 가 닫히면서
-    /// 다음 장으로 간다. 시각은 전부 여기 한 줄기에 모아 두었다 — 코루틴을 여럿
-    /// 띄우면 어느 것이 언제 도는지 이 파일만 봐서는 알 수 없게 된다.
+    /// 순서는 <b>시점 전환 → 붙잡기 → 들이받기 → 닫히기</b>다. 출발과 동시에 차체
+    /// 위의 카메라로 넘어가 승강장을 돌아보고, <see cref="CableChase"/> 가 그것을
+    /// 케이블에 매달아 따라붙게 하고, 차체를 들이받아 흔들어 놓고 떨어지고,
+    /// <see cref="Letterbox"/> 가 닫히면서 다음 장으로 간다. 시각은 전부 여기 한
+    /// 줄기에 모아 두었다 — 코루틴을 여럿 띄우면 어느 것이 언제 도는지 이 파일만
+    /// 봐서는 알 수 없게 된다.
     /// </para>
     /// <para>
     /// 기획의 「화면이 뒤집힌다」는 <b>상하가 아니라 시점의 주인</b>을 말한 것으로
@@ -72,8 +73,24 @@ namespace Treeline
         [Tooltip("출발 후 몇 초에 케이블을 붙잡나. 차체가 충분히 멀어진 뒤라야 뒤에서 잡는다.")]
         [SerializeField] private float gripAt = 5f;
 
-        [Tooltip("출발 후 몇 초에 놓치나.")]
-        [SerializeField] private float letGoAt = 9f;
+        [Tooltip("출발 후 몇 초에 차체를 들이받나. 여기서 떨어진다.")]
+        [SerializeField] private float hitAt = 11.5f;
+
+        [Header("들이받힌 차체")]
+        [Tooltip("흔들리는 시간.")]
+        [SerializeField] private float shakeSeconds = 2.6f;
+
+        [Tooltip("진자가 도는 빠르기(rad/s). 삭도는 길게 매달린 것이라 느리게 돈다.")]
+        [SerializeField] private float shakeRate = 7f;
+
+        [Tooltip("좌우로 기우는 각도.")]
+        [SerializeField] private float shakeRoll = 9f;
+
+        [Tooltip("앞뒤로 끄덕이는 각도.")]
+        [SerializeField] private float shakePitch = 4f;
+
+        [Tooltip("맞는 순간의 잔떨림. 금방 잦아든다.")]
+        [SerializeField] private float shakeJolt = 0.22f;
 
         [Header("레터박스")]
         [Tooltip("시점이 넘어가는 순간 잡는 띠. 여기서부터 연출이라는 것을 알린다.")]
@@ -191,15 +208,17 @@ namespace Treeline
 
             Vector3 from = car.position;
             Vector3 to = from + travel;
+            Quaternion hang = car.rotation;
 
             Letterbox letterbox = null;
             float total = rideSeconds + watchSeconds;
             float closeFrom = Mathf.Max(0f, total - letterboxSeconds);
             bool cut = false;
             bool gripped = false;
-            bool letGo = false;
+            bool struck = false;
             bool closing = false;
             float elapsed = 0f;
+            float shakeLeft = 0f;
 
             while (elapsed < total)
             {
@@ -207,7 +226,15 @@ namespace Treeline
 
                 // 정지 마찰에서 서서히 풀리듯 시작한다. 이 가속이 그대로 「멀어진다」가 된다.
                 float k = Mathf.Clamp01(elapsed / rideSeconds);
-                car.position = Vector3.Lerp(from, to, Mathf.Pow(k, rideEase));
+                Vector3 at = Vector3.Lerp(from, to, Mathf.Pow(k, rideEase));
+
+                if (shakeLeft > 0f)
+                {
+                    shakeLeft -= Time.deltaTime;
+                    at = Sway(at, hang, Mathf.Clamp01(shakeLeft / shakeSeconds));
+                }
+
+                car.position = at;
 
                 if (!cut && elapsed >= cameraAt)
                 {
@@ -225,16 +252,17 @@ namespace Treeline
                     gripped = true;
                     if (chase != null)
                     {
-                        chase.Grip();
+                        chase.Grip(hitAt - gripAt);
                     }
                 }
 
-                if (!letGo && elapsed >= letGoAt)
+                if (!struck && elapsed >= hitAt)
                 {
-                    letGo = true;
+                    struck = true;
+                    shakeLeft = shakeSeconds;
                     if (chase != null)
                     {
-                        chase.LetGo();
+                        chase.Hit();
                     }
                 }
 
@@ -253,6 +281,27 @@ namespace Treeline
             {
                 GameFlow.Instance.NextChapter();
             }
+        }
+
+        /// <summary>
+        /// 얻어맞은 차체가 매달린 채 흔들린다. <b>카메라도 같이 흔들린다</b> —
+        /// 차체의 자식이라 따로 흔들 것이 없다.
+        /// </summary>
+        /// <remarks>
+        /// 난수만 뿌리면 「고장난 화면」이지 「얻어맞은 것」이 아니다. 줄 하나에
+        /// 매달린 것이므로 몸통은 <b>감쇠하는 진자</b>로 돌리고, 금속이 부딪힌
+        /// 잔떨림만 앞쪽 짧은 구간에 난수로 얹는다(<c>f³</c> 이라 훨씬 빨리 잦아든다).
+        /// </remarks>
+        private Vector3 Sway(Vector3 at, Quaternion hang, float left)
+        {
+            float swing = Mathf.Sin(left * shakeRate) * left * left;
+
+            car.rotation = hang * Quaternion.Euler(swing * shakePitch, 0f, swing * shakeRoll);
+
+            float jolt = left * left * left;
+            return at
+                + Vector3.up * (swing * 0.3f)
+                + Random.insideUnitSphere * (shakeJolt * jolt);
         }
 
         /// <summary>
