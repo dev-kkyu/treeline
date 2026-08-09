@@ -1,44 +1,77 @@
 # 애니메이션 검수 체크리스트
 
-## Blender
+상태: 2026-08-09 개정. Blender 항목은 `rig_test.py`가 자동으로 판정한다.
 
-- [ ] 총 26본이며 export deform은 24개, Root/GroundPivot은 non-deform이다.
-- [ ] Armature/Mesh transform이 0/0/0, scale 1이고 상쇄 회전·음수 스케일이 없다.
-- [ ] vertex당 weight 4개 이하, 0.01 미만 weight가 제거됐다.
-- [ ] Folded 전체가 `0.88×0.72×0.62 m`, Extended가 `1.10×2.51×0.82 m` 안이다.
-- [ ] 갈고리 8개·공격 손가락 6개이며 개별 손가락 본을 추가하지 않았다.
-- [ ] Folded/Tremor/Scuttle loop 시작·끝 값과 tangent가 같다.
-- [ ] Root 위치/회전과 scale 키가 모든 액션에서 0/1이다.
-- [ ] Ceiling→Object→Ground 공간 전환 pop이 2 mm/1° 이하이다.
-- [ ] Death 28f 이후 Noise/Cycles가 없어 완전히 멈춘다.
+## Blender — `rig_test.py`가 매번 확인한다
 
-## Unity
+```bash
+blender <scratch>/Clinger_Anim.blend -b --python rig_test.py
+```
 
-- [ ] 모델 local +Z가 쐐기 머리 방향이고 Generic Avatar가 정상이다.
-- [ ] Folded/Tremor/Scuttle만 loop하고 나머지는 one-shot 또는 clamp다.
-- [ ] Unfold 10f에 낙하가 정확히 한 번 시작한다.
-- [ ] Land 15f 전에 Agent/Capsule이 켜지지 않고 15f에만 전환된다.
-- [ ] GroundPivot y=0, Land 18f 렌더 높이가 1.42±0.03 m이다.
+- [x] 총 32본, export deform 24개 + `Root`/`GroundPivot` = 26. CTRL 6개는 빠진다.
+- [x] Armature/Mesh transform 0/0/0, scale 1, 상쇄 회전·음수 스케일 없음.
+- [x] vertex당 weight 4개 이하, 0.01 미만 제거, 빈 vertex group 0개.
+- [x] 좌우 대칭 오차 rest **0.0000 m**, 착지 스탠스 **0.0006 m**.
+- [x] 접힘 `1.83 × 1.29 × 1.28 m`, 전개 `1.77 × 2.51 × 0.72 m` (실측, 초판 수치 아님).
+- [x] 갈고리 8개·공격 손가락 6개, 개별 손가락 본 없음.
+- [x] `Cling_Folded` / `Scuttle` 루프 이음새 **0.0000 m / 0.000°**.
+- [x] 천장 클립 4종이 천장(z = 0) 위로 **35 mm** 이상 나오지 않는다.
+- [x] 지상 클립 5종의 바닥 관통이 **15 mm** 이하. 15 mm를 쓰는 것은 `Land`의 충격
+      프레임뿐이고 나머지는 6 mm 이하다.
+- [x] 착지 4점(손 2 + 뒤 갈고리 2)이 모두 바닥에 닿는다. 간극 1.1~4.3 mm.
+- [x] 턱 75°까지 메시가 찢어지지 않는다. 62°에서 입이 **0.29 m** 벌어진다.
+
+`rig_test.py`가 `RESULT PASS`를 내지 않으면 그 아래 항목은 볼 필요가 없다.
+
+## Blender — 눈으로만 되는 것
+
+`contact_sheet.py`가 클립마다 8프레임을 한 장으로 붙인다. 수치가 다 맞아도 그림은
+틀릴 수 있으므로 이건 건너뛰지 않는다.
+
+- [ ] 접힘에서 손·손가락이 몸통을 관통하지 않는다.
+- [ ] 턱 62°에서 이빨과 아랫입술이 서로를 지나가지 않는다.
+- [ ] 사망 붕괴에서 사지가 몸통을 뚫고 반대편으로 나오지 않는다.
+- [ ] 지상 클립에서 등 위로 접은 LF/RF가 다리처럼 읽히지 않는다.
+
+## Unity — 임포트 시점 (2026-08-09 확인 완료)
+
+- [x] 렌더러 1개, 9,408 tris, 본 26, 머터리얼 `M_Clinger`, root scale 1.
+- [x] Rig Generic, 클립 9종, 30 fps, 길이가 명세와 일치.
+- [x] `Cling_Folded` / `Scuttle`만 Loop Time on.
+- [x] 이벤트 5개가 Unity 프레임 9 / 14 / 12 / 4 / 3 에 정확히 있다.
+- [x] Clinger 관련 콘솔 경고·오류 0.
+
+## Unity — 코드가 붙은 뒤 (아직)
+
+- [ ] 모델 local +Z가 쐐기 머리 방향이다.
+- [ ] `Unfold_Drop` f9에 낙하가 정확히 한 번 시작한다.
+- [ ] `Land` f14 전에 Agent/Capsule이 켜지지 않고 f14에만 전환된다.
+- [ ] `Land` 마지막 프레임 렌더 높이가 1.27±0.03 m다.
 - [ ] 4.2 m/s Scuttle과 240°/s 회전에서 접지 미끄러짐·pole flip이 없다.
-- [ ] Attack 13f에 전방 Capsule 피해가 정확히 한 번 발생한다.
-- [ ] 비치명은 Hit, 치명타는 Hit를 건너뛰고 Death가 최우선이다.
-- [ ] Death에서 collider/Agent가 꺼지고 28f 애니메이션은 끝까지 재생된다.
+- [ ] `Attack` f12에 전방 Capsule 피해가 정확히 한 번 발생한다.
+- [ ] 천장 피격이 `Cling_Tremor`, 지상 피격이 `Hit`로 갈린다.
+- [ ] 치명타는 `Hit`를 건너뛰고 Death가 최우선이다.
+- [ ] 천장 사망이 `Death_Fall` → 바닥 접촉 → `Death` 순서로 이어지고 사이에 실루엣
+      도약이 없다.
+- [ ] Death에서 collider/Agent가 꺼지고 애니메이션은 끝까지 재생된다.
 
 ## 시각·기획
 
 - [ ] 천장에서는 접힌 덩어리, 전개 시 굵은 수직 추, 지상에서는 4점 보행으로 읽힌다.
 - [ ] 천장 사지 4 + 공격 팔 2 외의 다리·꼬리·날개가 생기지 않는다.
-- [ ] LF/RF 사지는 지상에서 등 위에 접혀 여섯 다리처럼 보이지 않는다.
 - [ ] 눈처럼 보이는 발광점이 없고 의도는 쐐기 입과 양손으로 전달된다.
-- [ ] Attack 9f 예고와 13f 히트가 무음 1인칭 화면에서도 구분된다.
-- [ ] 64px 검정 실루엣에서 Crawler의 수평선·Colossus의 넓은 M자와 혼동되지 않는다.
+- [ ] `Attack` 예고와 히트가 무음 1인칭 화면에서도 구분된다.
+- [ ] 64 px 검정 실루엣에서 Crawler의 수평선·Colossus의 넓은 M자와 혼동되지 않는다.
+- [ ] `Scuttle`을 Crawler 질주와 나란히 두면 다른 생물의 걸음으로 읽힌다.
 
 ## 테스트 장면
 
-1. 천장 2.6 m Folded: 0.72 m 바운드와 플레이어 통과 확인.
+1. 천장 **2.6 m** Folded: 접힘이 1.29 m를 차지하므로 플레이어(1.7 m)가 지나갈 수
+   있는지 확인. 초판의 0.72 m 기준으로 배치하면 겹친다.
 2. 천장 3.4 m Extended: 전개 2.51 m와 낙하 예고 확인.
 3. 천장 2.6/3.4/4.0 m: 같은 clip 속도, 다른 코드 낙하 시간 시험.
 4. Land 직후 4.2 m/s 직선 10 m와 반경 2 m 회전 시험.
-5. Attack 13f 전후로 대상이 범위를 벗어나는 경계 시험.
+5. Attack 히트 전후로 대상이 범위를 벗어나는 경계 시험. 애니메이션이 260 mm 앞으로
+   넘어지지만 Capsule은 제자리인 것을 눈으로 확인한다.
 6. 천장/지상 각각 치명타: Death pose, collider, 바닥 정지 확인.
 7. 0.5배속·2배속과 WebGL Development Build에서 이벤트 중복/압축 오차 재검수.

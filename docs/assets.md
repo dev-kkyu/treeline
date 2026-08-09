@@ -70,6 +70,8 @@ IMPORTANT: OFL 은 **제품에 임베드하고 재배포하는 것을 명시적�
 | Crawler 리그 · 애니메이션 6종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Crawler/`) | 프로젝트 자체 제작 | 적 「기는 것」 | 2026-08-08 |
 | Colossus | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 8,634 tris · 2048 텍스처 3장) | 미확인 | 적 「죽지 않는 것」 | 2026-08-08 |
 | Colossus 리그 · 애니메이션 15종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Colossus/`) | 프로젝트 자체 제작 | 적 「죽지 않는 것」 | 2026-08-09 |
+| Clinger | 3D 모델 · 텍스처 | Meshy AI (적응형 리메시 9,408 tris · 2048 텍스처 3장) | 미확인 | 적 「붙어 있는 것」 | 2026-08-09 |
+| Clinger 리그 · 애니메이션 9종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Clinger/`) | 프로젝트 자체 제작 | 적 「붙어 있는 것」. 접지 · 천장 관통 · 루프 이음새를 메시에서 재서 푼다 | 2026-08-09 |
 | 주인공 | 3D 모델 · 텍스처 | Meshy AI (T-pose, 8,706 tris · 2048 텍스처 한 벌) | 미확인 | 플레이어. 그림자 · 엔딩 원경 · 1인칭 팔의 원본 | 2026-08-09 |
 | 주인공 Humanoid 리그 | 스켈레탈 리그 (본 60개) | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Protagonist/`) | 프로젝트 자체 제작 | 전신 3종의 바탕 | 2026-08-09 |
 | 주인공 1인칭 팔 리그 | 스켈레탈 리그 (본 51개) + 팔 메시 6,332 tris | 〃 (`build_arms.py`). 메시는 전신에서 잘라내고 손·팔뚝 바깥을 섭디비전했으며 무기 7조각을 본에 물렸다 | 프로젝트 자체 제작 | 팔 17종의 바탕 | 2026-08-09 |

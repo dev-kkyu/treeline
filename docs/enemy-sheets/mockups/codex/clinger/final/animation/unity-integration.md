@@ -1,16 +1,50 @@
 # Unity 연결 계약
 
-현재 저장소에는 `Clinger.cs`, `Clinger.prefab`, Animator Controller가 없다. 아래는
-최종 모델과 8개 클립을 실제 적으로 구현할 때 지켜야 할 새 계약이다.
+상태: 2026-08-09. **FBX와 클립 9종은 임포트까지 끝났다.** `Clinger.cs`,
+`Clinger.prefab`, Animator Controller는 아직 없다.
 
-## FBX Import
+## 들어와 있는 것
 
-- Rig = Generic, Avatar Definition = Create From This Model, Scale Factor 1.
-- Skin Weights = 4 Bones. Optimize Game Objects는 이벤트와 보조본 확인 뒤 켠다.
-- 모든 클립 Root Transform Rotation/Position은 Bake Into Pose.
-- Loop Time은 Folded/Tremor/Scuttle만 켠다. 나머지는 one-shot 또는 마지막 포즈 clamp.
-- Resample Curves on, Animation Compression Optimal. 10f/13f/15f 이벤트가 밀리면
-  compression off와 비교해 오차를 낮춘다.
+```text
+Assets/Game/Enemy/Models/Clinger.fbx          2.17 MB, 렌더러 1, 9,408 tris, 본 26
+Assets/Game/Enemy/Textures/Clinger_BaseColor.png   2048²
+Assets/Game/Enemy/Textures/Clinger_Normal.png      2048², Normal Map
+Assets/Game/Enemy/Textures/Clinger_Roughness.png   2048², 현재 미사용
+Assets/Game/Enemy/Materials/M_Clinger.mat     URP/Lit, metallic 0, smoothness 0.20
+```
+
+## FBX Import — 적용된 설정
+
+- Rig = **Generic**, Avatar Definition = Create From This Model, Scale Factor 1,
+  Use File Scale on. Humanoid가 아닌 이유는 리타게팅할 곳이 없고 Humanoid의 근육
+  범위가 이 해부 구조의 포즈를 잘라내기 때문이다.
+- Skin Weights 4 Bones. **Optimize Game Objects는 끈다** — 이벤트와 보조본을 확인할
+  수 없게 된다.
+- Animation Compression **Off**. Optimal은 45 mm 짜리 삼킴과 25 mm 짜리 여진을
+  먼저 지운다.
+- Loop Time은 `Cling_Folded`와 `Scuttle`만 켠다. `Cling_Tremor`는 개정에서
+  One-shot이 됐다.
+- Material: External(In Project) · BasedOnMaterialName · Search Everywhere.
+
+## 클립 실측 (Unity에서 다시 읽은 값)
+
+| 클립 | 프레임 | 길이 | Loop | 이벤트 |
+| --- | ---: | ---: | :---: | --- |
+| `Clinger_Cling_Folded` | 0..90 | 3.000s | O | — |
+| `Clinger_Cling_Tremor` | 0..39 | 1.300s | X | — |
+| `Clinger_Unfold_Drop` | 0..23 | 0.767s | X | `AE_DropRelease` f9 |
+| `Clinger_Land` | 0..23 | 0.767s | X | `AE_EnableGroundMode` f14 |
+| `Clinger_Scuttle` | 0..24 | 0.800s | O | — |
+| `Clinger_Attack_Underjaw` | 0..25 | 0.833s | X | `AE_AttackHit` f12 |
+| `Clinger_Hit` | 0..13 | 0.433s | X | — |
+| `Clinger_Death_Fall` | 0..17 | 0.567s | X | `AE_DeathRelease` f4 |
+| `Clinger_Death` | 0..35 | 1.167s | X | `AE_DeathRelease` f3 |
+
+Unity 프레임은 Blender 프레임 −1이다. 문서가 「10f 해제」라고 하면 Unity에서는 f9다.
+
+IMPORTANT: `ModelImporterClipAnimation`으로 이벤트를 넣을 때 `AnimationEvent.time`은
+**초가 아니라 0~1 비율**이다. 초를 넣으면 클립 길이가 그만큼 늘어난다.
+`(blenderFrame − 1) / lastFrame`으로 계산한다.
 
 ## Animator 파라미터
 
@@ -18,46 +52,57 @@
 | --- | --- | --- |
 | `Mode` | Int | 0 천장, 1 낙하, 2 착지, 3 지상, 4 사망 |
 | `Speed` | Float | 지상 Agent 속도, 0→Scuttle 4.2 |
-| `Tremor` | Bool | Folded↔Tremor 전환 |
+| `Tremor` | Trigger | Folded → Tremor 1회 재생 후 복귀 |
 | `Drop` | Trigger | Unfold_Drop 시작 |
 | `Attack` | Trigger | Underjaw one-shot |
-| `Hit` | Trigger | 비치명 additive 피격 |
+| `Hit` | Trigger | 지상 피격. 천장에서는 `Tremor`를 대신 친다 |
 | `Dead` | Bool | 최우선 Death, 복귀 없음 |
 
 ## 상태 흐름
 
 ```text
-Cling_Folded <-> Cling_Tremor
+Cling_Folded --Tremor--> Cling_Tremor --> Cling_Folded
 Cling_* --Drop--> Unfold_Drop --ground detected--> Land
-Land --15f/Mode 3--> GroundPose(18f hold) <-> Scuttle
+Land --f14/Mode 3--> GroundPose(마지막 프레임 hold) <-> Scuttle
 GroundPose/Scuttle --Attack--> Attack_Underjaw --> GroundPose
-Any living state --Hit--> additive Hit
-Any State --Dead--> Death
+GroundPose/Scuttle --Hit--> Hit --> GroundPose
+Cling_* --Hit--> Cling_Tremor          (천장 피격은 경련으로 대신한다)
+천장 --Dead--> Death_Fall --바닥 접촉--> Death
+지상 --Dead--> Death
 ```
 
 Death는 모든 상태를 0.03초 안에 중단하며 Exit transition을 만들지 않는다.
-`Unfold_Drop`은 낙하가 길면 f24를 hold하고 바닥 감지 시 normalizedTime과 무관하게
-Land로 전환한다. 지상 정지는 Land f18 단일 포즈를 사용한다.
+`Unfold_Drop`은 낙하가 길면 마지막 프레임을 hold하고 바닥 감지 시 normalizedTime과
+무관하게 `Land`로 전환한다. 지상 정지는 `Land` 마지막 프레임 단일 포즈다.
+
+**사망이 두 클립인 이유**와 **천장 피격이 `Cling_Tremor`인 이유**는
+[`08-death.md`](08-death.md)와 [`07-hit.md`](07-hit.md)에 있다. 요약하면 천장과 지상은
+리그에서 2 m 짜리 평행이동으로 갈려서 한 액션이 둘 다 될 수 없다.
 
 ## 코드 이벤트
 
 | 이벤트 | 프레임 | 필수 처리 |
 | --- | ---: | --- |
-| `AE_DropRelease` | Unfold 10f | 천장 고정만 해제, Sphere 유지, Capsule/Agent off, 낙하 시작 |
-| `AE_EnableGroundMode` | Land 15f | Sphere off, Capsule/Agent on, GroundPivot 정렬 |
-| `AE_AttackHit` | Attack 13f | 전방 Capsule 재검사 후 한 번만 피해 |
-| `AE_DeathRelease` | Death 4f | 모든 collider/Agent off, 사망 낙하 시작 |
+| `AE_DropRelease` | Unfold f9 | 천장 고정만 해제, Sphere 유지, Capsule/Agent off, 낙하 시작 |
+| `AE_EnableGroundMode` | Land f14 | Sphere off, Capsule/Agent on |
+| `AE_AttackHit` | Attack f12 | 전방 Capsule 재검사 후 한 번만 피해 |
+| `AE_DeathRelease` | Death_Fall f4 · Death f3 | 모든 collider/Agent off, 사망 낙하 시작 |
+
+`AE_EnableGroundMode`는 더 이상 공간을 맞추지 않는다. Transform 이동은 `Land`가
+시작되기 전에 코드가 끝내고, 이 이벤트는 충돌체와 Agent만 켠다.
+→ [`00-rigging.md`](00-rigging.md)의 「공간 전환은 `Land` 시작에서 한 번 한다」
 
 각 이벤트는 bool/sequence id로 멱등 처리한다. 프레임 드롭, transition 재진입,
 애니메이터 재활성화에도 한 동작당 한 번만 실행돼야 한다.
 
 ## 충돌·이동 값
 
-- 천장: Sphere r 0.46, center=몸통, Agent off.
-- 지상: Capsule h 1.34/r 0.48/center y 0.67.
-- Agent: r 0.48, h 1.42, speed 4.20, angular 240°/s, acceleration 12,
-  stopping distance 0.55.
-- 공격: 전방 Capsule h 0.85/r 0.52. 사지별 물리 collider는 만들지 않는다.
+- 천장: Sphere r 0.52, center = 원점 아래 y −0.90, Agent off.
+- 지상: Capsule h 1.20/r 0.52/center y 0.60.
+- Agent: r 0.55, h 1.27, speed 4.20, angular 240°/s, acceleration 12,
+  stopping distance 0.55. 반지름은 몸통이 아니라 **앞팔 접지점 사이 거리**에서 나온
+  값이고, 더 작게 잡으면 여러 마리가 좁은 복도에서 서로를 통과한다.
+- 공격: 전방 Capsule h 0.85/r 0.60. 사지별 물리 collider는 만들지 않는다.
 - 피격 Hitbox가 필요하면 Head/Torso/Limbs 세 그룹만 사용한다.
 
 ## 프리팹 권장 구조
@@ -72,5 +117,14 @@ Clinger                         Clinger.cs, 상태별 collider 관리
 └─ AttackOrigin                 아래턱 전방 +Z
 ```
 
-Collider 두 개를 동시에 켜지 않는다. Land 15f 이전에는 NavMeshAgent를 활성화하지 않고,
-Death에서는 Animator만 남겨 28f를 끝까지 재생한다.
+Collider 두 개를 동시에 켜지 않는다. `Land` f14 이전에는 NavMeshAgent를 활성화하지
+않고, Death에서는 Animator만 남겨 끝까지 재생한다.
+
+## 아직 안 한 것
+
+- `Clinger.cs`, `Clinger.prefab`, `AC_Clinger` — 3장 작업과 함께 붙인다.
+- LOD1/LOD2 — 프로파일에서 실제로 걸릴 때 만든다.
+  → [`MODEL-SPEC.md`](../MODEL-SPEC.md) 4절
+- `Clinger_Roughness.png`는 임포트만 돼 있고 머터리얼이 쓰지 않는다. 생성 텍스처의
+  metallic/roughness 값이 에셋마다 제각각이라 평평한 값으로 덮는 것이 프로젝트 기준이다.
+  → `docs/tech-design/decisions.md`
