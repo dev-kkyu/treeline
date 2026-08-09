@@ -275,27 +275,44 @@ def settle(limit=0.002, tries=8):
     return zmin
 
 
-def hand_clamp(hands, limit=0.001, tries=4):
-    """Lift a planted hand until its claws stop cutting into the floor.
+def contact_clamp(hands=None, hooks=None, limit=0.001, tries=8):
+    """Lift each planted contact until its claws stop cutting into the floor.
 
-    `settle` moves the body, which cannot help here: the wrist is pinned by IK,
+    `settle` moves the body, which cannot help here: the contact is pinned by IK,
     so body roll swings the claws below the floor while the contact point stays
-    put. The fix has to move the contact.
+    put. The fix has to move the contact. Both pairs need it - the rear hooks dig
+    in during the landing impact exactly the way the hands do.
+
+    Points are assigned to a contact by which side and end of the body they are
+    on, which is enough: nothing else on this animal reaches |x| > 0.35 and the
+    floor at the same time.
     """
-    cur = {s: Vector(hands[s]) for s in SIDES}
+    h = dict(HAND_PLANT if hands is None else hands)
+    k = dict(HOOK_PLANT if hooks is None else hooks)
+    cur = {}
+    for s in SIDES:
+        cur["hand" + s] = Vector(h[s])
+    for t in REAR_TAGS:
+        cur["hook" + t] = Vector(k[t])
     for _ in range(tries):
-        dip = {"R": 0.0, "L": 0.0}
+        dip = dict((n, 0.0) for n in cur)
         for p in evaluated_points():
-            if p.z >= -limit or abs(p.x) < 0.35 or p.y > 0.0:
+            if p.z >= -limit or abs(p.x) < 0.35:
                 continue
             side = "R" if p.x > 0.0 else "L"
-            dip[side] = min(dip[side], p.z)
+            n = ("hand" + side) if p.y < 0.0 else ("hook" + side + "R")
+            if n in dip:
+                dip[n] = min(dip[n], p.z)
         if not any(v < 0.0 for v in dip.values()):
             break
-        for s in SIDES:
-            if dip[s] < 0.0:
-                cur[s] = cur[s] + Vector((0.0, 0.0, -dip[s] + limit))
-                ik_target(IK_HAND[s], cur[s])
+        for n, d in dip.items():
+            if d >= 0.0:
+                continue
+            cur[n] = cur[n] + Vector((0.0, 0.0, -d + limit))
+            if n.startswith("hand"):
+                ik_target(IK_HAND[n[4:]], cur[n])
+            else:
+                ik_target(IK_CEIL[n[4:]], cur[n])
     return cur
 
 
@@ -328,6 +345,6 @@ def stance(hands=None, hooks=None, roll=None, front=1.0, twitch=(0.0, 0.0),
         # order matters: clamp the claws up first, then settle. The other way
         # round, settle lifts the whole body to clear a claw and the short rear
         # limbs stop reaching the floor 24 mm later.
-        hand_clamp(HAND_PLANT if hands is None else hands)
+        contact_clamp(hands, hooks)
         settle()
-        hand_clamp(HAND_PLANT if hands is None else hands)
+        contact_clamp(hands, hooks)

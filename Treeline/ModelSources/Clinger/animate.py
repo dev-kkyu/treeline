@@ -229,20 +229,33 @@ HAND = P.HAND_PLANT
 HOOK = P.HOOK_PLANT
 
 
+def finish(hands=None, hooks=None):
+    """Put the pose on the floor. Call this LAST, after every rotation is in.
+
+    Order matters twice over. The claws have to come up before the body settles,
+    because a hand pinned by IK does not move when the body does. And the whole
+    thing has to happen after the clip's own rotations, not inside `ground` -
+    settling a pose that is still going to be bent is settling the wrong pose.
+    `Death` sank 190 mm through the floor that way.
+    """
+    P.contact_clamp(hands, hooks)
+    P.settle()
+    P.contact_clamp(hands, hooks)
+
+
 def ground(f, back=None, lift=0.0, roll=0.0, yaw=0.0, curl=0.0, push=0.0,
            hands=None, hooks=None, front=1.0, twitch=(0.0, 0.0), hump=0.5,
-           jaw=0.0, wrist=None, ik=(1.0, 1.0), settle=True):
+           jaw=0.0, wrist=None, ik=(1.0, 1.0), settle=False, pitch=None):
     """Every landed pose goes through here so the four contacts stay honest."""
     az = GROUND_BACK if back is None else back
-    P.ground_body(anchor=(0.0, 0.46 + push, az + lift), roll=roll, yaw=yaw, curl=curl)
+    P.ground_body(pitch=pitch, anchor=(0.0, 0.46 + push, az + lift),
+                  roll=roll, yaw=yaw, curl=curl)
     P.fold_front_limbs(front, twitch, hump)
     P.plant_ground(hands, hooks, wrist)
     P.set_ik(front=0.0, rear=ik[0], hands=ik[1])
     P.rot(P.JAW, x=jaw)
     if settle:
-        P.hand_clamp(P.HAND_PLANT if hands is None else hands)
-        P.settle()
-        P.hand_clamp(P.HAND_PLANT if hands is None else hands)
+        finish(hands)
 
 
 def land(f):
@@ -270,6 +283,7 @@ def land(f):
     for s in P.SIDES:
         P.srot("DEF_DigitsGroup", s,
                x=-10.0 - 26.0 * pulse(f, 5, 4) + 28.0 * pulse(f, 9, 6))
+    finish()
 
 
 # gait: (phase, plant, stride, lift). Forward is -Y, so a planted contact
@@ -319,12 +333,13 @@ def scuttle(f):
            hands={"L": c["handL"][0], "R": c["handR"][0]},
            hooks={"RR": c["hookRR"][0], "LR": c["hookLR"][0]},
            twitch=(14.0 * math.sin(2 * math.pi * (t + 0.30)),
-                   10.0 * math.sin(2 * math.pi * (t + 0.70))),
-           settle=True)
+                   10.0 * math.sin(2 * math.pi * (t + 0.70))))
     for s, tag in (("R", "handR"), ("L", "handL")):
         P.srot("DEF_DigitsGroup", s, x=18.0 if c[tag][1] else -12.0)
     # the head keeps looking where the body is going, at 60% of the yaw
     P.rot(P.HEAD, z=-0.60 * 8.0 * math.sin(2 * math.pi * (t + 0.22)))
+    finish({"L": c["handL"][0], "R": c["handR"][0]},
+           {"RR": c["hookRR"][0], "LR": c["hookLR"][0]})
 
 
 def attack(f):
@@ -350,11 +365,11 @@ def attack(f):
            jaw=10.0 * gather + 30.0 * tele + 62.0 * strike + 16.0 * pulse(f, 20, 6),
            hands=hands,
            hump=0.5 + 0.5 * tele,
-           ik=(1.0 - airborne, 1.0),
-           settle=True)
+           ik=(1.0 - airborne, 1.0))
     for s in P.SIDES:
         P.srot("DEF_DigitsGroup", s, x=-10.0 + 30.0 * tele + 44.0 * strike)
     P.addrot(P.HEAD, x=-8.0 * pulse(f, 3, 4) - 10.0 * tele)
+    finish(hands)
 
 
 def hit(f):
@@ -368,8 +383,7 @@ def hit(f):
            roll=11.0 * (a + b) - 7.0 * c,
            yaw=-16.0 * a * 0.6,
            curl=-10.0 * b,
-           jaw=26.0 * b + 5.0 * d,
-           settle=True)
+           jaw=26.0 * b + 5.0 * d)
     # base pose is a left-side hit; export mirrors it for HitSide
     P.saddrot("DEF_AttackUpper", "L", x=24.0 * a + 6.0 * d)
     P.saddrot("DEF_AttackFore", "L", x=32.0 * a + 8.0 * d)
@@ -377,6 +391,7 @@ def hit(f):
     for s in P.SIDES:
         P.srot("DEF_DigitsGroup", s, x=-10.0 + 40.0 * b)
     P.addrot(P.HEAD, x=-16.0 * a + 8.0 * c)
+    finish()
 
 
 def death_fall(f):
@@ -399,25 +414,46 @@ def death_fall(f):
 
 
 def death(f):
-    """08b - ground. Rigor first, then it gives out and rolls onto its side."""
+    """08b - ground. Rigor, then the legs give out and it settles where it stood.
+
+    It does not roll onto its side. A 78 degree roll has to swing the whole body
+    through the floor it is standing on, and from a four-point stance that reads
+    as being thrown rather than dying. Going straight down is quieter, and it
+    leaves the corpse where the player shot it instead of inside a wall.
+
+    The body does pitch flatter as it goes (-52 to -70 deg) - that is what turns
+    a standing four-point silhouette into a heap. Height ends at 0.96 m against
+    the 1.27 m it stood at, which is about as low as a 0.70 m thick torso gets.
+    """
     rigor = pulse(f, 7, 8)
     collapse = ease(max(0.0, min(1.0, (f - 12) / 14.0)))
     twitch = pulse(f, 31, 4)
     ground(f,
-           lift=0.24 * rigor - 0.39 * collapse,
-           roll=78.0 * collapse,
-           curl=30.0 * rigor - 18.0 * collapse,
-           jaw=34.0 * rigor + 10.0 * twitch,
-           front=1.0 - 0.5 * collapse,
-           hump=0.5 + 0.5 * rigor,
-           ik=(max(0.0, 1.0 - (f - 12) / 2.0), max(0.0, 1.0 - (f - 12) / 2.0)),
-           settle=True)
+           pitch=P.GROUND_PITCH - 18.0 * collapse,
+           lift=0.08 * rigor - 0.69 * collapse,
+           # not zero: a corpse square to the world reads as a prop. 6 degrees
+           # says it fell rather than was placed.
+           roll=6.0 * collapse,
+           curl=10.0 * rigor - 10.0 * collapse,
+           jaw=26.0 * rigor + 12.0 * collapse + 8.0 * twitch,
+           front=1.0,
+           hump=0.5 - 0.5 * collapse,
+           # released over 6 frames, not 2. Dropping the IK in one step while
+           # the FK collapse has barely started snaps the pose 160 mm in a frame.
+           ik=(max(0.0, 1.0 - (f - 12) / 6.0), max(0.0, 1.0 - (f - 12) / 6.0)))
     for s in P.SIDES:
-        P.srot("DEF_DigitsGroup", s, x=-10.0 + 50.0 * rigor - 20.0 * collapse
-               + (30.0 * twitch if s == "R" else 0.0))
-        P.saddrot("DEF_AttackUpper", s, x=-26.0 * collapse)
-        P.saddrot("DEF_AttackFore", s, x=40.0 * collapse)
-    P.addrot(P.HEAD, x=10.0 * rigor - 6.0 * collapse)
+        P.srot("DEF_DigitsGroup", s, x=-10.0 + 40.0 * rigor - 14.0 * collapse
+               + (26.0 * twitch if s == "R" else 0.0))
+        # elbows buckle outward and the body bellies down between them
+        P.saddrot("DEF_AttackUpper", s, x=10.0 * collapse, z=-55.0 * collapse)
+        P.saddrot("DEF_AttackFore", s, x=70.0 * collapse)
+        P.saddrot("DEF_AttackHand", s, x=-30.0 * collapse)
+    for t in P.REAR_TAGS:
+        # the hind limbs fold under instead of staying planted
+        P.saddrot("DEF_CeilUpper", t, x=90.0 * collapse)
+        P.saddrot("DEF_CeilLower", t, x=-120.0 * collapse)
+    P.addrot(P.HEAD, x=6.0 * rigor - 12.0 * collapse)
+    finish()
 
 
 # ------------------------------------------------------------------- measure
