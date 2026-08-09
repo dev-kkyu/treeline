@@ -362,18 +362,40 @@ PROMPTS = [
     # 이쪽은 그냥 추운 데 서 있는 것이다. 같은 실수를 피하려고 여기서도 상태어를
     # 쓰지 않고 공기가 지나가는 길로 지시한다. 두 종을 만드는 이유는 3 초마다
     # 나는 소리라 한 종이면 두 번째부터 티가 나기 때문이다 (발소리와 같은 이유).
+    #
+    # IMPORTANT: **「공기가 지나가는 길」 로 지시했더니 가스 누출이 왔다.** 적 소리에서
+    # 통했던 방법을 그대로 옮긴 것이 여기서는 틀렸다. 재보니 이유가 분명하다 —
+    # 1 판 01 번은 에너지의 **72.9 % 가 4 kHz 위**이고 포락선이 1.4 초 동안 평평했다.
+    # 고역 잡음이 일정하게 이어지는 것이 바로 새는 밸브의 정체다.
+    #
+    # 숨은 두 가지가 다르다. **봉우리가 있고**(시작이 곧 최대, 1 초 안에 잦아든다)
+    # **목과 가슴의 몸통이 들린다**(500 Hz 아래가 있다). 그래서 hiss · rasp ·
+    # airflow · release 같은 낱말을 전부 버리고 **사람이 숨을 내쉰다**로 지시하고,
+    # 모양을 문장으로 준다.
+    #
+    # 판정 기준은 **짐작하지 말고 이 폴더의 기존 사람 소리에서 가져온다.**
+    # player-hurt-01/02 · exert · death · jump 를 재보면 4 kHz 위가 0.6~16.3 %,
+    # 무게중심이 2116~4605 Hz 다. 처음에 「25~55 %」 라고 적었는데 그건 근거 없이
+    # 쓴 값이었다 — 실제로는 20 % 아래가 이 게임의 사람 소리다. 새 판은 2.4 % ·
+    # 1.3 % 로 그 식구 안에 들어왔고, 버린 판만 72.9 % 로 혼자 튀어 있었다.
+    #   4 kHz 위    20 % 아래  (72.9 % 는 누출이다)
+    #   500 Hz 아래 10 % 이상  (목과 가슴의 몸통이 있다는 뜻)
+    #   포락선      앞에서 봉우리를 치고 1 초 안에 내려온다
+    # 「누출이 아니다 · 증기가 아니다 · 바람이 아니다」 는 **정체를 좁히는 부정**이라
+    # 넣어도 된다. 대역을 빼라는 부정과 다르다 — audio.md 의 그 항목 참고.
     ("Protagonist", "player-breath-cold-01",
-     "One unhurried exhale from an adult standing still in freezing air: air "
-     "leaves the nose and half open mouth in a single steady push, close enough "
-     "that it brushes the microphone, thinning into a faint dry rasp at the end. "
-     "Low pitched, wordless, nothing before or after it", 1.5, False),
-    # 「quiet」 를 넣은 1 판이 피크 0.017 로 왔다. 호흡은 조용하다고 적으면 아예
-    # 없는 것이 온다 — 크기는 형용사가 아니라 **마이크와의 거리**로 준다
+     "A person breathes out once in freezing air, recorded very close. It is a "
+     "short warm huff with the throat and chest audible behind it: it begins at "
+     "full strength the instant the mouth opens and falls away within a second. "
+     "A human breath. Not a leaking valve, not escaping steam, not wind.",
+     1.2, False),
+    # 「quiet」 를 넣은 판이 피크 0.017 로 왔다. 호흡은 조용하다고 적으면 아예 없는
+    # 것이 온다 — 크기는 형용사가 아니라 **마이크와의 거리**로 준다
     ("Protagonist", "player-breath-cold-02",
-     "Air pushed up out of a chest and out through a dry throat and lips in one "
-     "long release, the mouth right against the microphone so the airflow hisses "
-     "and rasps the whole way past it, tailing off at the end. An adult, low "
-     "pitched, wordless, nothing before or after it", 1.5, False),
+     "One audible breath out of a person's mouth in the cold, the microphone "
+     "right in front of them. A low soft huff shaped by the lips and throat, "
+     "loudest at the very start and gone soon after. A human breathing. Not a "
+     "leaking valve, not escaping steam, not wind.", 1.2, False),
     # Carriable 을 들 때. carriable-lift 는 통 쪽 소리이고 이쪽은 사람 쪽이다
     ("Protagonist", "player-exert",
      "Adult person straining to lift something heavy, breath held then "
