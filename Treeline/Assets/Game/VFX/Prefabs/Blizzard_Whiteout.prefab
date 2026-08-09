@@ -144,9 +144,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38985e4f71527094292fe32991750129, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Treeline.Whiteout
-  air: {r: 0.8, g: 0.83, b: 0.88, a: 1}
+  air: {r: 0.34, g: 0.38, b: 0.46, a: 1}
   visibility: 17
-  ambient: {r: 0.55, g: 0.58, b: 0.64, a: 1}
+  ambient: {r: 0.26, g: 0.3, b: 0.36, a: 1}
   view: {fileID: 0}
   driveCamera: 1
   snow: []
@@ -241,7 +241,7 @@ PrefabInstance:
     - target: {fileID: 9162851441009041161, guid: 7fa967d537b4ac24db7280814f028a51, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 0ff9d9d21d6ab3649960953b6a54b0fe, type: 2}
+      objectReference: {fileID: 2100000, guid: 64804000cb5deb44b80c037b05734a5c, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
