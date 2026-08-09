@@ -160,8 +160,7 @@ namespace Treeline
             subscribed = weapon;
             weapon.Fired += OnFired;
             weapon.ReloadingChanged += OnReloadingChanged;
-            weapon.AmmoChanged += OnAmmoChanged;
-            OnAmmoChanged();
+            SetArmsVisible(true);
 
             bool shotgun = weapon.Kind == WeaponKind.Shotgun;
             ShowParts(shotgun ? ShotgunParts : PistolParts, true);
@@ -203,33 +202,14 @@ namespace Treeline
 
             subscribed.Fired -= OnFired;
             subscribed.ReloadingChanged -= OnReloadingChanged;
-            subscribed.AmmoChanged -= OnAmmoChanged;
             subscribed = null;
         }
 
-        /// <summary>
-        /// 탄약이 바닥나면 팔도 내린다. 쏠 수 없는 총을 계속 들고 있으면 화면의
-        /// 3분의 1을 쓸모없는 것이 차지하고, <b>쏠 수 있는지를 HUD 로만 알게 된다.</b>
-        /// 손이 비면 그 자체가 신호다.
-        /// </summary>
-        private void OnAmmoChanged()
-        {
-            if (subscribed == null)
-            {
-                return;
-            }
-
-            // 탄약이 없으면 **총만** 내린다. 팔은 남는다 — 손이 사라지면 몸이
-            // 없는 시점이 되어 1인칭이 깨진다. 빈손 자세로 돌려보내면
-            // PlayerWeapon 이 뷰모델을 끄므로 총은 알아서 사라진다.
-            bool hasAmmo = subscribed.Loaded > 0 || subscribed.Reserve > 0;
-            SetArmsVisible(true);
-            if (!hasAmmo && idleState != StateIdle)
-            {
-                idleState = StateIdle;
-                Play(idleState);
-            }
-        }
+        // 한때 탄약이 떨어지면 빈손 자세로 돌려보냈다. 「쏠 수 없다」를 손으로
+        // 알리려는 것이었는데, 실제로는 **총이 사라진 것처럼 보였다.** 총을 잃은
+        // 것과 탄이 떨어진 것은 다른 일이고, 플레이어는 앞쪽으로 읽는다.
+        // 지금은 빈 총도 계속 들고 있다 — 방아쇠를 당길 때 나는 딸깍 소리가
+        // 이미 그 신호이므로(PlayerWeapon.DryFired) 자세까지 바꿀 이유가 없다.
 
         /// <summary>
         /// 무언가를 두 손으로 들고 있는 동안의 자세. <see cref="WeaponSwitcher"/> 가

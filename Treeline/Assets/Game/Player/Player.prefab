@@ -2875,9 +2875,9 @@ MonoBehaviour:
   range: 25
   shotsPerSecond: 0.9
   startsOwned: 0
-  magazineSize: 2
+  magazineSize: 4
   maxReserve: 12
-  startingAmmo: 2
+  startingAmmo: 4
   reloadSeconds: 2.6
   recoilUpDegrees: 3.4
   recoilSideDegrees: 1.2
