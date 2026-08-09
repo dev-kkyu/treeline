@@ -14,8 +14,9 @@ namespace Treeline
     [RequireComponent(typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster))]
     public sealed class EndingScreen : MonoBehaviour
     {
-        private const string MasterVolumeKey = "Treeline.Audio.MasterVolume";
-        private const float DefaultVolume = 0.8f;
+        // 저장 키와 기본값은 GameSettings 가 들고 있다. 여기 따로 적어 두면
+        // 타이틀에서 고친 값이 엔딩에서만 다르게 보이는 사고가 난다.
+        private const float DefaultVolume = GameSettings.DefaultMasterVolume;
         private const float FadeSeconds = 0.28f;
 
         [Header("Menu art")]
@@ -278,7 +279,7 @@ namespace Treeline
 
         private void LoadAudioSettings()
         {
-            float saved = Mathf.Clamp01(PlayerPrefs.GetFloat(MasterVolumeKey, DefaultVolume));
+            float saved = GameSettings.MasterVolume;
             if (saved > 0.001f)
             {
                 lastAudibleVolume = saved;
@@ -290,20 +291,19 @@ namespace Treeline
         private void ApplyVolume(float value)
         {
             value = Mathf.Clamp01(value);
-            AudioListener.volume = value * value;
+            GameSettings.MasterVolume = value;
             if (value > 0.001f)
             {
                 lastAudibleVolume = value;
             }
             volumeValue.text = $"{Mathf.RoundToInt(value * 100f)}%";
             muteLabel.text = value <= 0.001f ? "음소거 해제" : "음소거";
-            PlayerPrefs.SetFloat(MasterVolumeKey, value);
         }
 
         private static void SaveVolume(float value)
         {
-            PlayerPrefs.SetFloat(MasterVolumeKey, Mathf.Clamp01(value));
-            PlayerPrefs.Save();
+            GameSettings.MasterVolume = value;
+            GameSettings.Save();
         }
 
         private void ToggleMute()

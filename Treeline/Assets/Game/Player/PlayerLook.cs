@@ -18,7 +18,8 @@ namespace Treeline
         [Tooltip("상하 회전을 적용할 카메라. 보통 자식의 Camera 다.")]
         [SerializeField] private Transform cameraPivot;
 
-        [Tooltip("입력 1 당 회전 각도(도). 마우스는 픽셀 단위 델타라 값이 작다.")]
+        [Tooltip("입력 1 당 회전 각도(도). 마우스는 픽셀 단위 델타라 값이 작다. "
+            + "플레이어가 환경 설정에서 고른 배율이 여기 곱해진다.")]
         [SerializeField] private float sensitivity = 0.08f;
 
         [Tooltip("올려다보고 내려다볼 수 있는 한계(도).")]
@@ -157,7 +158,9 @@ namespace Treeline
                 return;
             }
 
-            Vector2 delta = input.Look * sensitivity;
+            // 여기 있는 값은 기준이고, 플레이어가 고른 배율을 매 프레임 곱한다.
+            // 설정 화면에서 슬라이더를 끌면 다음 프레임부터 바로 반영된다.
+            Vector2 delta = input.Look * sensitivity * GameSettings.LookSensitivity;
 
             transform.Rotate(0f, delta.x, 0f, Space.Self);
             pitch = Mathf.Clamp(pitch - delta.y, -pitchLimit, pitchLimit);

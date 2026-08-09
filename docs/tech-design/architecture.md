@@ -1,4 +1,4 @@
-> 상태: 작성 중 · 최종 수정 2026-08-08
+> 상태: 작성 중 · 최종 수정 2026-08-10
 
 # 게임 시스템 구조
 
@@ -296,7 +296,7 @@ Assets/Game/
 ├── Progress/         씬 전환 · 체크포인트 · 사망 · 재시작
 ├── UI/               타이틀 · 설정 · 엔딩 · HUD · 로딩
 ├── Audio/            환경음. 어느 담당에도 속하지 않고 모든 장에서 쓴다
-└── Shared/           인터페이스 3종과 `GameLayers`. 변경은 셋의 합의가 필요하다
+└── Shared/           인터페이스 3종 · `GameLayers` · `GameSettings`. 변경은 셋의 합의가 필요하다
 ```
 
 `Assets/ThirdParty/` 는 제3자 에셋 원본 자리이고 저장소에서 제외된다.
@@ -360,6 +360,20 @@ Assets/Game/VFX/
 
 각 프리팹의 쓰임과 WebGL 예산은 [`../vfx-assets/README.md`](../vfx-assets/README.md)에
 있다. 씬 소유자는 원본 프리팹을 복제하지 않고 인스턴스의 Shape 크기만 조절한다.
+
+### 화면 전체를 덮는 효과는 렌더러가 아니라 씬에 둔다
+
+URP 렌더러 에셋은 여섯 장이 함께 쓴다. 거기에 렌더러 기능(Renderer Feature)을
+붙이면 **남의 장에도 걸리고**, 켜고 끄는 주체가 씬이 아니라 에셋이 된다.
+
+그래서 카메라 자식에 화면을 채우는 삼각형 하나를 두고 거기에 셰이더를 칠한다.
+처음 생긴 것은 `Levels/HeightFog.cs` + `Levels/HeightFog.shader` 로, 타이틀에
+바닥으로 깔리는 안개를 낸다. 값은 씬마다 머티리얼을 따로 둬서 맞춘다 —
+`MaterialPropertyBlock` 은 **SRP Batcher 가 무시하므로** 쓰지 않는다.
+
+깊이 텍스처가 필요하면 URP 에셋만 믿지 말고 컴포넌트가
+`UniversalAdditionalCameraData.requiresDepthTexture` 를 직접 켠다. 에셋은 공용이라
+누군가 끄면 이 씬만 조용히 망가진다.
 
 ### 사운드는 `Audio/` 에 카테고리로 나눠 둔다 → [`audio.md`](audio.md)
 
@@ -1020,9 +1034,25 @@ IMPORTANT: **`Device.Awake` 가 시작 모습을 강제로 맞춘다.** `enables
 
 | 파일 | 하는 일 |
 | --- | --- |
-| `TitleScreen` | 타이틀. 「시작」이 `GameFlow.StartNewGame()` 을 부른다 |
+| `TitleScreen` | 타이틀. 시작 · 환경 설정 · 크레딧 세 쪽 |
 | `EndingScreen` | 엔딩. 「돌아가기」가 `GameFlow.ReturnToTitle()` 을 부른다 |
+| `MenuButtonFeel` | 메뉴 버튼의 초점 반응. 표시선 · 글자 밀림 · 소리 |
 | `ReadingPanel` | 읽을거리를 펼쳐 보여준다. `Readable` 이 부른다 |
+
+### 환경 설정 값은 `Shared/GameSettings` 하나가 든다
+
+전체 음량과 마우스 감도 배율. 저장은 `PlayerPrefs` 이고 WebGL 에서는 브라우저
+저장소로 간다.
+
+| 쓰는 쪽 | 무엇을 |
+| --- | --- |
+| `TitleScreen` · `EndingScreen` | 손잡이를 그리고 값을 넣는다 |
+| `PlayerLook` | 감도 배율을 매 프레임 읽어 기준 각도에 곱한다 |
+
+IMPORTANT: **저장 키를 화면 쪽에 적지 않는다.** 값을 쓰는 곳과 읽는 곳의 담당이
+달라서, 키가 둘로 갈리면 저장은 되는데 반영이 안 되고 화면에는 아무 표시도 안
+난다. 감도를 각도가 아니라 **배율**로 저장하는 이유는
+[`decisions.md`](decisions.md) 참고.
 
 `ReadingPanel` 은 **씬에 배치하지 않고 처음 필요할 때 스스로 생긴다.** 캔버스와
 글자를 코드로 세운다. 장마다 캔버스를 넣으면 병합할 수 없는 파일을 장 수만큼
