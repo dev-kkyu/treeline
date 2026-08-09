@@ -1140,10 +1140,13 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
 | **세면장 거울** | 큐브 + 얼음 머티리얼 | 반사가 없으면 거울로 안 읽힌다 |
 | **제설포** | 없음 | 6장 피날레의 물건. 5장 작업과 같이 온다 |
 
-## 2차 프롬프트 — 점검에서 나온 10종
+## 2차 프롬프트 — 점검에서 나온 11종
 
 앞의 30종과 **같은 공통 블록**을 쓴다. 글자가 뚫린 둘(`Extinguisher` · `JunctionBox`)
 에는 금지 문구를 한 겹 더 얹었다.
+
+**R9 벽 레버가 이 묶음에서 가장 급하다.** 뒤늦게 찾았는데 20 개가 다섯 씬에 깔려
+있고 이 게임의 모든 조작이 그것 하나를 거친다.
 
 ### R1. 소화기 `Extinguisher` (재생성)
 
@@ -1278,6 +1281,43 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
 - 부품 분리: 불필요
 - 비고: 지금 것은 짧은 토막 다발이라 **배관이 어디서 와서 어디로 가는지 안 읽힌다.**
   양끝 플랜지가 핵심이다 — 이음매가 보여야 이어진 것으로 읽힌다
+
+### R9. 벽 레버 `WallLever` (재생성) — **우선순위 최상**
+
+    Heavy industrial wall-mounted disconnect lever, a rectangular steel back
+    plate bolted to the wall, and a long straight tubular operating handle
+    standing bolt upright from a pivot boss at the bottom of the plate, the
+    handle well clear of the plate with a wide air gap behind it, a knurled
+    grip sleeve on the upper half and a rounded end cap, a curved slotted
+    guide quadrant on the plate beside it with notches at each end. Worn matte
+    grey-green paint over steel, bare metal at the grip, light rust at seams.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals.
+
+- 치수: 판 0.26 × 0.60 × 0.06m · 손잡이 길이 0.50m · 전체 높이 약 1.05m
+- 축: 판 뒷면이 `-Z` (벽에 닿는다), 손잡이가 `+Y` 로 곧게 섬 · 피벗: **판 바닥 중앙**
+- 바꿀 곳: `Ch1` 2 · `Ch2` 4 (`ShutterLever` 포함) · `Ch4` 8 · `Ch6` 6 — **약 20개**
+- 부품 분리: **손잡이.** `Lever.handle` 이 그것만 돌린다
+- 비고: 지금 것은 **레버가 아니라 문고리 걸쇠다.** 판 1m 에 손잡이는 판에 눌러붙은
+  작은 막대뿐이라 잡을 것이 없고, `Lever` 가 `pulledRotation (-55, 0, 0)` 으로 눕히면
+  **판 속으로 파고든다.**
+
+IMPORTANT: 이것이 **이 게임의 주 상호작용물**이다. 서치라이트 · 비상 셔터 · 히터 ·
+차단기 · 환기 팬 · 발전기 · 삭도 권양기가 전부 이 하나로 조작되고, 6장의 절차 셋도
+그렇다. 26종 중 **화면에서 가장 자주 눌리는 물건**이라 우선순위가 가장 높다.
+
+프롬프트에서 두 가지를 못 박았다.
+
+- **`standing bolt upright` · `well clear of the plate with a wide air gap`** —
+  자세와 틈을 같이 잡는다. 손잡이가 눕은 채로 뽑히면 `Lever` 가 거기서 또 눕혀
+  두 번 눕고, 판에 붙어 나오면 덩어리 분리가 안 된다
+- **`curved slotted guide quadrant with notches at each end`** — 어디까지 움직이는
+  물건인지 형태가 말해준다. 올린 자리와 내린 자리가 눈에 보이면 눌러도 되는 것으로
+  읽힌다
+
+임포트에서 손잡이 피벗을 **밑동 축**에 맞추고, `pulledRotation` 이 **벽 반대쪽으로**
+눕는지 실제로 돌려서 확인한다. 지금 프리팹은 구울 때 180° 를 먹인 것이라 그 규약이
+새 모델에서 그대로일 거라고 가정하면 안 된다.
 
 ### N1. 삭도 권양기 `CableWinch` (신규)
 
