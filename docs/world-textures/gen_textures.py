@@ -399,6 +399,103 @@ def nest(out: Path, size: int, name: str) -> None:
     _write(out, name, albedo, normal, metallic, smooth)
 
 
+def _seam_lines(size: int, positions: list[float], width: float) -> np.ndarray:
+    """주어진 위치에 주기적인 선을 그린다. 1 이 선의 한가운데다.
+
+    이음매 · 패널 경계처럼 **사람이 만든 선**은 노이즈로 안 나온다. 그레이팅을
+    도형으로 그린 것과 같은 판단이다.
+    """
+    t = (np.arange(size) + 0.5) / size
+    d = np.ones(size)
+    for p in positions:
+        d = np.minimum(d, np.abs(((t - p + 0.5) % 1.0) - 0.5))   # 주기 거리
+    return np.clip(1.0 - d / max(width, 1e-6), 0, 1)
+
+
+def concrete_floor_dry(out: Path, size: int, name: str) -> None:
+    """마른 실내 바닥. 1장 관제동 · 2장 숙소동.
+
+    IMPORTANT: `concrete_floor` 는 **젖은** 변주다. 팀이 「바닥이 완전 호러」라고
+    한 그 텍스처인데, 세 장에 그대로 깔았더니 **실내가 통째로 물바다로 보였다.**
+    1장은 「계기판이 돌아가고 커피가 아직 따뜻한」 곳이고 2장은 숙소 복도다.
+    물이 고여 있을 이유가 없다.
+
+    범인은 얼룩이 아니라 **smoothness** 였다. 젖은 변주는 낮은 자리에 0.66 까지
+    올리는데, 그 정반사가 손전등을 되쏘아 「물」로 읽힌다. 여기서는 전면을 낮게
+    깔고 대신 **사람이 다닌 자리**를 반들거리게 한다 — 무늬는 남고 물은 사라진다.
+    """
+    rng = np.random.default_rng(SEED + 15)
+
+    stain = fbm(size, 4, 5, 0.55, rng)          # 때가 앉은 넓은 얼룩
+    grain = fbm(size, 64, 3, 0.5, rng)          # 표면 알갱이
+    # 사람은 한 방향으로 지나간다. 그 자리가 닳아 반들해진다.
+    worn = stretch(fbm(size, 9, 3, 0.55, rng), axis=0, span=max(5, size // 10))
+    worn = (worn - worn.min()) / max(worn.max() - worn.min(), 1e-9)
+    worn = np.clip((worn - 0.45) * 2.6, 0, 1)
+
+    height = stain * 0.62 + grain * 0.30 + worn * 0.08
+
+    base = np.array([0.44, 0.46, 0.47])
+    shade = 0.80 + stain * 0.30 + (grain - 0.5) * 0.12 - worn * 0.10
+    albedo = np.clip(base * shade[..., None], 0, 1)
+
+    normal = normal_from_height(height, strength=size / 210.0)
+    metallic = np.zeros((size, size))
+    # 닳은 자리만 조금. 0.30 을 넘기면 다시 젖어 보인다.
+    smooth = 0.09 + worn * 0.20
+
+    _write(out, name, albedo, normal, metallic, smooth)
+
+
+def steel_panel(out: Path, size: int, name: str) -> None:
+    """패널로 짜인 철제 벽. 새로 짓는 장의 실내 벽에 쓴다.
+
+    벽은 판을 이어 붙여 만든 물건이므로 **이음매가 있다.** 그 선은 노이즈가 아니라
+    도형이다. 세로 두 줄 · 가로 한 줄을 타일 경계에 맞춰 넣어, 2m 로 깔면
+    1m × 2m 패널이 된다.
+
+    쓰는 이유는 둘이다.
+
+    - `painted_steel` 은 알베도 대비 0.033 으로 이 프로젝트에서 가장 낮다. 트림과
+      배관에는 그것이 맞지만 **넓은 면을 덮으면 균일한 회색 판이 된다.**
+      이쪽은 0.113 이다
+    - 2장 복도는 같은 이음매를 **지오메트리로** 만들었다 (`Seam_L`·`Seam_R` 얇은
+      기둥 48 개). 텍스처로 하면 그 48 개가 필요 없다
+
+    IMPORTANT: 처음에는 「2장 복도 벽이 도장 철판이라 밋밋하다」를 근거로 만들었는데
+    **틀렸다.** 그 벽은 `W_concrete_wall` 이고, 화면에 보이던 도장 철판 84 개는 전부
+    이음매 · 걸레받이 · 문틀 같은 얇은 트림이었다. 머티리얼 개수를 세고 벽이라고
+    단정한 것이 잘못이다 — **개수가 아니라 면적을 봐야 했다.**
+
+    리벳이나 볼트는 넣지 않는다. 기획이 시대 · 국적을 특정하지 않기로 했고,
+    체결 방식은 그것을 가장 빨리 드러내는 요소다.
+    """
+    rng = np.random.default_rng(SEED + 16)
+
+    vert = _seam_lines(size, [0.0, 0.5], 0.012)[None, :]
+    horz = _seam_lines(size, [0.0], 0.010)[:, None]
+    seam = np.maximum(vert, horz)
+
+    coat = fbm(size, 6, 4, 0.5, rng)
+    scratch = np.clip((fbm(size, 160, 2, 0.45, rng) - 0.72) * 7.0, 0, 1)
+    grime = fbm(size, 12, 4, 0.6, rng)          # 패널마다 때가 다르게 앉는다
+
+    # 이음매는 파인 홈이다. 여기만 노멀을 세우고 나머지는 평평하게 둔다.
+    height = coat * 0.20 + scratch * 0.06 - seam * 0.74
+
+    base = np.array([0.34, 0.37, 0.39])
+    shade = 0.86 + (coat - 0.5) * 0.18 + (grime - 0.5) * 0.34 + scratch * 0.12
+    albedo = np.clip(base * shade[..., None], 0, 1)
+    # 홈 안은 빛이 안 닿는다. 알베도로도 어둡게 해야 밝은 곳에서 살아남는다.
+    albedo *= (1.0 - seam * 0.62)[..., None]
+
+    normal = normal_from_height(height, strength=size / 300.0)
+    metallic = np.full((size, size), 0.08) + scratch * 0.10
+    smooth = np.clip(0.26 + (coat - 0.5) * 0.08 + scratch * 0.10 - seam * 0.18, 0, 1)
+
+    _write(out, name, albedo, normal, metallic, smooth)
+
+
 def rock_hewn(out: Path, size: int, name: str) -> None:
     """굴착 암반. 3장 연료 갱도의 벽과 천장.
 
@@ -681,6 +778,9 @@ SURFACES = {
     "snow":           lambda o, s: snow(o, s, "snow"),
     "metal_grating":  lambda o, s: metal_grating(o, s, "metal_grating"),
     "nest":           lambda o, s: nest(o, s, "nest"),
+    # 1 · 2장 실내
+    "concrete_floor_dry": lambda o, s: concrete_floor_dry(o, s, "concrete_floor_dry"),
+    "steel_panel":    lambda o, s: steel_panel(o, s, "steel_panel"),
     # 3장 연료 갱도
     "rock_hewn":      lambda o, s: rock_hewn(o, s, "rock_hewn"),
     "fuel_pool":      lambda o, s: fuel_pool(o, s, "fuel_pool"),

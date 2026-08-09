@@ -7,26 +7,30 @@ R&D 를 마쳤다. 결론은 이렇다.
 | 층 | 어디서 | 도구 |
 | --- | --- | --- |
 | **구조** (벽 · 바닥 · 통로 · 계단) | 이미 있는 회색 박스 그대로 | — |
-| **표면** (텍스처) | **절차적 생성 15종** | [`docs/world-textures/`](../world-textures/) |
+| **표면** (텍스처) | **절차적 생성 17종** | [`docs/world-textures/`](../world-textures/) |
 | **모델** (소품 · 기계 · 적) | **Meshy 생성 → Unity 에서 후처리** | MCP |
 
 **에셋스토어 팩은 쓰지 않는다.** 무료 CC0 텍스처도 검토했으나 보완재로만 둔다.
 근거는 [`decisions.md`](decisions.md) 의 세 항목에 있다.
 
 기획의 근거는 [`../game-design/treeline.md`](../game-design/treeline.md) 「에셋」절,
-구조 규칙은 [`architecture.md`](architecture.md) 에 있다.
+구조 규칙은 [`architecture.md`](architecture.md) 에 있다. 어느 장에 무엇이 필요하고
+지금 씬이 기획과 맞는지는 [`chapter-atmosphere.md`](chapter-atmosphere.md) 에 있다.
 
 ---
 
 ## 표면 — 절차적 생성
 
-`docs/world-textures/gen_textures.py` 가 15종을 만든다. **주기 함수로 만들기 때문에
+`docs/world-textures/gen_textures.py` 가 17종을 만든다. **주기 함수로 만들기 때문에
 타일링이 수학적으로 보장된다** — 격자 인덱스를 주기로 나눈 나머지로 감기므로 좌우 ·
 상하 끝이 일치한다.
 
 | 표면 | 쓰이는 곳 |
 | --- | --- |
-| `concrete_wall` · `concrete_floor` | 1 · 2장 |
+| `concrete_wall` | 1 · 2장 벽 — 겉넓이의 절반을 덮는다 |
+| `concrete_floor` | **젖은** 변주. 물이 있을 곳에만 쓴다 |
+| `concrete_floor_dry` | **1장 실내 바닥.** 젖은 것을 깔았더니 관제동이 물바다로 보였다 |
+| `steel_panel` | 넓은 실내 벽. 이음매를 지오메트리 없이 얻는다 |
 | `painted_steel` · `rusted_steel` | 전 장 트림 · 배관 |
 | `metal_grating` | 5장 철탑 · 6장 승강장 |
 | `rock_hewn` | **3장** 갱도 벽 · 천장 — 파낸 곳이라 콘크리트를 쓰지 않는다 |
@@ -50,7 +54,7 @@ python docs/world-textures/seam_check.py <폴더> --tile         # 이음매 검
 **512px 로 통일한다.** 1024 로 뽑으면 4종만으로 27 MB 였고, 512 로 내려도 손전등
 거리에서 차이가 보이지 않았다.
 
-실측 — 15종 45장이 **파일 7.01 MB · Unity 안에서 15.35 MB** 다. 한 종을 더해도
+실측 — 15종 45장이 **파일 7.01 MB · Unity 안에서 15.35 MB** 였다. 한 종을 더해도
 1 MB 남짓이라 종수를 아끼는 것보다 **장에 맞는 표면을 갖추는 쪽이 이득**이다.
 
 > 정정: 이 자리에 「7종 12.4 MB」로 적혀 있었는데 실측과 맞지 않았다. 같은 커밋의

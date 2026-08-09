@@ -45,6 +45,22 @@ git fetch origin -q && git diff --stat HEAD..origin/develop -- <프로젝트>/As
 - 결과를 짐작하지 않고 되읽어 확인한다. `unity_reflect` 로 타입이 올라왔는지,
   `manage_scene get_hierarchy` 로 씬이 의도대로인지 본다
 
+## 씬을 셀 때 — 꺼진 것과 면적
+
+- IMPORTANT: **`FindObjectsByType` · `GameObject.Find` 는 비활성 오브젝트를
+  건너뛴다.** 이 프로젝트에서 꺼져 있는 것은 대개 **연출의 일부**다 — 절차로
+  켜지는 조명(`SiteLights`), 서치라이트가 부르는 실루엣(1장 `Colossus`), 나중에
+  나타나는 적. 빼고 세면 **있는 것을 없다고 하게 된다.**
+  `FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None)` 을 쓴다
+- **개수가 아니라 면적을 센다.** 2장 복도에서 `W_painted_steel` 이 84 개라 벽인 줄
+  알았는데 전부 이음매 · 걸레받이 같은 얇은 트림이었고, 겉넓이로는 4.3% 였다.
+  벽은 개수가 적은 `W_concrete_wall`(48.6%) 이었다
+- **촬영용 카메라를 새로 만들면 씬의 카메라 설정이 안 따라온다.** `clearFlags` 가
+  기본값 `Skybox` 라 6장 밤하늘이 대낮처럼 파랗게 찍혔고, 씬이 잘못된 줄 알았다.
+  `Camera.main` 에서 `clearFlags` · `backgroundColor` · `fieldOfView` 를 베낀다
+- **씬을 열면 `Texture2D` 가 파괴된다.** 여러 씬을 돌며 한 장으로 이어 붙이려면
+  `hideFlags` 를 주거나, 장면마다 파일로 떨구고 밖에서 잇는다
+
 ## `execute_code` 의 함정
 
 - **`in` 매개변수를 못 부른다.** 컴파일러가 구버전이라 `TakeDamage(in DamageInfo)`
