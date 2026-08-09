@@ -84,3 +84,52 @@ Player
 
 실제 코드를 붙이기 전까지 이 문서는 연결 계약이며 기존 동작을 수정하지 않는다.
 
+
+## 임포트 실측 — 2026-08-09
+
+`export_fbx.py` 가 blend 에서 FBX 와 텍스처를 뽑고, 임포터 설정은 Unity MCP 로
+넣었다. 손으로 만진 곳은 없다.
+
+```
+Assets/Game/Player/
+├── Models/     Protagonist_Arms.fbx (7.2 MB) · Protagonist_Body.fbx (2.7 MB)
+├── Textures/   <이름>_BaseColor.png · <이름>_Normal.png  (2048, 10장)
+└── Materials/  M_Protagonist · M_Pistol · M_PistolMag · M_Shotgun · M_Shell · M_TubeFill
+```
+
+| | 실측 |
+| --- | --- |
+| 본 | 팔 **47** (ViewModelRoot + deform 46) · 전신 **56** (Root + deform 55) |
+| 렌더러 | 팔 **8** (팔 + 무기 7조각), 전신 1. 머티리얼 전부 연결 |
+| 삼각형 | 팔 6,332 · 권총 5,062 · 슬라이드 4,046 · 산탄총 7,838 |
+| 클립 | 17 + 4, 프레임 수와 이벤트 프레임이 명세와 일치 |
+| 콘솔 | 경고 · 오류 0 |
+
+`Hand.R` 이 Unity 에서 **x +0.205** 에 온다. 캐릭터의 오른쪽이 Unity 의 오른쪽이고,
+Blender 의 −y 가 +z 로 나간다 ([`00-rigging.md`](00-rigging.md)).
+
+### 컨트롤 본은 나가지 않는다
+
+`use_armature_deform_only=True` 로 뽑는다. `CTRL_*` 넷은 deform 이 아니고 자식도
+없으니 빠지고, `Root` · `ViewModelRoot` 는 deform 자식이 있어 남는다. 결과가 위의
+47 · 56 이고 이것이 00-rigging.md 가 말한 내보내기 본 수다.
+
+### `bake_anim_simplify_factor` 는 0 이어야 한다
+
+기본값은 곡선을 줄인다. 25 mm 짜리 슬라이드 왕복이나 8 mm 짜리 호흡처럼 **작고
+빠른 것이 먼저 없어진다.** 클립은 이미 프레임당 키 하나라 줄일 것도 없다.
+
+### IMPORTANT: 임포터의 이벤트 시각은 초가 아니라 0~1 이다
+
+`ModelImporterClipAnimation.events` 의 `time` 은 **클립 길이에 대한 비율**이다.
+초를 넣으면 마지막 이벤트가 클립 끝에 오도록 **클립이 늘어난다** — 1.77초짜리
+권총 재장전이 3.12초로, 4.37초짜리 `Body_Grabbed` 이 17.32초로 나왔다.
+`(프레임 − 1) / 마지막프레임` 으로 넣는다.
+
+### 애니메이션 타입은 Generic 이다
+
+00-rigging.md 는 전신을 Humanoid 로 세웠지만 **임포트는 둘 다 Generic** 이다.
+리타게팅하는 곳이 없고 — 이 리그로 만든 클립을 이 리그로만 튼다 — Humanoid 는
+근육 범위로 포즈를 잘라낸다. `Body_Grabbed` 처럼 등을 젖히고 매달리는 자세가 그
+대상이다. 본 이름은 Humanoid 규약을 그대로 따르므로 나중에 리타게팅이 필요해지면
+아바타만 만들면 된다.

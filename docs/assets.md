@@ -70,7 +70,11 @@ IMPORTANT: OFL 은 **제품에 임베드하고 재배포하는 것을 명시적�
 | Colossus 리그 · 애니메이션 15종 | 스켈레탈 애니메이션 | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Colossus/`) | 프로젝트 자체 제작 | 적 「죽지 않는 것」 | 2026-08-09 |
 | 주인공 | 3D 모델 · 텍스처 | Meshy AI (T-pose, 8,706 tris · 2048 텍스처 한 벌) | 미확인 | 플레이어. 그림자 · 엔딩 원경 · 1인칭 팔의 원본 | 2026-08-09 |
 | 주인공 Humanoid 리그 | 스켈레탈 리그 (본 60개) | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Protagonist/`) | 프로젝트 자체 제작 | 전신 3종의 바탕 | 2026-08-09 |
-| 주인공 1인칭 팔 리그 | 스켈레탈 리그 (본 49개) + 팔 메시 2,520 tris | 〃 (`build_arms.py`). 메시는 전신에서 잘라내고 무기 7조각을 본에 물렸다 | 프로젝트 자체 제작 | 팔 17종의 바탕 | 2026-08-09 |
+| 주인공 1인칭 팔 리그 | 스켈레탈 리그 (본 51개) + 팔 메시 6,332 tris | 〃 (`build_arms.py`). 메시는 전신에서 잘라내고 손·팔뚝 바깥을 섭디비전했으며 무기 7조각을 본에 물렸다 | 프로젝트 자체 제작 | 팔 17종의 바탕 | 2026-08-09 |
+| 주인공 팔·전신 클립 21종 | 애니메이션 | 〃 (`animate_arms.py` · `animate_body.py`). 파지·팔꿈치·구도를 전부 메시와 프리팹에서 재서 푼다 | 프로젝트 자체 제작 | 1인칭 17종 + 전신 4종 | 2026-08-09 |
+| `Pistol.fbx` · `Shotgun.fbx` · `PistolMag.fbx` · `ShotgunShell.fbx` | Unity 임포트 산출물 | Meshy 원본 4종을 `prep_weapons.py` 로 게임 크기·방향에 맞춘 뒤 `export_weapons.py` 로 합쳐 내보냈다 | 프로젝트 자체 제작 (원본 Meshy) | 레벨에 놓는 무기 프롭. 뷰모델과 같은 메시·텍스처 | 2026-08-09 |
+| `Protagonist_Arms.fbx` · `Protagonist_Body.fbx` | Unity 임포트 산출물 | 〃 (`export_fbx.py`) 로 뽑고 임포터 설정은 Unity MCP 로 넣었다 | 프로젝트 자체 제작 | `Assets/Game/Player/Models/` | 2026-08-09 |
+| 주인공·무기 텍스처 10장 | 2048 base color · normal | Meshy 생성물을 blend 에서 꺼낸 것 | 미확인 (Meshy 원본과 같다) | `Assets/Game/Player/Textures/`. metallic·roughness·emission 은 버리고 머티리얼에서 metallic 0 · smoothness 0.25 로 덮는다 | 2026-08-09 |
 | 손 포즈 라이브러리 12종 | 포즈 데이터 (`hand_poses.py`) | 〃 (`solve_poses.py`) 가 실제 무기 메시에 손가락을 감아 풀어낸 값 | 프로젝트 자체 제작 | 팔 클립 17종의 손 모양 | 2026-08-09 |
 | 권총 · 권총 탄창 · 산탄총 · 산탄총 탄 | 3D 모델 · 텍스처 | Meshy AI (각 600~8,999 tris) | 미확인 | 플레이어 무기 | 2026-08-09 |
 | 무기 게임 크기 · 가동부 분리 | 3D 모델 (Blender) | Claude Code 가 작성한 Blender 파이썬 스크립트 (`Treeline/ModelSources/Weapons/prep_weapons.py`) | 프로젝트 자체 제작 | 슬라이드 · 펌프 · 탄창 · 탄피를 본에 물릴 수 있게 쪼갠 것 | 2026-08-09 |
