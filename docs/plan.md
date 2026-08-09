@@ -567,8 +567,19 @@ IMPORTANT: 계약 문서는 「3장 작업과 함께 붙인다」였는데 4장�
 
 남은 것은 **축전지실 폭발** 하나이고, **총 발사 시스템이 끝난 뒤에 붙인다.**
 
-IMPORTANT: **`Chapters.Order` 에는 관통이 될 때 넣는다.** 씬만 만들어 놓고 순서에
-먼저 끼우면 2장 다음이 미완성 4장이 되어 **지금 되는 관통이 끊긴다.** 3장도 같다.
+#### 관통에 들어왔다 (2026-08-09)
+
+~~**`Chapters.Order` 에는 관통이 될 때 넣는다.**~~ **넣었다.** 3장과 4장을 같이
+끼워 관통이 다섯 장이 됐다.
+
+```
+Title → Ch1 → Ch2 → Ch3 → Ch4 → Ch6 → Ending
+```
+
+넣는 기준은 「걸어서 통과할 수 있는가」 하나로 두었다. 둘 다 `SpawnPoint` 에서
+`ChapterExit` 까지 `PathComplete` 이고, 플레이 모드에서 3장 → 4장 → 6장을 실제로
+넘겨 **소지품이 그대로 따라오는 것**까지 확인했다. 4장은 3장이 주는 권총을 들고
+들어온다. 덜 붙은 것(3장 연료 운반, 4장 축전지실 폭발)은 관통을 끊지 않는다.
 자세한 것은 [`team-setup.md`](team-setup.md).
 
 **미술 기준은 지어내지 않는다.** [`level-sheets/mockups/codex/ch04-generator-nest/`](level-sheets/mockups/codex/ch04-generator-nest/)
