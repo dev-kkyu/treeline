@@ -7,7 +7,7 @@ namespace Treeline
     /// </summary>
     /// <remarks>
     /// 게이지가 그대로 떠 있으면 <b>플레이어가 아직 조작하고 있는 화면</b>으로 읽혀서
-    /// 어느 쪽이든 HUD 는 걷는다. 갈리는 것은 팔이다.
+    /// 어느 쪽이든 HUD 와 <b>두 손으로 든 것</b>은 걷는다. 갈리는 것은 팔이다.
     /// <list type="bullet">
     /// <item><description><b>체력이 다해 죽으면</b> — 팔을 남기고 쓰러지는 동작을
     /// 재생한다. 죽는 것을 보여 주는 것이 이 1.5 초의 목적이고, 1 인칭에서 그것을
@@ -63,6 +63,7 @@ namespace Treeline
             }
 
             HideHud();
+            HideCarried();
 
             ArmsAnimator arms = GetComponentInChildren<ArmsAnimator>(true);
             if (arms != null)
@@ -94,6 +95,26 @@ namespace Treeline
             }
 
             HideHud();
+            HideCarried();
+        }
+
+        /// <summary>
+        /// 두 손으로 든 것을 걷어낸다. 눈에 붙어 있어서 죽어도 화면 한가운데에 남는다.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Carriable.Drop"/> 이 아니라 그냥 끈다. 내려놓으면 죽는 순간 발
+        /// 앞에 툭 놓이는 것이 보이고, 어차피 이 뒤에 오는 것은 장을 다시 시작하는 것뿐이라
+        /// 물건이 어디에 있는지는 의미가 없다.
+        /// </remarks>
+        private void HideCarried()
+        {
+            foreach (Carriable carried in GetComponentsInChildren<Carriable>(true))
+            {
+                if (carried.IsCarried)
+                {
+                    carried.gameObject.SetActive(false);
+                }
+            }
         }
 
         private void HideHud()
