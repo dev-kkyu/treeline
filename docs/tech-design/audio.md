@@ -464,14 +464,28 @@ IMPORTANT: **`moan` · `call` · `bellow` · `cry` · `snarl` · `growl` 을 프
 | 클립 / 이벤트 | 소리 | 거는 자리 |
 | --- | --- | --- |
 | `Clinger_Cling_Folded` | `clinger-cling-loop` | 루프. 천장 대기 |
-| `Clinger_Cling_Tremor` | `clinger-tremor-loop` | 루프. **곧 떨어진다는 예고** |
-| `Clinger_Unfold_Drop` **10f** | `clinger-drop-release` | `AE_DropRelease` |
-| `Clinger_Land` **15f** | `clinger-land` | `AE_EnableGroundMode` |
+| `Clinger_Cling_Tremor` | `clinger-tremor-loop` | **One-shot.** 곧 떨어진다는 예고 |
+| `Clinger_Unfold_Drop` **f9** | `clinger-drop-release` | `AE_DropRelease` |
+| `Clinger_Land` **f14** | `clinger-land` | `AE_EnableGroundMode` |
 | `Clinger_Scuttle` | `clinger-scuttle-loop` | 루프. 지상 추격 |
-| `Clinger_Attack_Underjaw` **9f** | `clinger-attack-tell` | 예고 |
-| `Clinger_Attack_Underjaw` **13f** | `clinger-attack` | 히트 |
-| `Clinger_Hit` | `clinger-hit` | 피격 |
-| `Clinger_Death` | `clinger-death` | 사망 |
+| `Clinger_Attack_Underjaw` **f8** | `clinger-attack-tell` | 예고 |
+| `Clinger_Attack_Underjaw` **f12** | `clinger-attack` | 히트 |
+| `Clinger_Hit` | `clinger-hit` | 지상 피격 |
+| `Clinger_Death_Fall` **f4** | `clinger-death` | 천장 사망. `AE_DeathRelease` |
+| `Clinger_Death` **f3** | `clinger-death` | 지상 사망. `AE_DeathRelease` |
+
+2026-08-09 갱신: 애니메이션 명세가 개정되면서 세 가지가 바뀌었다.
+
+- **`Cling_Tremor` 가 Loop 에서 One-shot 이 됐다.** 소리 파일은 그대로 쓰되
+  루프로 걸지 않는다. 반복되면 경고가 배경이 되기 때문이다. 플레이어가 계속
+  가까이 있으면 간격을 두고 다시 재생한다.
+- **천장 피격 반응이 `Cling_Tremor` 다.** 매달린 채 총에 맞으면 이 클립과
+  이 소리가 난다. `clinger-hit` 은 지상 전용이다.
+- **사망이 두 클립으로 갈렸다.** `clinger-death` 를 둘 다에 걸되, 천장 사망은
+  `Death_Fall` → 코드 낙하 → 바닥 접촉 → `Death` 로 이어지므로 **소리는 첫
+  클립에서 한 번만** 낸다. 두 번 나면 두 마리로 들린다.
+
+프레임 번호는 Unity 기준이며 Blender 문서의 값보다 1 작다.
 
 `clinger-cling-loop` 은 **3 장 끝의 예고에 그대로 쓴다.** 기획이 「3장 끝 — 천장에서
 나는 소리, 모습은 안 보인다」를 4 장의 예고로 잡아 두었는데, 그 소리가 이것이다.
