@@ -130,6 +130,8 @@ namespace Treeline
                 idleState = StateIdle;
                 Play(idleState);
                 SetArmsVisible(true);
+                ShowParts(PistolParts, false);
+                ShowParts(ShotgunParts, false);
                 return;
             }
 
@@ -233,10 +235,21 @@ namespace Treeline
 
             for (int i = 0; i < armsRenderers.Length; i++)
             {
-                if (armsRenderers[i] != null)
+                if (armsRenderers[i] == null)
                 {
-                    armsRenderers[i].enabled = visible;
+                    continue;
                 }
+
+                // IMPORTANT: **무기는 건드리지 않는다.** 전부 켜 버렸더니 권총을
+                // 재장전할 때 `AmmoChanged` 를 타고 여기로 들어와 산탄총까지 같이
+                // 켜졌다 — 장전하면 총이 바뀌는 것처럼 보이던 버그가 이것이다.
+                // 어느 총을 보일지는 ShowParts 만 정한다.
+                if (armsRenderers[i].name.StartsWith("Held_"))
+                {
+                    continue;
+                }
+
+                armsRenderers[i].enabled = visible;
             }
         }
 
