@@ -73,6 +73,15 @@ namespace Treeline
         [Tooltip("벽이나 바닥에 맞았을 때. 맞은 자리에서 난다.")]
         [SerializeField] private AudioClip impact;
 
+        [Tooltip("금속에 맞았을 때. 비우면 위 소리를 쓴다.")]
+        [SerializeField] private AudioClip impactMetal;
+
+        [Tooltip("이 레이어에 맞으면 금속으로 친다.")]
+        [SerializeField] private LayerMask metalLayers;
+
+        [Tooltip("맞은 것의 이름이나 재질 이름에 이 조각이 들어 있으면 금속으로 친다.")]
+        [SerializeField] private string[] metalNameHints = { "metal", "grate", "steel", "pipe", "drum", "shutter", "catwalk", "handrail" };
+
         [Tooltip("발사 뒤에 이어지는 것. 권총은 탄피, 산탄총은 펌프 왕복이다.")]
         [SerializeField] private FireBeat[] fireBeats = Array.Empty<FireBeat>();
 
@@ -161,14 +170,67 @@ namespace Treeline
 
         private void OnImpacted(RaycastHit hit)
         {
-            if (impact == null)
+            AudioClip clip = SoundsMetal(hit) && impactMetal != null ? impactMetal : impact;
+            if (clip == null)
             {
                 return;
             }
 
             // 맞은 자리에서 나야 한다. 총구에서 내면 40 m 앞 벽에 맞은 것과 코앞에
             // 맞은 것이 같은 소리가 된다.
-            AudioSource.PlayClipAtPoint(impact, hit.point, impactVolume);
+            AudioSource.PlayClipAtPoint(clip, hit.point, impactVolume);
+        }
+
+        /// <summary>
+        /// 맞은 것이 금속인가. <b>레이어를 먼저 보고, 안 되면 이름으로 짐작한다.</b>
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: 이름으로 짐작하는 것은 임시방편이다. 표면 종류를 제대로 두려면
+        /// 발소리처럼 표면 컴포넌트가 있어야 하는데(<see cref="PlayerFootsteps"/>),
+        /// 그건 레벨 담당이 바닥마다 붙이는 물건이라 벽 · 난간 · 드럼통까지 넓히는
+        /// 것은 상의가 먼저다. 그때까지는 <b>레이어를 지정해 두면 그쪽이 이긴다.</b>
+        /// <para>
+        /// 짐작이 틀려도 콘크리트 소리가 날 뿐 조용해지지는 않는다. 갱도는 벽이
+        /// 콘크리트이고 통로 · 난간 · 드럼통이 금속이라, 이름 조각 몇 개로 대부분
+        /// 갈린다.
+        /// </para>
+        /// </remarks>
+        private bool SoundsMetal(RaycastHit hit)
+        {
+            if (impactMetal == null)
+            {
+                return false;
+            }
+
+            if ((metalLayers.value & (1 << hit.collider.gameObject.layer)) != 0)
+            {
+                return true;
+            }
+
+            if (metalNameHints == null || metalNameHints.Length == 0)
+            {
+                return false;
+            }
+
+            string name = hit.collider.name;
+            Renderer renderer = hit.collider.GetComponent<Renderer>();
+            if (renderer != null && renderer.sharedMaterial != null)
+            {
+                name += " " + renderer.sharedMaterial.name;
+            }
+
+            name = name.ToLowerInvariant();
+
+            for (int i = 0; i < metalNameHints.Length; i++)
+            {
+                string hint = metalNameHints[i];
+                if (!string.IsNullOrEmpty(hint) && name.Contains(hint))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void OnReloadingChanged(bool reloading)

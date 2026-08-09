@@ -3147,7 +3147,7 @@ MonoBehaviour:
   prompt: "\uBC30\uD130\uB9AC\uB97C \uCC59\uAE34\uB2E4"
   amount: 90
   takeClip: {fileID: 8300000, guid: 026286c97e00410448ed1bd9c96e5802, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &389771674
 BoxCollider:
@@ -3738,7 +3738,7 @@ MonoBehaviour:
   prompt: "\uC0B0\uD0C4\uCD1D \uD0C4\uC57D\uC744 \uCC59\uAE34\uB2E4"
   amount: 4
   takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &494630584
 BoxCollider:
@@ -3991,7 +3991,7 @@ MonoBehaviour:
   prompt: "\uAD8C\uCD1D \uD0C4\uC57D\uC744 \uCC59\uAE34\uB2E4"
   amount: 8
   takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &538901414
 BoxCollider:
@@ -4481,7 +4481,7 @@ MonoBehaviour:
   prompt: "\uC0B0\uD0C4\uCD1D \uD0C4\uC57D\uC744 \uCC59\uAE34\uB2E4"
   amount: 4
   takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &640459618
 BoxCollider:
@@ -7138,7 +7138,7 @@ MonoBehaviour:
   prompt: "\uC0B0\uD0C4\uCD1D \uD0C4\uC57D\uC744 \uCC59\uAE34\uB2E4"
   amount: 4
   takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &924626824
 BoxCollider:
@@ -7468,7 +7468,7 @@ MonoBehaviour:
   prompt: "\uC0B0\uD0C4\uCD1D \uD0C4\uC57D\uC744 \uCC59\uAE34\uB2E4"
   amount: 8
   takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &981899627
 BoxCollider:
@@ -8127,7 +8127,7 @@ MonoBehaviour:
   prompt: "\uAD8C\uCD1D \uD0C4\uC57D\uC744 \uCC59\uAE34\uB2E4"
   amount: 12
   takeClip: {fileID: 8300000, guid: 7b8cb4e7745671e4f947ce81728263bb, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &1007649788
 BoxCollider:
@@ -8266,7 +8266,7 @@ MonoBehaviour:
   prompt: "\uAD8C\uCD1D\uC744 \uC9D1\uC5B4 \uB4E0\uB2E4"
   amount: 1
   takeClip: {fileID: 8300000, guid: 65bce2e72f539a940876d9a829d80499, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &1030772398
 BoxCollider:
@@ -15210,7 +15210,7 @@ MonoBehaviour:
   prompt: "\uC0B0\uD0C4\uCD1D\uC744 \uC9D1\uC5B4 \uB4E0\uB2E4"
   amount: 1
   takeClip: {fileID: 8300000, guid: 65bce2e72f539a940876d9a829d80499, type: 3}
-  deniedClip: {fileID: 0}
+  deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
 --- !u!65 &1908450860
 BoxCollider:

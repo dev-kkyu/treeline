@@ -1909,6 +1909,19 @@ MonoBehaviour:
   dryFire: {fileID: 8300000, guid: ca12dbc62feb0124e8331ade5820b689, type: 3}
   equip: {fileID: 8300000, guid: b17bfc244fe4ff94f9fad4fea4fccc21, type: 3}
   impact: {fileID: 8300000, guid: 475d8b27930accf4aab1ae167ea142dc, type: 3}
+  impactMetal: {fileID: 8300000, guid: 06a957f73d942864695fa8d409b91e5f, type: 3}
+  metalLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  metalNameHints:
+  - metal
+  - grate
+  - steel
+  - pipe
+  - drum
+  - shutter
+  - catwalk
+  - handrail
   fireBeats:
   - clip: {fileID: 8300000, guid: 91a3adfd84784d7419996ab00dbdd072, type: 3}
     at: 0.45
@@ -2902,6 +2915,19 @@ MonoBehaviour:
   dryFire: {fileID: 8300000, guid: 9bfd7c1eece7c1543b2350a5b83f0005, type: 3}
   equip: {fileID: 8300000, guid: e93f8c4e3a3517e4d854acf97ca4c458, type: 3}
   impact: {fileID: 8300000, guid: 475d8b27930accf4aab1ae167ea142dc, type: 3}
+  impactMetal: {fileID: 8300000, guid: 06a957f73d942864695fa8d409b91e5f, type: 3}
+  metalLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  metalNameHints:
+  - metal
+  - grate
+  - steel
+  - pipe
+  - drum
+  - shutter
+  - catwalk
+  - handrail
   fireBeats:
   - clip: {fileID: 8300000, guid: f919bf892ba5cdb4e8888eec30901b6a, type: 3}
     at: 0.5
@@ -4696,6 +4722,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Treeline.ArmsAnimator
   animator: {fileID: 7030026671291841518}
   switcher: {fileID: 5316144467640077334}
+  interactor: {fileID: 0}
   blendSeconds: 0.08
   pistolYawDegrees: 11.3
   shotgunYawDegrees: 32
