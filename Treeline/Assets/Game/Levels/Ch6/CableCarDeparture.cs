@@ -31,7 +31,7 @@ namespace Treeline
     [DisallowMultipleComponent]
     public sealed class CableCarDeparture : MonoBehaviour
     {
-        [Tooltip("이것이 켜지면 출발한다. 보통 승강 레버가 미는 장치다.")]
+        [Tooltip("이것이 켜지면 출발한다. 비우면 Depart() 를 밖에서 불러야 한다 — 탑승 연출(Ch6Boarding)이 그쪽이다.")]
         [SerializeField] private Device trigger;
 
         [Tooltip("실제로 움직일 차체. 플레이어를 여기에 붙인다.")]
@@ -110,6 +110,10 @@ namespace Treeline
         [Tooltip("마지막에 완전히 닫히는 데 걸리는 시간. 끝나면 다음 장으로 간다.")]
         [SerializeField] private float letterboxSeconds = 3f;
 
+        [Header("눈보라를 벗어난다")]
+        [Tooltip("내려가면서 시야가 여기까지 트인다(m). 0 이면 안개를 안 만진다. 뒤에 남는 승강장이 보여야 「멀어진다」가 된다.")]
+        [SerializeField] private float clearVisibility = 90f;
+
         private bool departed;
         private float shakeLeft;
         private float shakeFor = 1f;
@@ -122,11 +126,12 @@ namespace Treeline
             {
                 car = transform;
             }
+        }
 
-            if (trigger == null)
-            {
-                Debug.LogWarning($"[{nameof(CableCarDeparture)}] '{name}' 에 발동시킬 장치가 없다. 삭도가 영영 출발하지 않는다.", this);
-            }
+        /// <summary>출발시킨다. 탑승 연출이 문을 닫은 뒤에 부른다.</summary>
+        public void Depart()
+        {
+            OnTriggerChanged(true);
         }
 
         private void OnEnable()
@@ -153,10 +158,10 @@ namespace Treeline
             }
 
             departed = true;
-            StartCoroutine(Depart());
+            StartCoroutine(Ride());
         }
 
-        private IEnumerator Depart()
+        private IEnumerator Ride()
         {
             GameObject player = GameObject.FindWithTag("Player");
 
@@ -225,6 +230,11 @@ namespace Treeline
             Vector3 to = from + travel;
             Quaternion hang = car.rotation;
 
+            // 눈보라 밀도는 장이 정하므로 여기서 읽어 둔다. 목표 밀도로는 5장식
+            // 환산(√ln10 / 거리)을 쓴다 — Whiteout 과 같은 자로 재야 이어진다.
+            float fogFrom = RenderSettings.fogDensity;
+            float fogTo = clearVisibility > 0f ? 1.517f / clearVisibility : fogFrom;
+
             Letterbox letterbox = null;
             float total = rideSeconds + watchSeconds;
             float closeFrom = Mathf.Max(0f, total - letterboxSeconds);
@@ -241,6 +251,13 @@ namespace Treeline
                 // 정지 마찰에서 서서히 풀리듯 시작한다. 이 가속이 그대로 「멀어진다」가 된다.
                 float k = Mathf.Clamp01(elapsed / rideSeconds);
                 Vector3 at = Vector3.Lerp(from, to, Mathf.Pow(k, rideEase));
+
+                // 내려가면서 눈보라를 벗어난다. 시야가 트이며 승강장과 중계소가
+                // 드러나는 것이 「멀어진다」를 만드는 절반이다.
+                if (clearVisibility > 0f && RenderSettings.fog)
+                {
+                    RenderSettings.fogDensity = Mathf.Lerp(fogFrom, fogTo, Mathf.SmoothStep(0f, 1f, k));
+                }
 
                 // 다가오는 동안은 당길 때마다 한 번씩, 가까울수록 세게. 그 사이는
                 // 잔떨림으로 메운다 — 당김 사이가 조용하면 매번 처음부터 놀란다.
