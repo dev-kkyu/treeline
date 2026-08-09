@@ -433,10 +433,8 @@ namespace Treeline
 
             if (ammoReserveText != null)
             {
-                // 화면 문구는 영문으로 쓴다. 기본 폰트(LegacyRuntime.ttf)에 한글 글리프가
-                // 없어 에디터에서는 시스템 폰트로 대체되지만 WebGL 빌드에서 네모로 깨진다.
                 ammoReserveText.text = subscribed.IsReloading
-                    ? "RELOADING"
+                    ? "재장전"
                     : "x" + subscribed.Reserve;
             }
         }

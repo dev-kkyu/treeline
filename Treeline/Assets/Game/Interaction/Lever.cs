@@ -21,8 +21,8 @@ namespace Treeline
     public sealed class Lever : MonoBehaviour
         , IInteractable
     {
-        [Tooltip("화면에 띄울 문구. 기본 폰트에 한글 글리프가 없어 영문으로 쓴다.")]
-        [SerializeField] private string prompt = "Pull lever";
+        [Tooltip("화면에 띄울 문구.")]
+        [SerializeField] private string prompt = "레버를 당긴다";
 
         [Tooltip("켜져 있을 때의 문구. 비워두면 위와 같다. 스위치일 때만 쓴다.")]
         [SerializeField] private string promptWhenOn = "";

@@ -43,8 +43,8 @@ namespace Treeline
         [Tooltip("무엇을 주는가.")]
         [SerializeField] private PickupKind kind = PickupKind.Battery;
 
-        [Tooltip("화면에 띄울 문구. 기본 폰트에 한글 글리프가 없어 영문으로 쓴다.")]
-        [SerializeField] private string prompt = "Pick up";
+        [Tooltip("화면에 띄울 문구.")]
+        [SerializeField] private string prompt = "집어 든다";
 
         [Tooltip("배터리는 초, 탄약은 발수. 손전등과 총은 보지 않는다.")]
         [SerializeField] private float amount = 120f;

@@ -20,8 +20,8 @@ namespace Treeline
     public sealed class Carriable : MonoBehaviour
         , IInteractable
     {
-        [Tooltip("화면에 띄울 문구. 기본 폰트에 한글 글리프가 없어 영문으로 쓴다.")]
-        [SerializeField] private string prompt = "Pick up";
+        [Tooltip("화면에 띄울 문구.")]
+        [SerializeField] private string prompt = "집어 든다";
 
         [Header("드는 자세")]
         [Tooltip("눈을 기준으로 어디에 들리나. 조준선을 가리지 않게 아래로 내려 둔다.")]
