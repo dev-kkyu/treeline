@@ -146,6 +146,9 @@ namespace Treeline
 
         private void Awake()
         {
+            HudGuideText.AttachTo(transform);
+            ScreenFrostEffect.AttachTo(transform, motor != null ? motor.transform : transform.root);
+
             if (crosshair != null)
             {
                 crosshairRect = crosshair.rectTransform;
@@ -256,6 +259,24 @@ namespace Treeline
             Blackout(0.12f);
         }
 
+        /// <summary>UnityEvent에서 호출할 수 있는 고정형 HUD 안내.</summary>
+        public void ShowGuide(string message)
+        {
+            HudGuideText.Show(message, 0f);
+        }
+
+        /// <summary>코드에서 호출하는 자동 종료형 HUD 안내.</summary>
+        public void ShowGuide(string message, float seconds)
+        {
+            HudGuideText.Show(message, seconds);
+        }
+
+        /// <summary>현재 HUD 안내를 닫는다.</summary>
+        public void HideGuide()
+        {
+            HudGuideText.Hide();
+        }
+
         /// <summary>
         /// 게이지를 전부 치운다. 조작을 뺏기는 연출이 들어올 때 부른다.
         /// </summary>
@@ -267,6 +288,8 @@ namespace Treeline
         public void HideForCutscene()
         {
             cutscene = true;
+            HudGuideText.HideImmediate();
+            ScreenFrostEffect.HideImmediate();
 
             SetGroupAlpha(healthGroup);
             SetGroupAlpha(ammoGroup);
