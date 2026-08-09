@@ -8091,6 +8091,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1324389288}
+  - {fileID: 604199696}
   m_Father: {fileID: 1613344331}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &158722621
@@ -8108,6 +8109,7 @@ MonoBehaviour:
   kind: 3
   prompt: "\uC0B0\uD0C4\uCD1D\uC744 \uC9D1\uB294\uB2E4"
   amount: 120
+  hideIfAlreadyOwned: 1
   takeClip: {fileID: 8300000, guid: 65bce2e72f539a940876d9a829d80499, type: 3}
   deniedClip: {fileID: 8300000, guid: d2cc94a6e7444c245b89eac71cc9cde1, type: 3}
   sfxVolume: 0.85
@@ -26155,12 +26157,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 604199695}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.601815, y: 0, z: 0, w: 0.79863554}
-  m_LocalPosition: {x: -7.2, y: 12.4, z: 8.4}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.3705143, y: -0.62933344, z: 0.47423667, w: 0.49168918}
+  m_LocalPosition: {x: -0.3881179, y: 1.7799997, z: -0.09676862}
+  m_LocalScale: {x: 1, y: 0.9999999, z: 0.9999999}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1613344331}
+  m_Father: {fileID: 158722620}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!108 &604199697
 Light:
@@ -42666,7 +42668,6 @@ Transform:
   - {fileID: 2102695215}
   - {fileID: 216597896}
   - {fileID: 158722620}
-  - {fileID: 604199696}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1613448163

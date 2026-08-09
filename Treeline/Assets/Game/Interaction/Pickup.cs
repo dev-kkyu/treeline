@@ -14,7 +14,7 @@ namespace Treeline
         /// <summary>권총. 3장 경비 캐비닛.</summary>
         Pistol = 2,
 
-        /// <summary>산탄총. 5장.</summary>
+        /// <summary>산탄총. 4장 입구 캣워크.</summary>
         Shotgun = 3,
 
         /// <summary>
@@ -57,6 +57,9 @@ namespace Treeline
         [Tooltip("배터리는 초, 탄약은 발수. 손전등과 총은 보지 않는다.")]
         [SerializeField] private float amount = 120f;
 
+        [Tooltip("이미 들고 있으면 시작할 때 사라진다. 앞 장에서 얻는 것을 뒷장에 안전망으로 한 번 더 놓을 때 켠다.")]
+        [SerializeField] private bool hideIfAlreadyOwned;
+
         [Tooltip("주웠을 때. 종류마다 다른 것을 넣는다 — 배터리 · 탄약 · 그 외.")]
         [SerializeField] private AudioClip takeClip;
 
@@ -77,6 +80,70 @@ namespace Treeline
         private void Reset()
         {
             gameObject.layer = GameLayers.Interactable;
+        }
+
+        /// <summary>안전망으로 놓인 것이면 이미 들고 있는지 보고 치운다.</summary>
+        /// <remarks>
+        /// <para>
+        /// <c>Start</c> 여야 한다. 이전 장에서 들고 온 것은
+        /// <see cref="GameFlow"/> 가 <c>sceneLoaded</c> 에서 되돌리므로, 그보다
+        /// 이른 <c>Awake</c> 에서는 <b>아직 빈손</b>이다.
+        /// </para>
+        /// <para>
+        /// 켜는 것은 <b>한 물건이 두 장에 놓인 자리</b>뿐이다 (5장 문간 산탄총 —
+        /// 5장부터 단독으로 시연할 때의 안전망이고, 정주행하면 4장에서 이미 얻는다).
+        /// 기본값으로 두지 않은 것은 이 규칙이 조용히 틀리는 방향이기 때문이다 —
+        /// 잘못 걸리면 <b>없는 획득물</b>이 되고, 1장 손전등처럼 없으면 장이 진행되지
+        /// 않는 것에서 그 증상은 원인을 짚기 어렵다.
+        /// </para>
+        /// </remarks>
+        private void Start()
+        {
+            if (!hideIfAlreadyOwned || !AlreadyHeld())
+            {
+                return;
+            }
+
+            taken = true;
+            gameObject.SetActive(false);
+        }
+
+        /// <returns>플레이어가 이것이 주는 것을 이미 들고 있으면 참.</returns>
+        private bool AlreadyHeld()
+        {
+            GameObject player = GameObject.FindWithTag("Player");
+            if (player == null)
+            {
+                return false;
+            }
+
+            switch (kind)
+            {
+                case PickupKind.Flashlight:
+                {
+                    var flashlight = player.GetComponentInChildren<Flashlight>(true);
+                    return flashlight != null && flashlight.IsOwned;
+                }
+
+                case PickupKind.Pistol:
+                case PickupKind.Shotgun:
+                {
+                    WeaponKind want = kind == PickupKind.Pistol ? WeaponKind.Pistol : WeaponKind.Shotgun;
+                    foreach (PlayerWeapon weapon in player.GetComponentsInChildren<PlayerWeapon>(true))
+                    {
+                        if (weapon.Kind == want)
+                        {
+                            return weapon.IsOwned;
+                        }
+                    }
+
+                    return false;
+                }
+
+                default:
+                    // 배터리에는 「이미 들고 있다」가 없다. 얼마든지 더 주울 수 있다.
+                    return false;
+            }
         }
 
         public void Interact(GameObject who)
