@@ -1366,22 +1366,24 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
   화면 아래를 채우므로 1인칭 거리에서 견뎌야 한다. 「무거운 것을 들면 총을 못 쓴다」가
   이 물건 하나로 성립한다
 
-### A2. 디젤 발전기 `DieselGenerator` — 우선순위 A
+### A2. 디젤 발전기 `DieselGenerator` — 우선순위 A · **모듈 하나만 뽑는다**
 
-    Large skid-mounted diesel generator set, a ribbed engine block coupled to a
-    cylindrical alternator on a steel base frame, a boxy radiator with a
-    grille at one end, exhaust pipe rising from the top with a rain cap, a
-    control panel with dials on the side, anti-vibration mounts at the corners.
-    Worn matte grey-green paint over steel, heavy rust at the base, soot
-    staining around the exhaust. Low-poly, game-ready, clean topology. No baked
-    shadows, no baked ambient occlusion. No branding, no text, no decals.
+    One repeating module of a very large skid-mounted diesel generator set, a
+    ribbed engine block section on a heavy steel base frame, cooling pipework
+    and a small access panel with dials on one side, anti-vibration mounts
+    along the bottom, and a flat bolted flange face at each end so identical
+    modules butt together in a straight line. Worn matte grey-green paint over
+    steel, heavy rust at the base, soot staining on the upper surfaces.
+    Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
+    occlusion. No branding, no text, no decals.
 
-- 치수: 3.0 × 1.8 × 1.3m
-- 축: 라디에이터가 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
-- 바꿀 곳: `Ch4` `Props/Generator` (지금 `MachineBlock`)
+- 치수: **2.40 × 3.00 × 3.50m (모듈 하나)** — 네 번 이어 붙여 14m 가 된다
+- 축: 길이가 `+Z`, 위 `+Y` · 피벗: **바닥면 중앙**
+- 바꿀 곳: `Ch4` 홀 `Props/Generator` (지금 `MachineBlock` 4 + 0.72 배 1)
 - 부품 분리: 불필요
-- 비고: **4장 전체가 이것을 돌리려고 존재한다.** 범용 기계 덩어리로 두면 그 장의
-  목표가 화면에 안 보인다
+- 비고: **14m 를 통짜로 뽑지 않는다.** Meshy 가 그 비율을 못 지키고, 길면 텍스처가
+  늘어난다. 배관 · 밸브 · 드럼은 기존 소품을 그대로 얹는다. 치수는 `Ch4` 에 실제로
+  서 있는 대역을 A 가 잰 값이다
 
 ### A3. 축전지 랙 `BatteryRack` — 우선순위 A
 
@@ -1393,12 +1395,14 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
     No baked shadows, no baked ambient occlusion. No branding, no text,
     no decals.
 
-- 치수: 2.0 × 1.5 × 0.7m
-- 축: 앞 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
-- 바꿀 곳: `Ch4` `Props/Battery` (지금 `ControlConsole`)
+- 치수: **2.00 × 0.95 × 1.40m (2칸 모듈)** — 네 번 이어 붙여 8칸 8m 가 된다
+- 축: 앞 `-Z`, 위 `+Y` · 피벗: **바닥면 중앙**
+- 바꿀 곳: `Ch4` 축전지실 `Props/Battery` (지금 받침 큐브 + `Crate` 8)
 - 부품 분리: 불필요
 - 비고: 축전지실이 이 장에서 밀도가 가장 높은 장치다 — 위협 · 제약 · 무기가 한
-  물건에 겹친다. **여기서 쏘면 터진다**는 규칙이 화면에서 읽히려면 축전지로 보여야 한다
+  물건에 겹친다. **여기서 쏘면 터진다**가 화면에서 읽히려면 축전지로 보여야 한다.
+  발전기와 같은 이유로 **8m 를 통짜로 뽑지 않고 모듈로 뽑는다.** 총 치수는 `Ch4` 에
+  서 있는 대역을 A 가 잰 값이다
 
 ### A4. 환기 팬 `VentFan` — 우선순위 A
 
@@ -1409,14 +1413,16 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
     edges, dust caked on the guard. Low-poly, game-ready, clean topology. No
     baked shadows, no baked ambient occlusion. No branding, no text, no decals.
 
-- 치수: 1.4 × 1.4 × 0.5m
-- 축: 바람이 `+Z`, 위 `+Y` · 피벗: 뒷면 중앙 (벽에 박힌다)
-- 놓을 곳: `Ch4` 축전지실 벽 (`FanDevice` 가 이미 있고 메시가 없다)
+- 치수: **지름 2.60m · 두께 0.35m**
+- 축: 축이 `+Z`, 위 `+Y` · 피벗: **하우징 뒷면** (벽에 박힌다)
+- 놓을 곳: `Ch4` 축전지실 북벽 · 홀 북벽(3.4 배로 키워 쓴다). `FanDevice` 는 이미
+  있고 메시가 없다
 - 부품 분리: **날개.** 돌아야 하므로 허브에서 나눈다. 프롬프트에
   `the bladed rotor sitting inside the housing with a visible air gap around it,
   not fused to the frame` 를 덧붙인다
 - 비고: 기획의 「환기 팬을 먼저 돌린다 — 시간이 걸리고 그동안 밖에서 버텨야 한다」가
-  이 물건이다. **도는 것이 보여야 기다리는 시간이 읽힌다**
+  이 물건이다. **도는 것이 보여야 기다리는 시간이 읽힌다.** 날개가 따로 있어야
+  `Spin` 이 그것만 돌린다 — 하우징까지 같이 돌면 벽이 돈다. 치수는 A 가 잰 값이다
 
 ### A5. 배전반 `Switchboard` — 우선순위 A
 
@@ -1428,12 +1434,15 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
     game-ready, clean topology. No baked shadows, no baked ambient occlusion.
     No branding, no text, no decals.
 
-- 치수: 0.9 × 2.0 × 0.5m
-- 축: 문이 `+Z`, 위 `+Y` · 피벗: 바닥 중앙
-- 놓을 곳: `Ch4` (지금 0.45m 짜리 `JunctionBox` 로 대신) · `Ch6` 배전반 절차
+- 치수: **1.00 × 2.00 × 0.35m**
+- 축: 앞 `-Z`, 위 `+Y` · 피벗: **벽에 닿는 뒷면**
+- 놓을 곳: `Ch4` 정비구 서벽 · 축전지실 서벽 (지금 `JunctionBox` 0.80 × 0.90 × 0.72)
 - 부품 분리: 불필요 (문은 열린 채로 뽑는다)
 - 비고: 「차단기 두 개를 찾아 올린다」의 무대다. 레버는 `WallLever` 가 맡으므로
-  **이것은 배경**이지만, 작은 정션박스로는 「배전반을 찾아다닌다」가 안 된다
+  이것은 배경이지만, 작은 정션박스로는 「배전반을 찾아다닌다」가 안 된다.
+  IMPORTANT: **`JunctionBox` 를 키운 것으로 만들지 않는다.** 그것은 2장에서 배우는
+  물건이라, 같은 모델이 커져서 나오면 「2장에서 본 그 배전함」으로 읽혀 4장이 새
+  장소로 안 보인다. 치수는 A 가 잰 값이다
 
 ### A6. 배터리 `BatteryCell` — 우선순위 A
 
@@ -1458,9 +1467,10 @@ IMPORTANT: **`no branding, no text, no decals` 를 넣었는데도 글자가 나
     Low-poly, game-ready, clean topology. No baked shadows, no baked ambient
     occlusion. No branding, no text, no decals.
 
-- 치수: 2.0 × 1.6 × 1.2m (덩어리 하나)
+- 치수: **막은 2~5m, 늘어진 가닥은 1.5~4.5m** — `Ch4/Nest` 76 조각이 그 범위다.
+  덩어리 하나를 3m 안팎으로 뽑아 스케일로 맞춘다
 - 축: 붙는 면이 `-Z`, 위 `+Y` · 피벗: 붙는 면 중앙
-- 바꿀 곳: `Ch4` `Nest/Web_Ceil_*` (지금 **원통 수십 개**)
+- 바꿀 곳: `Ch4` `Nest` 76 조각 (지금 실린더 · 납작 큐브에 `W_nest`)
 - 부품 분리: 불필요
 - 비고: **이 장의 정체가 이 물건이다.** 표면(`nest` · `nest_floor` · `nest_fiber`)은
   이미 있으므로 여기서 얻을 것은 **덩어리진 형태**다. 원통은 촉수로 안 읽힌다.
@@ -1621,16 +1631,24 @@ IMPORTANT: 1 · 2 · 6장을 실제로 재보고 나온 추가 항목이
 
 | 소품 | 어느 장 | 왜 미루나 |
 | --- | --- | --- |
-| 권총 (슬라이드 · 탄창 분리) | 3장 | **지금 빌드에서 화면에 안 나온다** |
-| 산탄총 (펌프 분리) | 5장 | 같음 |
-| 연료통 | 3장 · 6장 | 이 단계의 6장에 연료 절차가 없다 |
-| 배터리 · 탄약 상자 | 3장~ | 지금 배치된 곳이 없다 |
-| 갱도 지지 프레임 · 손수레 | 3장 | 레벨 없음 |
+| ~~권총 (슬라이드 · 탄창 분리)~~ | 3장 | **들어왔다** — `Player/Models/Pistol.fbx` |
+| ~~산탄총 (펌프 분리)~~ | 5장 | **들어왔다** — `Player/Models/Shotgun.fbx` |
+| ~~연료통~~ | 3장 · 6장 | **3차 A1** |
+| ~~배터리~~ · 탄약 상자 | 3장~ | 배터리는 **3차 A6**. 탄약은 `PistolMag` 픽업이 맞아 뺐다 |
+| ~~갱도 지지 프레임 · 손수레~~ | 3장 | **3차 B4 · B5** |
 | ~~디젤 발전기 · 배전반 · 축전지 랙 · 환기 팬~~ | 4장 | **레벨이 생겼다. 치수는 아래에** |
 | ~~유기물 데코 (둥지)~~ | 4장 | **같음** |
-| 철탑 구조재 · 안테나 접시 · 로터리 제설기 · 제설포 | 5장 | 레벨 없음 |
+| ~~철탑 구조재 · 안테나 접시 · 로터리 제설기~~ · ~~제설포~~ | 5장 | **3차 B6 · B9 · B8 · 2차 N2** |
+
+**이 표는 이제 비었다.** 남은 미해결은 1장 「움직이는 계기」뿐이고 그것은 모델이
+아니라 회전 · 점멸 스크립트다 ([`chapter-atmosphere.md`](chapter-atmosphere.md)).
 
 ### 4장 전용 5종 — 자리를 세워 치수를 잡았다 (2026-08-09)
+
+IMPORTANT: **이 표의 치수가 3차 프롬프트의 A2~A5 · A7 에 반영되어 있다.** 처음에는
+이 표를 안 읽고 상상으로 치수를 써서 발전기를 14m 가 아니라 3m 로, 축전지 랙을 8m 가
+아니라 2m 로, 환기 팬을 지름 2.6m 가 아니라 1.4m 로 적었다. **씬에 대역이 서 있으면
+그것을 재는 것이 항상 먼저다.**
 
 `Ch4.unity` 를 지으면서 **기존 30종으로 자리를 대신 세웠다.** 아래 치수는 상상이
 아니라 씬에 실제로 서 있는 물건의 크기다. 뽑아 오면 그 자리를 갈아끼운다.
