@@ -1,4 +1,4 @@
-> 상태: 작성 중 · 최종 수정 2026-08-05
+> 상태: 작성 중 · 최종 수정 2026-08-09
 
 # AI 개발 환경 구축 명세
 
@@ -24,6 +24,7 @@
 | `.claude/skills/milestone/` | `/milestone` 명령 | 호출 시 |
 | `.claude/hooks/` | 도구 호출 차단·기록 | 해당 이벤트마다 |
 | `.claude/statusline.ps1` | 상태줄 | 세션 중 계속 |
+| `.claude/umcp.ps1` | Unity MCP 를 HTTP 로 직접 호출 | 도구가 안 붙었을 때만 |
 | `.mcp.json` | Unity MCP 서버 등록 | 세션 시작 시 |
 
 ### 훅
@@ -153,6 +154,37 @@ MCP 는 「에디터를 만져야 하는 순간」에 필요하고 그 순간은
 
 두 번째가 특히 안 알려주면 모르는 것이다. 사용자 입장에서는 Unity 를 켰으니
 됐다고 보는데 세션에는 아무 변화가 없다.
+
+#### 세션을 다시 열지 않고 붙이는 길
+
+2026-08-09 에 알게 된 것. **세션을 다시 여는 것이 유일한 길이 아니다.**
+`.mcp.json` 이 등록한 것은 특별한 무엇이 아니라 그냥 로컬 HTTP 서버다.
+
+```json
+{ "mcpServers": { "UnityMCP": { "type": "http", "url": "http://127.0.0.1:8080/mcp" } } }
+```
+
+세션에 도구로 안 붙었을 뿐 **서버는 그대로 살아 있으므로**, PowerShell 로 직접
+JSON-RPC 를 보내면 같은 일을 다 할 수 있다. `initialize` 로 받은
+`Mcp-Session-Id` 를 이후 요청 헤더에 실어 보내고, 응답은 SSE 라 `data: ` 줄만
+떼어 읽으면 된다. `tools/list` 로 목록을, `tools/call` 로 실행을 한다.
+
+그 절차를 `.claude/umcp.ps1` 에 넣어 두었다. 인자를 파일로도 받으므로
+`execute_code` 에 넣을 C# 을 따옴표 탈출 없이 그대로 보낼 수 있다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .claude/umcp.ps1 -List
+... -Tool read_console -ArgsJson '{"action":"get"}'
+... -Tool execute_code -ArgsFile scratch\pose.cs
+```
+
+주의할 점 둘. `execute_code` 는 `action` 이 필수라 `{action:"execute", code:...}`
+로 보내야 하고, `refresh_unity` 의 `compile` 은 불리언이 아니라 `"request"` 다.
+인자 이름이 틀리면 서버가 무엇이 틀렸는지 알려주므로 한 번 두드려 보면 된다.
+
+**세션을 다시 여는 쪽이 여전히 낫다.** 도구가 목록에 있으면 스키마를 아는 채로
+쓰고, 이 우회로는 인자 모양을 매번 맞춰 봐야 한다. 다만 사용자가 세션을 유지하고
+싶어 하거나 확인할 것이 몇 개뿐일 때는 이쪽이 훨씬 싸다.
 
 ### 규칙과 문서의 역할 분리
 

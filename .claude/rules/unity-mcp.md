@@ -32,6 +32,10 @@ git fetch origin -q && git diff --stat HEAD..origin/develop -- <프로젝트>/As
 2. **켜져 있는데도 도구가 없으면 세션이 시작할 때 서버가 없었던 것이다.** MCP 는
    세션 시작 시점에 붙는다. `exit` 후 **`claude -c`** 로 다시 열어 달라고 한다.
    `-c` 를 붙여야 대화가 이어진다
+3. **사용자가 세션을 유지하고 싶어 하면 HTTP 로 직접 붙는다.** 도구로 안 붙었을
+   뿐 서버는 살아 있다. `.claude/umcp.ps1 -List` 로 목록을 보고 `-Tool` 로 부른다.
+   자세한 건 [`docs/ai/setup.md`](../../docs/ai/setup.md) 의
+   「세션을 다시 열지 않고 붙이는 길」
 
 ## 쓸 때
 
