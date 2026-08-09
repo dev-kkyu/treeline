@@ -29,6 +29,9 @@ namespace Treeline
         /// <summary>맨손. 아무 무기도 안 들었을 때.</summary>
         private const string StateIdle = "Arms_Idle";
 
+        /// <summary>쓰러지는 동작. 한 번 들어가면 안 나온다.</summary>
+        private const string StateDeath = "Arms_Death";
+
         [Tooltip("팔 리그의 Animator. 비우면 자식에서 찾는다.")]
         [SerializeField] private Animator animator;
 
@@ -58,6 +61,7 @@ namespace Treeline
         private float returnToIdleAt = float.PositiveInfinity;
         private Renderer[] armsRenderers;
         private bool wasCarrying;
+        private bool dead;
         private bool weaponHidden;
 
         /// <summary>이번 프레임에 상호작용이 일어났다. <c>Update</c> 가 처리한다.</summary>
@@ -497,8 +501,38 @@ namespace Treeline
 
         public void Died() { }
 
+        /// <summary>
+        /// 죽었다. <b>쓰러지는 동작을 걸고 여기서 멈춘다.</b>
+        /// </summary>
+        /// <remarks>
+        /// 체력이 다해 죽는 쪽만 이걸 쓴다. 6 장 처형은 팔을 아예 걷어내므로
+        /// 부를 일이 없다 — <see cref="HideOnDeath"/> 가 어느 쪽인지 가른다.
+        /// <para>
+        /// 되돌아갈 시각을 무한대로 밀어 두는 것만으로는 부족하다. 무기 교체나
+        /// 상호작용이 한 박자 늦게 들어오면 쓰러지던 팔이 쉬기 자세로 튄다.
+        /// <see cref="Play"/> 자체를 막는다.
+        /// </para>
+        /// </remarks>
+        public void PlayDeath()
+        {
+            if (dead)
+            {
+                return;
+            }
+
+            dead = true;
+            returnToIdleAt = float.PositiveInfinity;
+            Play(StateDeath);
+        }
+
         private void Play(string state)
         {
+            // 죽은 뒤에는 무엇도 덮어쓰지 않는다.
+            if (dead && state != StateDeath)
+            {
+                return;
+            }
+
             if (animator != null && animator.isActiveAndEnabled)
             {
                 animator.CrossFadeInFixedTime(state, blendSeconds, 0);
