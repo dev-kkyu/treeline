@@ -1,7 +1,8 @@
 # Unity 연결 계약
 
-상태: 2026-08-09. **FBX와 클립 9종은 임포트까지 끝났다.** `Clinger.cs`,
-`Clinger.prefab`, Animator Controller는 아직 없다.
+상태: 2026-08-09. **FBX · 클립 9종 · `Clinger.cs` · `AC_Clinger` · `Clinger.prefab`
+까지 끝났다.** 4장에 12 마리를 놓고 천장 → 낙하 → 착지 → 지상 → 사망을 플레이
+모드에서 확인했다. 남은 것은 소리 배선뿐이다(아래 「아직 안 한 것」).
 
 ## 들어와 있는 것
 
@@ -205,9 +206,43 @@ Clinger 는 `Humanoid`(반경 0.5 · 높이 2.0)를 쓴다.
 bay(천장 3.2 m)에는 더 높은 자리가 없다. 09 · 10 은 옮기지 않고 스침을 의도로
 남겼다 — bay 를 빠져나오는 순간 머리 바로 위에서 떨어지는 것이 이 방의 설계다.
 
+## 붙인 결과 (2026-08-09 · A)
+
+계약을 그대로 옮겼다. 값은 위 절들과 같고, 갈린 자리만 적는다.
+
+| 만든 것 | 어디 |
+| --- | --- |
+| `Clinger.cs` | `Assets/Game/Enemy/Clinger.cs` — `IDamageable` · `IHunter` |
+| `ClingerAnimationEvents.cs` | 같은 폴더. `Crawler` 와 같은 이유로 중계기를 둔다 |
+| `AC_Clinger.controller` | `Assets/Game/Enemy/Animation/` — 상태 10 · 파라미터 8 |
+| `Clinger.prefab` | `Assets/Game/Enemy/` |
+
+**파라미터가 계약보다 하나 많다 — `Grounded`(Trigger).** `Death_Fall → Death` 를
+「바닥 접촉」으로 잇는 데 쓴다. 시간으로 재면 8m 에서 떨어질 때 `Death_Fall`(0.567초)
+이 먼저 끝나 **공중에서 지상 사망 자세가 된다.** 시체가 바닥에 닿는 프레임에 코드가
+친다.
+
+`GroundPose` 는 `Clinger_Land` 를 **speed 0 · cycleOffset 1** 로 둔 상태다. 마지막
+프레임 단일 포즈라는 계약을 클립 하나로 만족시킨다.
+
+**천장에서 맞으면 떨어진다.** 계약에 없던 판단이라 적어 둔다 — 천장의 놈을 안전하게
+쏠 수 있으면 위협이 통째로 사라진다. 한 대라도 맞으면 `Drop()` 이 걸린다.
+
+### 4장 배치 (2026-08-09)
+
+앵커 12 개에 12 마리. `dropRadius` 3.2m 안에 플레이어가 들어오고 **1.5m 이상 아래**
+에 있을 때 떨어진다. 떨어지기 전에 `Cling_Tremor` 가 0.45초 예고로 나간다.
+
+**발전기 예열 30초에 남은 것을 떨군다.** `GeneratorDevice.started` 에 홀 중앙 다섯
+(`Clinger_01`~`05`)의 `Drop()` 을 걸어 두었다. 이미 내려온 것은 `Drop()` 이 무시하므로
+**플레이어가 피해 다닌 만큼 그때 한꺼번에 온다.**
+
 ## 아직 안 한 것
 
-- `Clinger.cs`, `Clinger.prefab`, `AC_Clinger` — 3장 작업과 함께 붙인다.
+- **소리 9종이 안 걸려 있다.** `Clinger.cs` 에 `UnityEvent` 여섯(`tremored` ·
+  `dropped` · `landed` · `attackHit` · `hurt` · `died`)을 열어 두었으니 프리팹에서
+  `AudioSource` 를 꽂으면 된다. `Crawler` 처럼 별도 `ClingerAudio` 를 만들지 않은
+  이유는 그 파일이 거의 복사본이 되기 때문이다
 - LOD1/LOD2 — 프로파일에서 실제로 걸릴 때 만든다.
   → [`MODEL-SPEC.md`](../MODEL-SPEC.md) 4절
 - `Clinger_Roughness.png`는 임포트만 돼 있고 머터리얼이 쓰지 않는다. 생성 텍스처의
