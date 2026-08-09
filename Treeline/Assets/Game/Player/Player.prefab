@@ -1884,7 +1884,7 @@ MonoBehaviour:
   startsOwned: 0
   magazineSize: 8
   maxReserve: 24
-  startingAmmo: 0
+  startingAmmo: 8
   reloadSeconds: 1.8
   recoilUpDegrees: 1.6
   recoilSideDegrees: 0.6
@@ -2877,7 +2877,7 @@ MonoBehaviour:
   startsOwned: 0
   magazineSize: 2
   maxReserve: 12
-  startingAmmo: 0
+  startingAmmo: 2
   reloadSeconds: 2.6
   recoilUpDegrees: 3.4
   recoilSideDegrees: 1.2
