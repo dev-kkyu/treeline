@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 namespace Treeline
 {
     /// <summary>
-    /// 2장에서 도주에 필요한 조작을 다시 확인하고 히터·셔터 순서만 안내한다.
+    /// 2장에서 도주에 필요한 조작을 다시 확인하고 히터 순서만 안내한다.
     /// 무기가 없는 장이므로 전투 입력은 노출하지 않는다.
     /// </summary>
     [DisallowMultipleComponent]
@@ -27,7 +27,6 @@ namespace Treeline
         private Transform playerRoot;
         private PlayerInputReader input;
         private TimedDevice heater;
-        private InstantDevice shutter;
         private Stage stage;
         private float completeUntil;
         private float nextObjectiveReminder;
@@ -60,7 +59,6 @@ namespace Treeline
 
             input = playerRoot.GetComponentInChildren<PlayerInputReader>(true);
             heater = FindDevice<TimedDevice>("Heater");
-            shutter = FindDevice<InstantDevice>("Shutter");
 
             if (input == null)
             {
@@ -183,12 +181,10 @@ namespace Treeline
                 return 2;
             }
 
-            if (shutter == null || !shutter.IsActive)
-            {
-                return 3;
-            }
-
-            return 4;
+            // 셔터 레버는 단계가 아니다. 셔터가 처음부터 내려와 있지 않아 길을 막지
+            // 않으므로, 예열이 끝나면 레버를 건드리지 않아도 그대로 나가진다. 목표로
+            // 세워 두면 하지 않아도 되는 일이 해야 하는 일처럼 읽힌다.
+            return 3;
         }
 
         private static T FindDevice<T>(string namePart) where T : Component
