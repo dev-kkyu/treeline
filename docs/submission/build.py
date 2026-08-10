@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """제출 PDF 3종 빌드 — 원본 마크다운을 공용 CSS 를 거쳐 PDF 로 변환한다.
 
+    pip install markdown                     # 한 번만. 그 외에는 Chrome(또는 Edge)뿐
     python docs/submission/build.py          # HTML + PDF
     python docs/submission/build.py --html   # HTML 만 (눈으로 확인용)
 
 원본을 여기서 고치지 않는다. 내용이 틀렸으면 원본을 고치고 다시 돌린다.
+HTML 은 매번 원본에서 다시 만드는 중간물이라 커밋하지 않는다 — 커밋하면
+원본을 고치고 빌드를 안 돌렸을 때 낡은 HTML 이 원본처럼 남는다.
 """
 import io
 import os
