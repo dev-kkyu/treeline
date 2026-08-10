@@ -69,6 +69,15 @@ namespace Treeline
         [Tooltip("한 발에 좌우로 틀어지는 각도. 방향은 매번 무작위다.")]
         [SerializeField] private float recoilSideDegrees = 0.6f;
 
+        [Tooltip("발사 순간 시야각이 넓어졌다 돌아오는 양. 총이 무겁게 느껴지는 대부분이 여기서 온다.")]
+        [SerializeField] private float recoilFovPunch = 1.2f;
+
+        [Tooltip("발사 순간 화면이 떨리는 크기. 0 이면 안 떤다.")]
+        [SerializeField] private float recoilShakeDegrees = 0.35f;
+
+        [Tooltip("그 떨림이 잦아드는 시간(초). 길면 연사가 지저분해진다.")]
+        [SerializeField] private float recoilShakeSeconds = 0.1f;
+
         [Header("재장전 동작")]
         [Tooltip("재장전 중에 총이 내려가는 깊이(m).")]
         [SerializeField] private float reloadDipMeters = 0.1f;
@@ -257,7 +266,12 @@ namespace Treeline
 
             if (look != null)
             {
-                look.AddRecoil(recoilUpDegrees, UnityEngine.Random.Range(-recoilSideDegrees, recoilSideDegrees));
+                look.AddRecoil(
+                    recoilUpDegrees,
+                    UnityEngine.Random.Range(-recoilSideDegrees, recoilSideDegrees),
+                    recoilFovPunch,
+                    recoilShakeDegrees,
+                    recoilShakeSeconds);
             }
         }
 

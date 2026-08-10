@@ -142,10 +142,27 @@ namespace Treeline
         /// ponytail: 반동이 전부 제자리로 돌아온다. 조준선이 영구히 밀리지 않으므로
         /// 되돌려 당기는 조작이 없다. 그 감각이 필요해지면 복구량을 100% 미만으로 낮춘다.
         /// </remarks>
-        public void AddRecoil(float upDegrees, float sideDegrees)
+        /// <param name="fovPunchDegrees">발사 순간 시야각을 넓혔다 돌리는 양. 0 이면 안 한다.</param>
+        /// <param name="shakeDegrees">발사 순간 떨림의 크기. 0 이면 안 한다.</param>
+        /// <param name="shakeSeconds">그 떨림이 잦아드는 시간.</param>
+        public void AddRecoil(float upDegrees, float sideDegrees,
+            float fovPunchDegrees = 0f, float shakeDegrees = 0f, float shakeSeconds = 0.12f)
         {
             recoil.y += upDegrees;
             recoil.x += sideDegrees;
+
+            // 각도만 튀면 총이 가볍다. 시야각과 떨림이 같은 순간에 얹혀야 한 방이
+            // 무거워진다. 맞았을 때 쓰는 것과 같은 장치를 그대로 빌려 쓴다 — 화면을
+            // 흔드는 장치가 둘이 되면 서로 덮어쓴다.
+            if (fovPunchDegrees > 0f)
+            {
+                fovPunch = Mathf.Max(fovPunch, fovPunchDegrees);
+            }
+
+            if (shakeDegrees > 0f && shakeSeconds > 0f)
+            {
+                Shake(shakeDegrees, shakeSeconds);
+            }
         }
 
         /// <summary>

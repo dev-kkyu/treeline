@@ -140,6 +140,14 @@ MonoBehaviour:
   shakeDegrees: 1.6
   shakeSeconds: 0.7
   shakeFrequency: 22
+  hitKickDegrees: 3.4
+  hitRollDegrees: 5
+  hitRecovery: 5.5
+  hitFovPunch: 4
+  fovRecovery: 6
+  collapseRollDegrees: 24
+  collapsePitchDegrees: 16
+  collapseSeconds: 1.1
 --- !u!114 &1000013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,6 +163,7 @@ MonoBehaviour:
   maxHealth: 3
   invulnerableSeconds: 0.8
   input: {fileID: 1000010}
+  look: {fileID: 0}
 --- !u!114 &1000015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1916,8 +1925,11 @@ MonoBehaviour:
   startsOwned: 0
   magazineSize: 8
   reloadSeconds: 1.8
-  recoilUpDegrees: 1.6
-  recoilSideDegrees: 0.6
+  recoilUpDegrees: 2.4
+  recoilSideDegrees: 0.85
+  recoilFovPunch: 1.4
+  recoilShakeDegrees: 0.35
+  recoilShakeSeconds: 0.1
   reloadDipMeters: 0.1
   reloadTiltDegrees: 30
   reloadRollDegrees: 16
@@ -2920,8 +2932,11 @@ MonoBehaviour:
   startsOwned: 0
   magazineSize: 4
   reloadSeconds: 2.6
-  recoilUpDegrees: 3.4
-  recoilSideDegrees: 1.2
+  recoilUpDegrees: 7.5
+  recoilSideDegrees: 2.2
+  recoilFovPunch: 4.5
+  recoilShakeDegrees: 1.2
+  recoilShakeSeconds: 0.2
   reloadDipMeters: 0.1
   reloadTiltDegrees: 30
   reloadRollDegrees: 16
