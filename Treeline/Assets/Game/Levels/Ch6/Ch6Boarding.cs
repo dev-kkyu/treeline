@@ -50,10 +50,10 @@ namespace Treeline
         [SerializeField] private AudioSource runSound;
 
         [Header("제설포")]
-        [Tooltip("돌아갈 몸통. 쏘기 전에 그것 쪽으로 튼다.")]
+        [Tooltip("돌아갈 몸통. 쏘기 전에 그것 쪽으로 튼다. 포신은 이 몸통의 -z 다.")]
         [SerializeField] private Transform cannonBody;
 
-        [Tooltip("포구. 여기서 나간다.")]
+        [Tooltip("포구. 여기서 나간다. 포신 끝(몸통 기준 -z)에 둔다.")]
         [SerializeField] private Transform muzzle;
 
         [Tooltip("날아가는 포탄. 평소에는 꺼 둔다.")]
@@ -170,7 +170,10 @@ namespace Treeline
                 aim.y = 0f;
                 if (aim.sqrMagnitude > 0.001f)
                 {
-                    cannonBody.rotation = Quaternion.LookRotation(aim.normalized, Vector3.up);
+                    // IMPORTANT: 이 모델은 **포신이 로컬 -z** 다 (+z 는 가스통 쪽).
+                    // LookRotation 은 +z 를 겨누므로 그대로 주면 포신이 반대로 돌고
+                    // 포탄이 뒤에서 나간다. 눈으로 보기 전에는 값이 다 맞아 보인다.
+                    cannonBody.rotation = Quaternion.LookRotation(-aim.normalized, Vector3.up);
                 }
             }
 
