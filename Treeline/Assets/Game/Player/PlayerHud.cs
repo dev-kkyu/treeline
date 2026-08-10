@@ -130,6 +130,7 @@ namespace Treeline
 
         private PlayerWeapon subscribed;
         private RectTransform crosshairRect;
+        private AmmoInfinityMark reserveMark;
 
         private float healthHighlightUntil = float.NegativeInfinity;
         private float ammoBlinkStart = float.NegativeInfinity;
@@ -160,6 +161,8 @@ namespace Treeline
             {
                 crosshairRect = crosshair.rectTransform;
             }
+
+            reserveMark = AmmoInfinityMark.AttachTo(ammoReserveText);
         }
 
         private void OnEnable()
@@ -429,9 +432,9 @@ namespace Treeline
         {
             if (subscribed == null)
             {
-                if (ammoReserveText != null)
+                if (reserveMark != null)
                 {
-                    ammoReserveText.text = string.Empty;
+                    reserveMark.ShowNothing();
                 }
 
                 SetTicksVisible(0, 0);
@@ -439,24 +442,47 @@ namespace Treeline
             }
 
             int loaded = subscribed.Loaded;
+            bool reloading = subscribed.IsReloading;
 
             // 다 쏴서 비었을 때만 알린다. 재장전으로 0 을 거쳐 가는 것은 알릴 일이 아니다.
-            if (loaded == 0 && lastLoaded > 0 && !subscribed.IsReloading)
+            if (loaded == 0 && lastLoaded > 0 && !reloading)
             {
                 ammoBlinkStart = Time.time;
             }
 
-            lastLoaded = loaded;
-
             SetTicksVisible(subscribed.MagazineSize, loaded);
 
-            if (ammoReserveText != null)
+            // 여분은 무한이라 셀 것이 없다. 숫자 대신 기호 하나를 두고, 그 기호가
+            // 눈금과 같이 반응하게 한다 — 눈금은 줄어드는데 이것만 안 줄어드는 것이
+            // 「여분은 무한」을 말하는 유일한 자리다. 비워 두면 「표시가 고장났나」로
+            // 읽히고, 「무한」이라고 쓰면 총알 이야기인지 알 수 없다.
+            if (reserveMark != null)
             {
-                // 여분은 무한이라 셀 것이 없다. 숫자 대신 기호 하나를 둔다 —
-                // 비워 두면 「표시가 고장났나」로 읽히고, 「무한」이라고 쓰면
-                // 총알 이야기인지 알 수 없다.
-                ammoReserveText.text = subscribed.IsReloading ? "재장전" : "x∞";
+                if (reloading)
+                {
+                    reserveMark.ShowReloading();
+                }
+                else
+                {
+                    reserveMark.ShowInfinite();
+
+                    if (loaded == 0 && lastLoaded > 0)
+                    {
+                        reserveMark.Surge();
+                    }
+                    else if (loaded < lastLoaded)
+                    {
+                        reserveMark.Nudge();
+                    }
+                    else if (loaded > lastLoaded && lastLoaded != int.MaxValue)
+                    {
+                        // 재장전이 끝났거나 총을 방금 주웠다. 탄창이 다시 찬 순간이다.
+                        reserveMark.Surge();
+                    }
+                }
             }
+
+            lastLoaded = loaded;
         }
 
         /// <summary>탄창 크기만큼 눈금을 켜고, 그중 남은 발수만 채운 색으로 둔다.</summary>
