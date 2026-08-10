@@ -19,6 +19,14 @@ namespace Treeline
         private const float HiddenOffset = 18f;
         private const float RowHeight = 46f;
 
+        /// <summary>임시 문구를 띄우는 동안의 패널 높이. 세 줄까지 담는다.</summary>
+        /// <remarks>
+        /// 패널은 원래 장의 목표 개수로만 크기가 정해진다. 목표가 적은 장은 250 까지
+        /// 줄어드는데, 조준 설명은 장과 무관하게 길 수 있어 그대로 두면 배경 밖으로
+        /// 넘친다. 그래서 임시 문구 동안만 이 높이로 키우고 목표로 돌아갈 때 되돌린다.
+        /// </remarks>
+        private const float TemporaryPanelHeight = 330f;
+
         [Serializable]
         private sealed class ObjectiveDatabase
         {
@@ -255,6 +263,7 @@ namespace Treeline
             temporaryCategory.text = category;
             temporaryMessage.text = message;
             LayoutTemporary(icon != null);
+            panelRect.sizeDelta = new Vector2(620f, TemporaryPanelHeight);
             progressText.text = icon != null ? "CONTROL" : "NOTICE";
             visibleUntil = seconds > 0f ? Time.unscaledTime + seconds : float.PositiveInfinity;
             targetAlpha = 1f;
@@ -411,6 +420,7 @@ namespace Treeline
             showingObjectives = true;
             objectiveRoot.SetActive(true);
             temporaryRoot.SetActive(false);
+            ResizePanel(definition.objectives.Length);
             int total = definition.objectives.Length;
             progressText.text = objectiveIndex >= total ? "CLEAR" : $"{objectiveIndex + 1:00} / {total:00}";
             visibleUntil = float.PositiveInfinity;
@@ -547,8 +557,10 @@ namespace Treeline
             float width = hasIcon ? 350f : 478f;
             SetRect(temporaryCategory.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
                 new Vector2(0f, 1f), new Vector2(x, -101f), new Vector2(width, 22f));
+            // 92f 는 두 줄까지만 담아서 세 줄짜리 문구가 둘째 줄 끝부터 잘렸다.
+            // 패널은 TemporaryPanelHeight 로 함께 키우므로 배경 밖으로 넘치지 않는다.
             SetRect(temporaryMessage.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(0f, 1f), new Vector2(x, -130f), new Vector2(width, 92f));
+                new Vector2(0f, 1f), new Vector2(x, -130f), new Vector2(width, 168f));
         }
 
         private void SetPanelOffset(float offset)

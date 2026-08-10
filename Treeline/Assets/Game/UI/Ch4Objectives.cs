@@ -4,19 +4,23 @@ using UnityEngine.SceneManagement;
 
 namespace Treeline
 {
-    /// <summary>4장의 여섯 목표를 산탄총 소유와 장치 상태에 맞춰 갱신한다.</summary>
+    /// <summary>4장의 다섯 목표를 산탄총 소유와 장치 상태에 맞춰 갱신한다.</summary>
     /// <remarks>
     /// <para>
     /// <see cref="Ch3Objectives"/> 와 같은 자리이고 판정만 다르다. 3장은 권총 하나를
-    /// 보면 되지만 4장은 절차가 여섯이라 <b>산탄총과 장치 넷의 상태를 조합</b>해야
+    /// 보면 되지만 4장은 절차가 다섯이라 <b>산탄총과 장치 셋의 상태를 조합</b>해야
     /// 한다.
     /// </para>
     /// <para>
-    /// IMPORTANT: <b>순서대로 세지 않는다.</b> 환기 팬은 건너뛸 수 있는 갈림길이다 —
-    /// 기획이 「팬을 먼저 돌린다 / 그냥 들어간다」를 고르게 해 두었으므로, 팬을
-    /// 안 돌리고 축전지실 차단기를 올린 사람에게 「팬을 돌리세요」가 현재 목표로
-    /// 남아 있으면 안 된다. 그래서 단계를 하나씩 올리지 않고 <b>지금 상태로 도달
-    /// 가능한 가장 앞선 단계</b>를 매번 다시 계산한다.
+    /// IMPORTANT: <b>환기 팬은 목표가 아니다.</b> 기획이 「팬을 먼저 돌린다 / 그냥
+    /// 들어간다」를 고르게 해 두었으므로, 팬은 축전지실 차단기를 올리는 <b>두 가지
+    /// 방법 중 하나</b>이지 거쳐야 하는 단계가 아니다. 목록에 한 줄로 얹으면 그 자체로
+    /// 필수처럼 읽히므로 넣지 않는다. 팬을 돌릴 수 있다는 사실은 문 옆 레버의 조준
+    /// 문구가 알린다.
+    /// </para>
+    /// <para>
+    /// 그래도 <b>순서대로 세지는 않는다.</b> 산탄총은 지나칠 수 있어서, 단계를 하나씩
+    /// 올리지 않고 <b>지금 상태로 도달 가능한 가장 앞선 단계</b>를 매번 다시 계산한다.
     /// </para>
     /// <para>
     /// 첫 줄만 장치가 아니라 <b>플레이어가 산탄총을 들었는지</b>로 판정한다. 씬의
@@ -42,8 +46,6 @@ namespace Treeline
         /// <summary>축전지실 안쪽 차단기.</summary>
         private const string BreakerInnerName = "BreakerDevice_B";
 
-        private const string FanName = "FanDevice";
-
         private const string GeneratorName = "GeneratorDevice";
 
         private Transform playerRoot;
@@ -51,7 +53,6 @@ namespace Treeline
         private PlayerWeapon shotgun;
         private Device breakerOuter;
         private Device breakerInner;
-        private Device fan;
         private TimedDevice generator;
 
         private int lastObjective = -1;
@@ -92,7 +93,6 @@ namespace Treeline
                 {
                     case BreakerOuterName: breakerOuter = device; break;
                     case BreakerInnerName: breakerInner = device; break;
-                    case FanName: fan = device; break;
                     case GeneratorName: generator = device as TimedDevice; break;
                 }
             }
@@ -100,7 +100,6 @@ namespace Treeline
             Warn(shotgun, "플레이어의 " + WeaponKind.Shotgun);
             Warn(breakerOuter, BreakerOuterName);
             Warn(breakerInner, BreakerInnerName);
-            Warn(fan, FanName);
             Warn(generator, GeneratorName);
 
             RefreshObjective(force: true);
@@ -129,13 +128,13 @@ namespace Treeline
             // 예열이 끝났다. 남은 것은 나가는 일뿐이라 목록을 전부 그어 둔다.
             if (generator != null && generator.IsActive)
             {
-                return 6;
+                return 5;
             }
 
             // 기동 레버를 당겼다. 이제 지키는 단계다.
             if (generator != null && generator.IsRunning)
             {
-                return 5;
+                return 4;
             }
 
             bool outer = breakerOuter != null && breakerOuter.IsActive;
@@ -148,12 +147,6 @@ namespace Treeline
             }
 
             if (breakerInner != null && breakerInner.IsActive)
-            {
-                return 4;
-            }
-
-            // 팬을 돌렸지만 안쪽 차단기는 아직이다.
-            if (fan != null && fan.IsActive)
             {
                 return 3;
             }
