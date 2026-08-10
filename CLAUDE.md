@@ -83,7 +83,7 @@ IMPORTANT: 이 경계를 지킨다. 훅·규칙·로깅처럼 AI 환경에 관�
 | 제출물 | 원본 |
 | --- | --- |
 | 게임 소개 및 설명 문서 | `docs/game-design/overview.md` |
-| AI 활용 기술 문서 | `docs/ai/setup.md`(구조) + `prompts/`·`milestones/`(활용 내역) + `docs/assets.md`(에셋 출처) |
+| AI 활용 기술 문서 | `docs/ai/submission.md` — `setup.md`·`prompts/`·`milestones/`·`assets.md` 에서 뽑아 조립한 것 |
 | 팀원 롤 기술서 | `docs/roles.md` |
 
 ### 게임 기획 문서 — `docs/game-design/`

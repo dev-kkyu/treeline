@@ -774,7 +774,9 @@ IMPORTANT: **마감은 2026-08-10, 오늘이다.** 가장 큰 구멍은 PDF 파�
     제출물에서는 걸리지 않게 됐다
 - **4-3** PDF 3종
   - 게임 소개 ← `game-design/overview.md`
-  - AI 활용 기술 ← `ai/setup.md` + `ai/prompts/` · `ai/milestones/` + `assets.md`
+  - AI 활용 기술 ← `ai/submission.md` — **2026-08-10 에 조립했다.** 요구 항목
+    (주요 프롬프트 · 도구 총목록 · 활용 내역)이 네 원본에 흩어져 있어 하나로
+    묶었다. 원본은 `ai/setup.md` + `ai/prompts/` · `ai/milestones/` + `assets.md`
   - 팀원 롤 ← `roles.md` — **「실제 담당 영역」 · 「협업 방식」은 2026-08-10 에
     커밋 기록에서 뽑아 채웠다.** 변환만 남았다
 - **4-4** 제출. **PC 실행 파일(.exe)은 금지다.** 웹 링크로 낸다
