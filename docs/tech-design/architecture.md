@@ -1045,12 +1045,13 @@ IMPORTANT: **`Device.Awake` 가 시작 모습을 강제로 맞춘다.** `enables
 
 | 파일 | 하는 일 |
 | --- | --- |
-| `TitleScreen` | 타이틀. 시작 · 환경 설정 · 크레딧 세 쪽 |
-| `PauseScreen` | 장 안에서 ESC. 재개 · 챕터 다시하기 · 환경 설정 |
+| `TitleScreen` | 타이틀. 시작 · 조작키 가이드 · 환경 설정 · 크레딧 |
+| `PauseScreen` | 장 안에서 TAB. 재개 · 조작키 가이드 · 챕터 다시하기 · 환경 설정 |
 | `EndingScreen` | 엔딩. 다시 하기 · 환경 설정 · 타이틀로 |
 | `MenuChrome` | 위 셋이 쓰는 부품 틀. 패널 · 버튼 · 손잡이 · 글자 |
 | `MenuPager` | 한 패널 안에서 쪽을 갈아 끼운다 |
 | `SettingsPage` | 환경 설정 한 벌. 셋이 같은 것을 띄운다 |
+| `ControlsPage` | 조작키 표 한 벌. 타이틀과 일시정지가 같은 것을 띄운다 |
 | `MenuButtonFeel` | 메뉴 버튼의 초점 반응. 표시선 · 글자 밀림 · 소리 |
 | `MenuTheme` | 그림 · 글꼴 · 소리 묶음. `Resources/Menu/` 에 있다 |
 | `ReadingPanel` | 읽을거리를 펼쳐 보여준다. `Readable` 이 부른다 |
@@ -1077,8 +1078,12 @@ IMPORTANT: 메뉴 연출은 전부 `Time.unscaledDeltaTime` 이다. 일시정지
 
 멈출 때는 `Time.timeScale` 만 0 으로 두지 않는다. 시점 회전은 마우스 델타라
 `deltaTime` 을 안 곱하므로 시간을 멈춰도 돈다. `PlayerLook` 과
-`PlayerInputReader` 를 함께 끄고, 끈 것만 되돌린다. 왜 그 둘인지와 ESC 를 어떻게
+`PlayerInputReader` 를 함께 끄고, 끈 것만 되돌린다. 왜 그 둘인지와 신호를 어떻게
 받는지는 [`decisions.md`](decisions.md) 참고.
+
+IMPORTANT: **여는 키는 TAB 이다.** ESC 와 Ctrl 은 브라우저가 먼저 가져가므로 게임
+조작에 쓰지 않는다 ([`decisions.md`](decisions.md)). 잠금이 풀린 것도 함께 신호로
+쓰므로, 브라우저에서 ESC 를 누른 사람도 결국 멈춤 화면을 본다.
 
 ### 환경 설정 값은 `Shared/GameSettings` 하나가 든다
 

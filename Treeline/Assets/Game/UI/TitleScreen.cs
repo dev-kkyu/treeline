@@ -7,8 +7,8 @@ using UnityEngine.UI;
 namespace Treeline
 {
     /// <summary>
-    /// 설원 렌더 위에 얹는 타이틀 메뉴. 게임 시작 · 환경 설정 · 크레딧 세 쪽을
-    /// 한 패널 안에서 갈아 끼운다.
+    /// 설원 렌더 위에 얹는 타이틀 메뉴. 게임 시작 · 조작키 가이드 · 환경 설정 ·
+    /// 크레딧을 한 패널 안에서 갈아 끼운다.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -32,10 +32,12 @@ namespace Treeline
         private MenuPanel panel;
         private MenuPager pager;
         private SettingsPage settings;
+        private ControlsPage controls;
 
         private GameObject mainPage;
         private GameObject creditsPage;
         private Button startButton;
+        private Button controlsButton;
         private Button settingsButton;
         private Button creditsButton;
         private Button creditsBackButton;
@@ -65,7 +67,9 @@ namespace Treeline
 
         private void Update()
         {
-            if (Keyboard.current?.escapeKey.wasPressedThisFrame == true && !pager.IsOn(mainPage))
+            // 게임 안에서 멈춤 화면을 여닫는 키와 같다. ESC 는 브라우저가 먼저
+            // 가져가므로 여기서도 쓰지 않는다.
+            if (Keyboard.current?.tabKey.wasPressedThisFrame == true && !pager.IsOn(mainPage))
             {
                 ShowMainMenu();
             }
@@ -96,10 +100,12 @@ namespace Treeline
             mainPage = BuildMainMenu();
             creditsPage = BuildCreditsMenu();
             settings = new SettingsPage(chrome, panel.Frame, "SettingsMenu", ShowMainMenu);
+            controls = new ControlsPage(chrome, panel.Frame, "ControlsMenu", ShowMainMenu);
 
             pager = new MenuPager(this);
             pager.Add(mainPage, () => startButton);
             pager.Add(settings.Root, () => settings.FirstFocus);
+            pager.Add(controls.Root, () => controls.FirstFocus);
             pager.Add(creditsPage, () => creditsBackButton);
         }
 
@@ -110,16 +116,18 @@ namespace Treeline
 
             startButton = chrome.CreateMenuButton(t, "StartButton", "게임 시작",
                 new Vector2(80f, -336f), 86f, StartGame);
+            controlsButton = chrome.CreateMenuButton(t, "ControlsButton", "조작키 가이드",
+                new Vector2(80f, -434f), 86f, ShowControlsMenu);
             settingsButton = chrome.CreateMenuButton(t, "SettingsButton", "환경 설정",
-                new Vector2(80f, -438f), 86f, ShowSettingsMenu);
+                new Vector2(80f, -532f), 86f, ShowSettingsMenu);
             creditsButton = chrome.CreateMenuButton(t, "CreditsButton", "크레딧",
-                new Vector2(80f, -540f), 86f, ShowCreditsMenu);
+                new Vector2(80f, -630f), 86f, ShowCreditsMenu);
 
             chrome.CreateText("StartHint", t, "첫 번째 중계소부터 시작합니다", 15f, MenuChrome.Muted,
-                TextAlignmentOptions.Left, new Vector2(84f, -650f), new Vector2(460f, 28f), false);
+                TextAlignmentOptions.Left, new Vector2(84f, -736f), new Vector2(460f, 28f), false);
             chrome.CreateText("BuildLabel", t, "DESKTOP WEBGL  ·  1920×1080", 13f,
                 new Color(MenuChrome.Muted.r, MenuChrome.Muted.g, MenuChrome.Muted.b, 0.68f),
-                TextAlignmentOptions.Left, new Vector2(84f, -746f), new Vector2(450f, 24f), false);
+                TextAlignmentOptions.Left, new Vector2(84f, -772f), new Vector2(450f, 24f), false);
 
             return page;
         }
@@ -181,7 +189,9 @@ namespace Treeline
 
         private void ShowMainMenu()
         {
-            Selectable focus = pager.IsOn(settings.Root) ? settingsButton : creditsButton;
+            Selectable focus = pager.IsOn(settings.Root) ? settingsButton
+                : pager.IsOn(controls.Root) ? controlsButton
+                : creditsButton;
             settings.Save();
             pager.GoTo(mainPage, focus);
         }
@@ -192,6 +202,8 @@ namespace Treeline
             pager.GoTo(settings.Root);
         }
 
+        private void ShowControlsMenu() => pager.GoTo(controls.Root);
+
         private void ShowCreditsMenu() => pager.GoTo(creditsPage);
 
         // ---- 연출 -------------------------------------------------------------
@@ -199,7 +211,7 @@ namespace Treeline
         /// <summary>버튼이 왼쪽에서 차례로 밀려 들어온다. 셋이 동시에 뜨면 카드 한 장으로 보인다.</summary>
         private IEnumerator SlideMenuIn()
         {
-            Button[] order = { startButton, settingsButton, creditsButton };
+            Button[] order = { startButton, controlsButton, settingsButton, creditsButton };
             var homes = new Vector2[order.Length];
             for (int i = 0; i < order.Length; i++)
             {
@@ -272,6 +284,7 @@ namespace Treeline
             isStarting = true;
             GameSettings.Save();
             startButton.interactable = false;
+            controlsButton.interactable = false;
             settingsButton.interactable = false;
             creditsButton.interactable = false;
             StartCoroutine(StartGameRoutine());

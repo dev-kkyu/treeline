@@ -64,8 +64,11 @@ namespace Treeline
                 return;
             }
 
+            // 닫는 키는 멈춤 화면과 같은 TAB 이다. ESC 는 브라우저가 먼저 가져가
+            // 게임까지 오지 않는다. 읽는 동안 TAB 을 누르면 멈추는 대신 기록이
+            // 먼저 닫히도록 <see cref="PauseScreen"/> 쪽에서 한 칸 양보한다.
             bool closePressed = input != null && input.InteractPressed;
-            closePressed |= Keyboard.current?.escapeKey.wasPressedThisFrame == true;
+            closePressed |= Keyboard.current?.tabKey.wasPressedThisFrame == true;
             if (closePressed)
             {
                 Close();
@@ -272,7 +275,7 @@ namespace Treeline
 
             TextMeshProUGUI closeHint = NewText("CloseHint", board.transform, 17f,
                 TextAlignmentOptions.Center, new Color32(194, 201, 198, 200));
-            closeHint.text = "[ E / ESC ]  기록 닫기";
+            closeHint.text = "[ E / TAB ]  기록 닫기";
             SetRect(closeHint.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f),
                 new Vector2(0.5f, 0f), new Vector2(0f, 22f), new Vector2(430f, 36f));
 

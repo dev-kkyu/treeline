@@ -8,7 +8,8 @@ using UnityEngine.UI;
 namespace Treeline
 {
     /// <summary>
-    /// 장 안에서 ESC 로 여는 일시정지 화면. 재개 · 챕터 다시하기 · 환경 설정.
+    /// 장 안에서 TAB 으로 여는 일시정지 화면. 재개 · 조작키 가이드 · 챕터 다시하기 ·
+    /// 환경 설정.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -17,10 +18,10 @@ namespace Treeline
     /// 된다. <see cref="GameFlow"/> · <see cref="ReadingPanel"/> 과 같은 판단이다.
     /// </para>
     /// <para>
-    /// IMPORTANT: <b>WebGL 에서는 ESC 키가 오지 않는다.</b> 브라우저가 먼저 가로채
-    /// 포인터 잠금만 풀고 키 입력은 게임에 안 넘긴다. 그래서 키와 <b>잠금이 풀린
-    /// 것</b> 둘 다를 신호로 쓴다. 알트탭으로 창을 벗어나도 잠금이 풀리는데, 그때
-    /// 멈춰 주는 것은 오히려 맞는 동작이다.
+    /// IMPORTANT: <b>여는 키는 ESC 가 아니라 TAB 이다.</b> 브라우저가 ESC 를 먼저
+    /// 가로채 전체 화면과 포인터 잠금을 풀어 버리고 키 입력은 게임에 안 넘긴다.
+    /// 그래서 <b>잠금이 풀린 것</b>도 함께 신호로 쓴다 — ESC 를 누른 사람도, 알트탭으로
+    /// 창을 벗어난 사람도 그 자리에서 멈추는 것이 맞는 동작이다.
     /// </para>
     /// <para>
     /// 멈추는 방법은 <c>Time.timeScale = 0</c> 하나가 아니다. 시점 회전은
@@ -46,8 +47,10 @@ namespace Treeline
         private MenuPanel panel;
         private MenuPager pager;
         private SettingsPage settings;
+        private ControlsPage controls;
         private GameObject menuPage;
         private Button resumeButton;
+        private Button controlsButton;
         private Button restartButton;
         private Button settingsButton;
 
@@ -70,6 +73,13 @@ namespace Treeline
                 return;
             }
             installed = true;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // TAB 은 브라우저에서 초점을 다음 요소로 넘기는 키다. 캔버스가 키보드를
+            // 통째로 잡고 있어야 게임까지 온다. 기본값이 true 이긴 하지만, 여기가
+            // 꺼지면 일시정지를 아예 못 여는 자리라 못 박아 둔다.
+            WebGLInput.captureAllKeyboardInput = true;
+#endif
 
             SceneManager.sceneLoaded += OnSceneLoaded;
 
@@ -136,23 +146,27 @@ namespace Treeline
             menuPage = chrome.CreatePage("PauseMenu", panel.Frame);
             resumeButton = chrome.CreateMenuButton(menuPage.transform, "ResumeButton", "재개",
                 new Vector2(80f, -336f), 86f, Resume);
+            controlsButton = chrome.CreateMenuButton(menuPage.transform, "ControlsButton", "조작키 가이드",
+                new Vector2(80f, -434f), 86f, ShowControls);
             restartButton = chrome.CreateMenuButton(menuPage.transform, "RestartButton", "챕터 다시하기",
-                new Vector2(80f, -438f), 86f, RestartChapter);
+                new Vector2(80f, -532f), 86f, RestartChapter);
             settingsButton = chrome.CreateMenuButton(menuPage.transform, "SettingsButton", "환경 설정",
-                new Vector2(80f, -540f), 86f, ShowSettings);
+                new Vector2(80f, -630f), 86f, ShowSettings);
 
             chrome.CreateText("RestartHint", menuPage.transform,
                 "다시하기는 이 장의 처음으로 돌아갑니다", 15f, MenuChrome.Muted,
-                TextAlignmentOptions.Left, new Vector2(84f, -650f), new Vector2(460f, 28f), false);
-            chrome.CreateText("EscHint", menuPage.transform, "ESC  ·  돌아가기", 13f,
+                TextAlignmentOptions.Left, new Vector2(84f, -736f), new Vector2(460f, 28f), false);
+            chrome.CreateText("BackHint", menuPage.transform, "TAB  ·  돌아가기", 13f,
                 new Color(MenuChrome.Muted.r, MenuChrome.Muted.g, MenuChrome.Muted.b, 0.68f),
-                TextAlignmentOptions.Left, new Vector2(84f, -746f), new Vector2(450f, 24f), false);
+                TextAlignmentOptions.Left, new Vector2(84f, -772f), new Vector2(450f, 24f), false);
 
             settings = new SettingsPage(chrome, panel.Frame, "PauseSettings", ShowMenu);
+            controls = new ControlsPage(chrome, panel.Frame, "PauseControls", ShowMenu);
 
             pager = new MenuPager(this);
             pager.Add(menuPage, () => resumeButton);
             pager.Add(settings.Root, () => settings.FirstFocus);
+            pager.Add(controls.Root, () => controls.FirstFocus);
         }
 
         private static string ChapterLine()
@@ -163,19 +177,21 @@ namespace Treeline
 
         private void Update()
         {
-            bool escape = Keyboard.current?.escapeKey.wasPressedThisFrame == true;
+            bool pauseKey = Keyboard.current?.tabKey.wasPressedThisFrame == true;
 
             if (isOpen)
             {
-                if (escape)
+                if (pauseKey)
                 {
-                    if (pager.IsOn(settings.Root))
+                    // 안쪽 쪽에 있으면 한 칸만 물러난다. 한 번에 게임으로 돌아가면
+                    // 설정을 보다가 실수로 닫히는 것과 구분이 안 된다.
+                    if (pager.IsOn(menuPage))
                     {
-                        ShowMenu();
+                        Resume();
                     }
                     else
                     {
-                        Resume();
+                        ShowMenu();
                     }
                 }
                 return;
@@ -185,12 +201,20 @@ namespace Treeline
             bool lostLock = sawCursorLock && !locked;
             sawCursorLock = locked;
 
+            // 기록을 펼쳐 둔 채로 누른 TAB 은 기록을 닫는 손이다. 여기서 멈춰 버리면
+            // 멈춤 화면 뒤에 읽던 종이가 그대로 깔린다. 잠금이 풀려서 오는 신호는
+            // 그대로 둔다 — 창을 벗어난 것은 읽는 중이어도 멈추는 게 맞다.
+            if (pauseKey && !lostLock && ReadingPanel.IsOpen)
+            {
+                return;
+            }
+
             if (Time.unscaledTime < graceUntil)
             {
                 return;
             }
 
-            if ((escape || lostLock) && CanPause())
+            if ((pauseKey || lostLock) && CanPause())
             {
                 Open();
             }
@@ -258,10 +282,14 @@ namespace Treeline
 
         private void ShowSettings() => pager.GoTo(settings.Root);
 
+        private void ShowControls() => pager.GoTo(controls.Root);
+
+        /// <summary>어느 쪽에서 물러났든 그 쪽을 부른 버튼으로 초점을 되돌린다.</summary>
         private void ShowMenu()
         {
+            Selectable focus = pager.IsOn(controls.Root) ? controlsButton : settingsButton;
             settings.Save();
-            pager.GoTo(menuPage, settingsButton);
+            pager.GoTo(menuPage, focus);
         }
 
         private void RestartChapter()
@@ -344,7 +372,7 @@ namespace Treeline
 
         private IEnumerator FadeIn()
         {
-            Button[] order = { resumeButton, restartButton, settingsButton };
+            Button[] order = { resumeButton, controlsButton, restartButton, settingsButton };
             var homes = new Vector2[order.Length];
             for (int i = 0; i < order.Length; i++)
             {
