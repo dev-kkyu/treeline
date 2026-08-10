@@ -277,6 +277,13 @@ namespace Treeline
             isOpen = false;
             settings.Save();
 
+            // IMPORTANT: 신호를 여기서 끊는다. 화면이 사라지는 동안 커서는 아직
+            // 풀린 채이고 시점도 꺼져 있는데, 그 사이의 「잠금이 풀렸다」를 신호로
+            // 읽으면 재개를 누른 그 자리에서 멈춤 화면이 곧바로 다시 열린다.
+            // ReleasePlayer 가 같은 일을 하지만 그것은 연출이 끝난 뒤라 늦다.
+            sawCursorLock = false;
+            graceUntil = Time.unscaledTime + CloseSeconds + ReopenGrace;
+
             Restart(FadeOutThenRun());
         }
 
