@@ -131,6 +131,8 @@ namespace Treeline
         private PlayerWeapon subscribed;
         private RectTransform crosshairRect;
         private AmmoInfinityMark reserveMark;
+        private HealthPipsFeel healthFeel;
+        private StaminaBarFeel staminaFeel;
 
         private float healthHighlightUntil = float.NegativeInfinity;
         private float ammoBlinkStart = float.NegativeInfinity;
@@ -163,6 +165,12 @@ namespace Treeline
             }
 
             reserveMark = AmmoInfinityMark.AttachTo(ammoReserveText);
+            healthFeel = HealthPipsFeel.AttachTo(
+                healthGroup != null ? (RectTransform)healthGroup.transform : null,
+                healthPips,
+                pipActive,
+                pipEmpty);
+            staminaFeel = StaminaBarFeel.AttachTo(staminaFill);
         }
 
         private void OnEnable()
@@ -378,22 +386,22 @@ namespace Treeline
             }
 
             lastHealth = current;
-            DrawHealthPips(current);
+
+            // 칸을 바꾸는 것은 `HealthPipsFeel` 이 맡는다. 여기서 스프라이트만 갈아
+            // 끼우면 값은 맞지만 아무 일도 안 일어나 보인다 — 화면 왼쪽 아래는 시선이
+            // 없는 자리라 조용히 바뀐 것은 눈에 안 띈다.
+            if (healthFeel != null)
+            {
+                healthFeel.Set(current);
+            }
         }
 
+        /// <summary>애니메이션 없이 현재 값으로 맞춘다. 장이 시작할 때 쓴다.</summary>
         private void DrawHealthPips(int current)
         {
-            if (healthPips == null)
+            if (healthFeel != null)
             {
-                return;
-            }
-
-            for (int i = 0; i < healthPips.Length; i++)
-            {
-                if (healthPips[i] != null)
-                {
-                    healthPips[i].sprite = i < current ? pipActive : pipEmpty;
-                }
+                healthFeel.Show(current);
             }
         }
 
@@ -401,7 +409,10 @@ namespace Treeline
         {
             if (healthGroup != null)
             {
-                healthGroup.alpha = Time.time < healthHighlightUntil ? 1f : HealthIdleAlpha;
+                // 마지막 한 칸부터는 계속 또렷하게 둔다. 그 칸은 심장처럼 뛰고 있는데
+                // 흐리게 깔아 두면 뛰는 것이 안 보인다.
+                bool urgent = Time.time < healthHighlightUntil || lastHealth <= 1;
+                healthGroup.alpha = urgent ? 1f : HealthIdleAlpha;
             }
         }
 
@@ -606,6 +617,11 @@ namespace Treeline
             // 늘 띄운다. 달릴 수 있는 여유가 남았는지는 달리기 전에 알아야 쓸모가 있고,
             // 게이지가 떴다 사라지면 그 자체가 시선을 끌어 어둠을 흐트러뜨린다.
             staminaGroup.alpha = StaminaAlpha * BurstBlink(staminaBlinkStart);
+
+            if (staminaFeel != null)
+            {
+                staminaFeel.Set(motor.StaminaRatio, motor.IsRecoveryLocked);
+            }
 
             if (staminaFill == null)
             {
