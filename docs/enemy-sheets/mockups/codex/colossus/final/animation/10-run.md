@@ -31,7 +31,7 @@ IMPORTANT: 이 클립이 이 적의 정체를 바꿀 수 있는 자리다. 기�
 그래서 도망이 성립하면서도 긴장이 남는다.
 
 이 계산은 Crawler 속도를 5.5 에서 4.0 으로 내린 것과 같은 방식이다. 근거는
-[`tech-design/decisions.md`](../../../../../tech-design/decisions.md) 의
+[`tech-design/decisions.md`](../../../../../../tech-design/decisions.md) 의
 「`Crawler` 속도를 5.5 에서 4.0 으로 내렸다」.
 
 ## 접지와 보폭

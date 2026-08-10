@@ -21,7 +21,7 @@
 - **초판이 금지한 것 중 셋을 되살렸다.** 손가락 개별 움직임, 턱 36° 초과, 몸통
   32° 초과 회전. 금지 이유는 각각 «곤충처럼 보임», «관통», «과함»이었는데, 앞의
   둘은 실측으로 여유를 확인했고 셋째는 이 적의 유일한 개성이다.
-  → [`decisions.md`](../../../../../tech-design/decisions.md)에 이유를 남겼다.
+  → [`decisions.md`](../../../../../../tech-design/decisions.md)에 이유를 남겼다.
 
 과장하지 않은 것: 이벤트 프레임. `AE_DropRelease` 10f, `AE_EnableGroundMode` 15f,
 `AE_AttackHit` 13f는 Crawler와 읽히는 타이밍을 맞추기 위한 게임플레이 계약이라
@@ -29,7 +29,7 @@
 
 ## 근거와 우선순위
 
-1. [`treeline.md`](../../../../../game-design/treeline.md)의 확정 기획: Clinger는
+1. [`treeline.md`](../../../../../../game-design/treeline.md)의 확정 기획: Clinger는
    천장에 붙어 있다 떨어지고, 약하지만 여러 마리가 등장하며 산탄총과 장치로 상대한다.
 2. [`MODEL-SPEC.md`](../MODEL-SPEC.md)의 실측 수치.
 3. [`modeling-design.md`](../../../modeling-design.md)와 이 폴더 위의 최종 4면 이미지.

@@ -51,8 +51,8 @@
 | 버전 | 정면 | 후면 | 좌측 | 우측 | 상면 | 하면 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `CRAWLER-V1.0` | [`01-front.png`](crawler/01-front.png) | [`02-back.png`](crawler/02-back.png) | [`03-left.png`](crawler/03-left.png) | [`04-right.png`](crawler/04-right.png) | — | — |
-| `CLINGER-FINAL-1.0` | [`front`](clinger/final/clinger-final-01-front.png) | [`back`](clinger/final/clinger-final-02-back.png) | [`left`](clinger/final/clinger-final-03-left.png) | [`right`](clinger/final/clinger-final-04-right.png) | [`top`](clinger/final/clinger-final-05-top.png) | [`bottom`](clinger/final/clinger-final-06-bottom.png) |
-| `COLOSSUS-FINAL-1.0` | [`front`](colossus/final/colossus-final-01-front.png) | [`back`](colossus/final/colossus-final-02-back.png) | [`left`](colossus/final/colossus-final-03-left.png) | [`right`](colossus/final/colossus-final-04-right.png) | [`top`](colossus/final/colossus-final-05-top.png) | [`bottom`](colossus/final/colossus-final-06-bottom.png) |
+| `CLINGER-FINAL-1.0` | [`front`](clinger/final/clinger-final-01-front.png) | [`back`](clinger/final/clinger-final-02-back.png) | [`left`](clinger/final/clinger-final-03-left.png) | [`right`](clinger/final/clinger-final-04-right.png) | — (안 뽑음) | — (안 뽑음) |
+| `COLOSSUS-FINAL-1.0` | [`front`](colossus/final/colossus-final-01-front.png) | [`back`](colossus/final/colossus-final-02-back.png) | [`left`](colossus/final/colossus-final-03-left.png) | [`right`](colossus/final/colossus-final-04-right.png) | — (안 뽑음) | — (안 뽑음) |
 
 - Crawler: 네 발이 지면에 닿는 낮은 중립 자세.
 - Clinger Final: 천장 사지 4 + 공격 팔 2, 천장 갈고리는 사지당 2개, 공격 손은

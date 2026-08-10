@@ -31,9 +31,9 @@ IMPORTANT: 이 차이가 만드는 결과는 [「미해결」](#미해결--사�
 
 ## 근거와 우선순위
 
-1. [`treeline.md`](../../../../../game-design/treeline.md) 의 확정 기획 — 1장 창밖
+1. [`treeline.md`](../../../../../../game-design/treeline.md) 의 확정 기획 — 1장 창밖
    실루엣, 6장 배회 · 추격 · 절차 방해, 사면 붕괴로 묻힘, 엔딩이 이 적의 시점.
-2. [`Colossus.cs`](../../../../../../Treeline/Assets/Game/Enemy/Colossus.cs) 의
+2. [`Colossus.cs`](../../../../../../../Treeline/Assets/Game/Enemy/Colossus.cs) 의
    실측 수치 — 공격 거리 3.2 m, 재사용 2.4초, 피해 2, 시야 30 m · 160°, 눈높이
    3.6 m, 밀림 임계 4 · 거리 2.5 m · 정지 1.6초.
 3. [`MODEL-SPEC.md`](../MODEL-SPEC.md) 의 리그 · 클립 · 머터리얼 규격.
@@ -166,7 +166,7 @@ IMPORTANT: **루프 클립(`Idle_Weight` · `Walk_Knuckle` · `Run`)에 넣는 �
 정수 배음이어야 한다.** 걸음과 다른 주기를 주고 싶어 1.5배 같은 값을 쓰면 한
 바퀴 끝에서 그 항이 자기 주기의 중간에 있게 되어 매 루프마다 포즈가 튄다.
 Crawler 에서 실제로 머리가 25° 씩 튀었다. 근거는
-[`tech-design/decisions.md`](../../../../../tech-design/decisions.md) 의
+[`tech-design/decisions.md`](../../../../../../tech-design/decisions.md) 의
 「루프 클립의 주기 항은 정수 배음만 쓴다」.
 
 - 첫 프레임과 마지막 프레임의 **모든 본 포즈가 정확히 같아야 한다.** 눈으로 보지

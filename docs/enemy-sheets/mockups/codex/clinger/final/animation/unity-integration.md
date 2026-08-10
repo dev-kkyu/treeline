@@ -174,7 +174,7 @@ Collider 두 개를 동시에 켜지 않는다. `Land` f14 이전에는 NavMeshA
 ### 5. NavMesh 는 `Humanoid` 타입으로 굽는다
 
 Clinger 는 `Humanoid`(반경 0.5 · 높이 2.0)를 쓴다.
-→ [`architecture.md`](../../../../../tech-design/architecture.md) 「몸이 큰 적은…」
+→ [`architecture.md`](../../../../../../tech-design/architecture.md) 「몸이 큰 적은…」
 
 - 실제 몸높이는 1.27 m 인데 **경로는 높이 2.0 으로 구워진 면만 읽는다.** 1.5 m 짜리
   덕트나 낮은 통로로 기어들어가게 하고 싶으면 타입을 따로 굽지 않는 한 안 된다.

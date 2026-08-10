@@ -1,4 +1,4 @@
-> 상태: 작성 중 · 최종 수정 2026-08-09
+> 상태: **제출 원본** · 최종 수정 2026-08-10 (마감 시점)
 
 # AI 개발 환경 구축 명세
 
@@ -8,6 +8,23 @@
 프롬프트 원본은 [`prompts/`](prompts/), 작업 단위 메모는
 [`milestones/`](milestones/) 에 쌓인다. 게임 자체의 기술은
 [`docs/tech-design/`](../tech-design/) 로 분리했다.
+
+## 마감 시점에 쌓인 것 (2026-08-10)
+
+**이 숫자는 세기 위해 만든 것이 아니라 저절로 쌓인 것이다.** 훅과 스킬이
+그 자리에서 남기게 했고, 마감 때 복원한 것이 하나도 없다.
+
+| | 수 | 어디에 |
+| ---: | ---: | --- |
+| 프롬프트 | **1,053** | `prompts/` — 세션 19 개 (임성규 3 · 김도한 6 · 이정범 10) |
+| 마일스톤 메모 | **79** | `milestones/` — 임성규 15 · 김도한 23 · 이정범 41 |
+| 기술 결정 기록 | **202** | [`../tech-design/decisions.md`](../tech-design/decisions.md) |
+| 기획 결정 기록 | **21** | [`../game-design/decisions.md`](../game-design/decisions.md) |
+| 커밋 | **416** | `develop` 한 브랜치 |
+
+**결정 기록이 프롬프트 다음으로 많다는 것이 이 프로젝트의 성격을 보여준다.**
+AI 로 만든 것보다 **AI 와 정한 것**이 더 많이 남았고, 그중 상당수가 「해봤더니
+아니어서 뒤집은 것」이다.
 
 ---
 
@@ -21,7 +38,8 @@
 | `CLAUDE.md` | 프로젝트 지침 | 매 세션 |
 | `.claude/rules/powershell.md` | `.ps1` 작성 제약 | `.ps1` 을 읽을 때 |
 | `.claude/rules/unity-csharp.md` | C#·Unity 작성 제약 | `.cs`, `.unity` 등을 읽을 때 |
-| `.claude/skills/milestone/` | `/milestone` 명령 | 호출 시 |
+| `.claude/rules/unity-mcp.md` | 에디터 작업은 MCP 로 | **매 세션** (경로 스코프 없음) |
+| `.claude/skills/` | `/design` `/decision` `/milestone` `/prop` `/deploy` | 호출 시 |
 | `.claude/hooks/` | 도구 호출 차단·기록 | 해당 이벤트마다 |
 | `.claude/statusline.ps1` | 상태줄 | 세션 중 계속 |
 | `.claude/umcp.ps1` | Unity MCP 를 HTTP 로 직접 호출 | 도구가 안 붙었을 때만 |
@@ -34,6 +52,23 @@
 | `log-prompt.ps1` | `UserPromptSubmit` | 프롬프트를 `prompts/<이름>/<날짜>-<세션>.md` 에 기록 |
 | `block-force-push.ps1` | `PreToolUse` (`git push`) | force push 차단 |
 | `check-korean-username.ps1` | `PreToolUse` (`git commit`) | `git user.name` 이 한글인지 확인 |
+
+### 스킬 — 되풀이되는 절차를 저장소에 넣었다
+
+세 사람이 각자 세션에서 일하므로 **같은 일을 다르게 하면 결과가 갈린다.**
+자주 하는 절차를 스킬로 만들어 커밋했고, 누가 부르든 같은 순서를 밟는다.
+
+| | 하는 일 |
+| --- | --- |
+| `/design` | 기획을 컨셉 → 핵심 루프 → 승패 → 최소 컨텐츠 → 컷라인 순으로 좁힌다 |
+| `/decision` | 방금 정한 것을 알맞은 `decisions.md` 에 남긴다. **버린 안을 빠뜨리지 않게 한다** |
+| `/milestone` | 이번 세션에서 AI 로 한 일을 `milestones/<이름>.md` 에 3~5줄로 |
+| `/prop` | 소품을 Meshy 로 조달하는 절차 — 목록 · 영문 프롬프트 · 임포트 후처리 |
+| `/deploy` | 빌드 산출물을 `gh-pages` 로 올린다 |
+
+**`/decision` 과 `/milestone` 이 이 과제에 특히 맞는 것들이다.** 심사 대상이
+「AI 를 어떻게 썼는가」인데, 그 근거는 마감 때 기억으로 복원되지 않는다. 그
+자리에서 남기는 절차를 도구화한 것이다.
 
 ### 프롬프트 로깅
 

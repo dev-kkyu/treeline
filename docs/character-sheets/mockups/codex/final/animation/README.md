@@ -69,7 +69,7 @@ sway 가 이미 하고 있고, 부족하면 Additive 하나로 덮는다.
 ## 처형 장면에는 몸이 필요하다 — 2026-08-09 추가
 
 이 문서는 「플레이어 몸이 화면에 나오는 장면이 없다」는 확인 위에 서 있었다.
-그 뒤 기획이 **즉결 처형**으로 바뀌었고([`12-grab-execute.md`](../../../../enemy-sheets/mockups/codex/colossus/final/animation/12-grab-execute.md)),
+그 뒤 기획이 **즉결 처형**으로 바뀌었고([`12-grab-execute.md`](../../../../../enemy-sheets/mockups/codex/colossus/final/animation/12-grab-execute.md)),
 그 클립은 플레이어 카메라를 4.40초 동안 `GrabAnchor` 에 가둔다. 그 4.4초 내내
 **플레이어는 아래를 볼 수 있고, 거기에 아무것도 없다.**
 

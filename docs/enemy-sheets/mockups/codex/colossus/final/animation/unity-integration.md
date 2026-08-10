@@ -55,7 +55,7 @@ IMPORTANT: Blend Tree 의 문턱값은 **에이전트 속도**지만, 클립이 
 
 `Walk_Knuckle` 이 명세의 1.11 m/s 에 못 미치는 것은 보폭을 1.55 m 에서
 1.25 m 로 줄였기 때문이고, 그 보폭은 팔의 전방 도달 한계 0.55 m 가 정했다.
-근거는 [`tech-design/decisions.md`](../../../../../tech-design/decisions.md).
+근거는 [`tech-design/decisions.md`](../../../../../../tech-design/decisions.md).
 
 ### 엔딩 연출의 순서
 
