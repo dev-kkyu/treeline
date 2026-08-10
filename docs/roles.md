@@ -1,23 +1,16 @@
-> 상태: **완료** · 세 항목 모두 채움 · 최종 수정 2026-08-10 (마감 시점)
+<!--
+상태: 완료 · 세 항목 모두 채움 · 최종 수정 2026-08-10 (마감 시점)
+제출물 "팀원 롤 기술서" 의 원본이다. 마감 때 이 문서를 PDF 로 변환한다.
+이 주석 블록은 PDF 에 렌더링되지 않는다.
+-->
 
-# 팀원 롤 기술서
+# Treeline — 팀원 롤 기술서
 
-제출물 **"팀원 롤 기술서"** 의 원본이다. 마감 때 이 문서를 PDF 로 변환한다.
+**NHN GAME X AI HACKATHON 사전 과제 · Team SBD (3인)**
 
-과제가 요구하는 세 항목은 쓰는 시점이 다르다.
-
-| 항목 | 언제 |
-|---|---|
-| 이름 / 담당 역할 | 2026-08-08 에 배정 ✅ |
-| 실제로 맡아 구현한 영역 | 2026-08-10 에 커밋 기록에서 뽑아 채웠다 ✅ |
-| 협업 · 분업 방식 | 2026-08-10 에 채웠다 ✅ |
-
-IMPORTANT: 기억에 의존해 쓰지 않았다. 아래 세 곳에 쌓인 근거를 합성한 것이고,
-남은 작업이 생기면 같은 방법으로 갱신한다.
-
-- `git log --author="<이름>"` — 실제로 무엇을 커밋했는지
-- `docs/ai/milestones/<이름>.md` — 각자 남긴 작업 메모
-- `docs/ai/prompts/<이름>/` — 어떻게 지시했는지. 세션마다 파일 하나다
+이 문서는 기억으로 쓰지 않았다. 개발 내내 쌓인 세 근거 — 커밋 기록
+(`git log --author`), 각자의 작업 메모(`docs/ai/milestones/`), 프롬프트 원본
+(`docs/ai/prompts/`) — 를 마감 시점에 합성한 것이다.
 
 ---
 
@@ -47,15 +40,10 @@ IMPORTANT: **팀 이름의 `S · B · D` 와 담당 구분의 `A · B · C` 는 
 
 ## 작업 분담 — A · B · C
 
-기획 확정(2026-08-08) 후 [`treeline.md`](game-design/treeline.md) 의 「만들
-시스템」과 「만드는 순서」를 기준으로 나눴다. 각자 **코어 하나 + 장 하나**다.
-
-순서와 근거는 [`tech-design/decisions.md`](tech-design/decisions.md),
-구조 규칙은 [`tech-design/architecture.md`](tech-design/architecture.md) 참고.
-
-이 문서는 **누가 무엇을 맡는가**만 다룬다. 각 단계를 어떤 차수로 쪼개고 무엇을
-채워야 끝인지는 [`plan.md`](plan.md) 에 있다. 다음에 뭘 할지 찾을 때는 그쪽을
-본다.
+기획 확정(2026-08-08) 후 기획서의 「만들 시스템」과 「만드는 순서」를 기준으로
+나눴다. 각자 **코어 하나 + 장 하나**다. 개발은 0단계(골격) → 1단계(관통) →
+2단계(1 · 2 · 6장 기믹) → 3단계(3 · 4 · 5장) 순서로 진행했고, 단계마다 담당을
+다시 배정했다.
 
 ### 1단계 — 관통
 
@@ -76,45 +64,6 @@ IMPORTANT: **A 는 `Player.prefab` 을 완성 전에 먼저 올린다.** 캡슐�
 IMPORTANT: **적 모델이 늦어져도 1단계는 진행되어야 한다.** B 는 캡슐로 추격 ·
 공격 · 사망까지 완성하고 모델은 나중에 갈아끼운다. 파이프라인 검증이 1단계를
 막으면 안 된다.
-
-### 시작하기 — 각자의 첫 걸음
-
-0단계(레이어 · 인터페이스 · 폴더 · 샌드박스 씬)는 2026-08-08 에 들어갔다. 지금
-바로 시작할 수 있다.
-
-**공통**
-
-- 작업은 `Assets/Game/<자기 담당 폴더>/` 안에서만 한다. `Shared/` 를 고치는 것은
-  셋의 합의가 필요하다
-- 실험은 `_Sandbox/<자기 이름>.unity` 에서 한다. 남의 샌드박스를 열지 않는다
-- 레이어 번호를 코드에 쓰지 않는다. `Shared/GameLayers.cs` 를 쓴다
-- 입력은 신규 Input System 으로만 받는다. `Input.GetKey` 류는 런타임에 예외가 난다
-- 의미 있는 것을 끝내면 `/milestone`, 무언가 정했으면 `/decision`
-
-**A 이정범** — `Assets/Game/Player/`
-
-1. `Player.prefab` 껍데기를 먼저 커밋한다. 캡슐 + `CharacterController` +
-   `Player` 태그 + `Player` 레이어면 충분하다
-2. 자기 샌드박스에서 이동 · 카메라 · 손전등
-3. `InputSystem_Actions.inputactions` 를 인수한다. 이 에셋의 소유자는 A 다
-4. 사격은 `GameLayers.Shot` 으로 레이캐스트하고 맞은 것이 `IDamageable` 이면 때린다
-5. 상호작용 조준은 `GameLayers.Interaction`, 대상은 `IInteractable`
-
-**B 김도한** — `Assets/Game/Enemy/`
-
-1. 자기 샌드박스에 캡슐 두 개를 놓는다. 하나에 `Player` 태그를 붙이면 A 의
-   프리팹이 오기 전에도 추격을 만들 수 있다
-2. `Crawler.prefab`. `IDamageable` 을 구현하고 레이어는 `Enemy` 다
-3. 플레이어는 `FindWithTag("Player")` 로 찾는다
-4. 시야 판정은 `GameLayers.EnemySight`
-5. NavMesh 는 `com.unity.ai.navigation` 의 `NavMeshSurface` 를 쓴다
-
-**C 임성규** — `Assets/Game/Levels/` · `Interaction/` · `Progress/`
-
-1. `Levels/Ch1.unity` · `Ch2.unity` · `Ch6.unity` 를 만들고 빌드 목록에 등록한다
-2. 씬 로드는 인덱스가 아니라 이름으로 한다
-3. 문 · 레버는 `IInteractable` 을 구현하고 레이어는 `Interactable` 이다
-4. 진행 트리거와 체크포인트 볼륨은 `Trigger` 레이어에 둔다
 
 ### 2단계 — 1 · 2 · 6 에 기믹
 
@@ -339,10 +288,10 @@ fileID 가 얽혀 있어 겉보기에 맞춰놔도 씬이 조용히 깨진다. �
 
 | 무엇 | 어디 | 언제 |
 | --- | --- | --- |
-| 다음에 뭘 만드나 | [`plan.md`](plan.md) | 단계가 끝날 때 |
-| 구조 규칙 | [`tech-design/architecture.md`](tech-design/architecture.md) | 구조를 바꾸는 **같은 커밋**에 |
+| 다음에 뭘 만드나 | `docs/plan.md` | 단계가 끝날 때 |
+| 구조 규칙 | `docs/tech-design/architecture.md` | 구조를 바꾸는 **같은 커밋**에 |
 | 왜 그렇게 정했나 | 각 `decisions.md` | `/decision` |
-| AI 를 어떻게 썼나 | [`ai/milestones/`](ai/milestones/) | `/milestone` |
+| AI 를 어떻게 썼나 | `docs/ai/milestones/` | `/milestone` |
 
 `.claude/` 의 규칙과 스킬(`/design` · `/decision` · `/milestone` · `/deploy` ·
 `/prop`)은 저장소에 커밋되어 **세 사람의 세션이 같은 절차를 밟는다.** 규칙을

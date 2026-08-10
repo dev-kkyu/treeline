@@ -1,14 +1,14 @@
-> 상태: **제출본** · 최종 수정 2026-08-10 (영상 링크만 비어 있다)
+<!--
+상태: 제출본 · 최종 수정 2026-08-10 (영상 링크만 비어 있다)
+
+제출물 "게임 소개 및 설명 문서" 의 원본이다. 마감 때 새로 쓰지 않고 이 문서를
+PDF 로 변환한다. 섹션 구성은 과제가 요구하는 항목과 순서를 그대로 따르므로
+임의로 지우거나 바꾸지 않는다. 이 주석 블록은 PDF 에 렌더링되지 않는다.
+-->
 
 # Treeline
 
-제출물 **"게임 소개 및 설명 문서"** 의 원본이다. 마감 때 새로 쓰지 않고 이
-문서를 PDF 로 변환한다. 그래서 아래 섹션 구성은 과제가 요구하는 항목과 순서를
-그대로 따른다. 섹션을 임의로 지우거나 순서를 바꾸지 않는다.
-
-기획은 2026-08-08 에 확정했고 2026-08-10 에 여섯 장이 다 들어갔다. **아래 내용은
-전부 실제로 게임에 있는 것이다.** 세부는 [`treeline.md`](treeline.md), 판단 근거는
-[`decisions.md`](decisions.md) 에 있다. 남은 빈칸은 **플레이 영상 링크** 하나다.
+**NHN GAME X AI HACKATHON 사전 과제 · Team SBD (이정범 · 김도한 · 임성규)**
 
 ---
 
@@ -135,11 +135,13 @@
 
 ## 세부 기획
 
-전체 기획은 [`treeline.md`](treeline.md) 에 있다. 여섯 장소, 적과 무기, 시설
-장치, 만드는 순서와 컷라인, 에셋 계획이 전부 거기 있다. 길어서 떼어냈다.
+이 문서는 소개이고, 전체 기획은 저장소에 있다. 여섯 장소의 시나리오, 적과 무기,
+시설 장치, 만드는 순서와 컷라인, 에셋 계획까지 —
+[`docs/game-design/treeline.md`](https://github.com/dev-kkyu/treeline/blob/develop/docs/game-design/treeline.md)
 
-결정을 내렸다면 그 이유를 [`decisions.md`](decisions.md) 에 함께 남긴다.
-
-원본 초안은 [`drafts/`](drafts/) 에 그대로 둔다. 확정안은 임성규의 Treeline 과
-이정범의 MUTUAL 을 합친 것이고, 무엇을 가져오고 무엇을 버렸는지는 확정안의
-「버린 안」 절에 적혀 있다.
+결정마다 왜 그렇게 정했는지와 버린 안을
+[`decisions.md`](https://github.com/dev-kkyu/treeline/blob/develop/docs/game-design/decisions.md)
+에 남겼다. 확정 전 각자 쓴 초안도
+[`drafts/`](https://github.com/dev-kkyu/treeline/tree/develop/docs/game-design/drafts)
+에 그대로 있다 — 확정안은 임성규의 Treeline 과 이정범의 MUTUAL 을 합친 것이고,
+무엇을 가져오고 무엇을 버렸는지가 확정안의 「버린 안」 절에 적혀 있다.
