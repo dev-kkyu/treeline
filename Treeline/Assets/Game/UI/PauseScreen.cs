@@ -221,11 +221,21 @@ namespace Treeline
         }
 
         /// <summary>
-        /// 죽어서 재시작을 기다리는 중이거나 장을 옮기는 중에는 안 멈춘다.
+        /// 죽어서 재시작을 기다리는 중이거나, 장을 옮기는 중이거나, 연출이 조종을
+        /// 가져간 동안에는 안 멈춘다.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// 죽으면 <see cref="PlayerHealth"/> 가 입력을 끄고 커서가 풀리는데, 그것을
         /// 「ESC 를 눌렀다」로 읽으면 <b>죽을 때마다 멈춤 화면이 뜬다.</b>
+        /// </para>
+        /// <para>
+        /// IMPORTANT: 아직 살아 있는데 조종만 없는 구간이 있다. 콜로서스에게
+        /// 붙잡히면 <see cref="PlayerLook"/> 이 꺼지면서 커서를 풀어 주는데, 죽는
+        /// 것은 2.7 초 뒤 클립 90f 라 그 사이가 통째로 「살아 있고 잠금이 풀렸다」로
+        /// 보인다. 그래서 <b>처형당하는 내내 멈춤 화면이 떠 있었다.</b> 시점이 꺼져
+        /// 있으면 사람이 푼 잠금이 아니므로 여기서 함께 막는다.
+        /// </para>
         /// </remarks>
         private bool CanPause()
         {
@@ -241,7 +251,13 @@ namespace Treeline
             }
 
             var health = player.GetComponent<PlayerHealth>();
-            return health == null || health.IsAlive;
+            if (health != null && !health.IsAlive)
+            {
+                return false;
+            }
+
+            var look = player.GetComponentInChildren<PlayerLook>(true);
+            return look == null || look.enabled;
         }
 
         private void Open()
