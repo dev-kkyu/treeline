@@ -408,6 +408,9 @@ namespace Treeline
                         Impacted?.Invoke(hit);
                     }
 
+                    // 불똥은 반대로 탄마다 튄다. 어두운 게임이라 예광탄만으로는 어디에
+                    // 닿았는지 모르고, 산탄이 한 군데서만 튀면 산탄으로 안 보인다.
+                    ShotImpactVfx.Spawn(hit.point, hit.normal, direction);
                     continue;
                 }
 
