@@ -49,6 +49,32 @@ namespace Treeline
         [Tooltip("떠는 빠르기(초당 주기). 조준 흔들림보다 훨씬 빠르다.")]
         [SerializeField] private float shakeFrequency = 22f;
 
+        [Header("피격")]
+        [Tooltip("한 대 맞을 때 위로 젖혀지는 각도(도).")]
+        [SerializeField] private float hitKickDegrees = 3.4f;
+
+        [Tooltip("맞을 때 화면이 기우는 각도(도). 「맞았다」를 가장 크게 만드는 것이 이 기울기다.")]
+        [SerializeField] private float hitRollDegrees = 5f;
+
+        [Tooltip("젖혀진 화면이 제자리로 돌아오는 빠르기. 클수록 빨리 돌아온다.")]
+        [SerializeField] private float hitRecovery = 5.5f;
+
+        [Tooltip("맞는 순간 시야각이 잠깐 벌어지는 정도(도). 본 카메라 기준이다.")]
+        [SerializeField] private float hitFovPunch = 4f;
+
+        [Tooltip("벌어진 시야각이 돌아오는 빠르기.")]
+        [SerializeField] private float fovRecovery = 6f;
+
+        [Header("쓰러짐")]
+        [Tooltip("죽을 때 화면이 기우는 각도(도).")]
+        [SerializeField] private float collapseRollDegrees = 24f;
+
+        [Tooltip("죽을 때 함께 숙여지는 각도(도).")]
+        [SerializeField] private float collapsePitchDegrees = 16f;
+
+        [Tooltip("쓰러지는 데 걸리는 시간(초).")]
+        [SerializeField] private float collapseSeconds = 1.1f;
+
         private float pitch;
 
         private float shakeUntil = float.NegativeInfinity;
@@ -58,6 +84,16 @@ namespace Treeline
 
         /// <summary>x 는 좌우, y 는 위로 튀는 양(도). 0 으로 감쇠한다.</summary>
         private Vector2 recoil;
+
+        /// <summary>피격으로 젖혀진 양. x 좌우 · y 위 · z 기울기(도). 0 으로 감쇠한다.</summary>
+        private Vector3 hitKick;
+
+        private float fovPunch;
+        private Camera[] lenses;
+        private float[] restFov;
+
+        private float collapseStart = float.NegativeInfinity;
+        private float collapseSide = 1f;
 
         private float swayTime;
         private float swayAmount;
@@ -77,6 +113,15 @@ namespace Treeline
             }
 
             pitch = cameraPivot.localEulerAngles.x;
+
+            // 시야각을 때리려면 **뷰모델 카메라까지 같은 비율로** 밀어야 한다. 본
+            // 카메라만 벌리면 세계는 넓어지는데 팔은 그대로라 팔이 떠 보인다.
+            lenses = cameraPivot.GetComponentsInChildren<Camera>(true);
+            restFov = new float[lenses.Length];
+            for (int i = 0; i < lenses.Length; i++)
+            {
+                restFov[i] = lenses[i].fieldOfView;
+            }
         }
 
         private void OnEnable()
@@ -101,6 +146,70 @@ namespace Treeline
         {
             recoil.y += upDegrees;
             recoil.x += sideDegrees;
+        }
+
+        /// <summary>
+        /// 맞았다. 화면을 젖히고 기울이고 떨게 한다.
+        /// </summary>
+        /// <param name="fromDirection">
+        /// 날아온 방향(월드). <see cref="DamageInfo.Direction"/> 을 그대로 넘긴다.
+        /// 0 이면 방향 없이 위로만 젖힌다 — 추락처럼 때린 쪽이 없는 피해가 그렇다.
+        /// </param>
+        /// <param name="scale">세기 배율. 죽는 한 대는 더 크게 넘긴다.</param>
+        /// <remarks>
+        /// <para>
+        /// <b>기울기(roll)가 핵심이다.</b> 위로 젖히기만 하면 총 반동과 구분이 안 된다.
+        /// 화면이 옆으로 기울어야 「내가 맞았다」로 읽힌다. 맞은 쪽으로 기울여
+        /// 어디서 왔는지도 같이 알린다 — 1 인칭에서 피해 방향은 이것 말고 알릴 길이
+        /// 화면 가장자리 표시뿐이다.
+        /// </para>
+        /// <para>
+        /// 위치는 건드리지 않는다. 카메라의 로컬 위치는 <see cref="PlayerMotor"/> 가
+        /// 앉은키로 매 프레임 쓰므로, 여기서 밀면 둘이 서로 덮어쓴다.
+        /// </para>
+        /// </remarks>
+        public void Hit(Vector3 fromDirection, float scale = 1f)
+        {
+            scale = Mathf.Max(0.1f, scale);
+
+            // 몸 기준으로 왼쪽에서 왔는지 오른쪽에서 왔는지만 본다.
+            float side = 0f;
+            if (fromDirection.sqrMagnitude > 0.0001f)
+            {
+                Vector3 local = transform.InverseTransformDirection(fromDirection.normalized);
+                side = Mathf.Clamp(local.x, -1f, 1f);
+            }
+
+            hitKick.y += hitKickDegrees * scale;
+            hitKick.x += side * hitKickDegrees * 0.5f * scale;
+            hitKick.z += side * hitRollDegrees * scale;
+            fovPunch = Mathf.Max(fovPunch, hitFovPunch * scale);
+
+            // 떨림은 이미 있는 것을 쓴다. 같은 화면을 흔드는 장치가 둘이 되면
+            // 서로 덮어쓴다.
+            Shake(1.8f * scale, 0.3f);
+        }
+
+        /// <summary>
+        /// 죽어서 쓰러진다. 한 번 기울면 돌아오지 않는다.
+        /// </summary>
+        /// <remarks>
+        /// 되돌리는 함수를 두지 않는다. 여기서 빠져나오는 길은 장을 다시 시작하는
+        /// 것뿐이고 그때 플레이어가 새로 만들어진다 —
+        /// <see cref="PlayerHud.HideForCutscene"/> 와 같은 판단이다.
+        /// </remarks>
+        public void Collapse()
+        {
+            if (collapseStart > float.NegativeInfinity)
+            {
+                return;
+            }
+
+            collapseStart = Time.time;
+
+            // 어느 쪽으로 쓰러질지는 마지막으로 맞은 방향을 따른다. 그 값이 없으면
+            // 한쪽으로 정한다 — 매번 무작위로 고르면 같은 죽음이 달라 보인다.
+            collapseSide = Mathf.Abs(hitKick.z) > 0.01f ? Mathf.Sign(hitKick.z) : 1f;
         }
 
         /// <summary>
@@ -155,6 +264,9 @@ namespace Treeline
                     LockCursor();
                 }
 
+                // 조준은 멎어도 피격 반응과 쓰러짐은 이어져야 한다. 여기서 끊으면
+                // 잠금이 풀린 순간 화면이 곧게 선 채로 굳는다.
+                ApplyCamera(Vector2.zero, Vector2.zero);
                 return;
             }
 
@@ -167,14 +279,59 @@ namespace Treeline
 
             recoil = Vector2.Lerp(recoil, Vector2.zero, 1f - Mathf.Exp(-recoilRecovery * Time.deltaTime));
 
-            Vector2 sway = EvaluateSway();
-            Vector2 shake = EvaluateShake();
+            ApplyCamera(EvaluateSway(), EvaluateShake());
+        }
+
+        /// <summary>
+        /// 이번 프레임의 카메라 자세를 한 번에 쓴다. 흔들림 · 반동 · 피격 · 쓰러짐이
+        /// 모두 여기서 더해진다.
+        /// </summary>
+        /// <remarks>
+        /// IMPORTANT: <b>카메라 회전을 쓰는 곳은 이 한 줄뿐이어야 한다.</b> 다른
+        /// 컴포넌트가 <c>LateUpdate</c> 에서 덧대면 잠금이 풀린 프레임처럼 여기가
+        /// 안 도는 순간에 값이 쌓여 화면이 조용히 기울어 간다.
+        /// </remarks>
+        private void ApplyCamera(Vector2 sway, Vector2 shake)
+        {
+            hitKick = Vector3.Lerp(hitKick, Vector3.zero, 1f - Mathf.Exp(-hitRecovery * Time.deltaTime));
+            fovPunch = Mathf.Lerp(fovPunch, 0f, 1f - Mathf.Exp(-fovRecovery * Time.deltaTime));
+
+            float collapse = 0f;
+            if (collapseStart > float.NegativeInfinity)
+            {
+                float k = collapseSeconds > 0f
+                    ? Mathf.Clamp01((Time.time - collapseStart) / collapseSeconds)
+                    : 1f;
+
+                // 처음이 빠르고 끝이 느리다. 힘이 빠져 무너지는 것이지 넘어지는 것이 아니다.
+                collapse = 1f - (1f - k) * (1f - k) * (1f - k);
+            }
 
             // 흔들림과 반동은 pitch 에 누적하지 않는다. 누적하면 한계각이 조용히 밀린다.
             cameraPivot.localRotation = Quaternion.Euler(
-                pitch - recoil.y + sway.y + shake.y,
-                recoil.x + sway.x + shake.x,
-                0f);
+                pitch - recoil.y - hitKick.y + sway.y + shake.y + collapsePitchDegrees * collapse,
+                recoil.x + hitKick.x + sway.x + shake.x,
+                hitKick.z + collapseSide * collapseRollDegrees * collapse);
+
+            ApplyFov();
+        }
+
+        /// <summary>시야각을 비율로 민다. 본 카메라와 뷰모델 카메라가 같은 비율로 벌어져야 팔이 안 뜬다.</summary>
+        private void ApplyFov()
+        {
+            if (lenses == null)
+            {
+                return;
+            }
+
+            float ratio = 1f + fovPunch / 70f;
+            for (int i = 0; i < lenses.Length; i++)
+            {
+                if (lenses[i] != null)
+                {
+                    lenses[i].fieldOfView = restFov[i] * ratio;
+                }
+            }
         }
 
         /// <summary>놀람 떨림. 시작할 때 가장 세고 끝에서 0 이 된다.</summary>

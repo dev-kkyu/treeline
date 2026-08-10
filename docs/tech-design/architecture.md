@@ -1055,6 +1055,7 @@ IMPORTANT: **`Device.Awake` 가 시작 모습을 강제로 맞춘다.** `enables
 | `MenuButtonFeel` | 메뉴 버튼의 초점 반응. 표시선 · 글자 밀림 · 소리 |
 | `MenuTheme` | 그림 · 글꼴 · 소리 묶음. `Resources/Menu/` 에 있다 |
 | `ReadingPanel` | 읽을거리를 펼쳐 보여준다. `Readable` 이 부른다 |
+| `ScreenFade` | 죽으면 검게 닫고 장이 다시 열리면 연다. 씬을 넘어 살아남는다 |
 
 ### 메뉴 화면 셋은 같은 부품을 쓴다
 

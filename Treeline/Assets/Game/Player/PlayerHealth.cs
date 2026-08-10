@@ -21,6 +21,9 @@ namespace Treeline
         [Tooltip("사망하면 끈다. 입력 맵이 꺼지면서 이동 · 사격 · 상호작용이 함께 멈춘다.")]
         [SerializeField] private PlayerInputReader input;
 
+        [Tooltip("피격 · 사망 때 화면을 흔든다. 비우면 같은 오브젝트에서 찾는다.")]
+        [SerializeField] private PlayerLook look;
+
         private float invulnerableUntil = float.NegativeInfinity;
 
         public int Health { get; private set; }
@@ -42,6 +45,11 @@ namespace Treeline
                 input = GetComponent<PlayerInputReader>();
             }
 
+            if (look == null)
+            {
+                look = GetComponent<PlayerLook>();
+            }
+
             Health = Mathf.Max(1, maxHealth);
         }
 
@@ -57,6 +65,13 @@ namespace Treeline
             invulnerableUntil = Time.time + invulnerableSeconds;
             HealthChanged?.Invoke(Health);
 
+            // 화면을 젖히는 것이 「맞았다」를 알리는 첫 신호다. 붉은 화면은 그 다음이다 —
+            // 눈은 색보다 움직임을 먼저 잡는다. 마지막 한 대는 더 크게 흔든다.
+            if (look != null)
+            {
+                look.Hit(damage.Direction, IsAlive ? 1f : 1.5f);
+            }
+
             if (IsAlive)
             {
                 return;
@@ -65,6 +80,11 @@ namespace Treeline
             if (input != null)
             {
                 input.enabled = false;
+            }
+
+            if (look != null)
+            {
+                look.Collapse();
             }
 
             Died?.Invoke();
