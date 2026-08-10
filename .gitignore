@@ -130,3 +130,6 @@ crashlytics-build.properties
 # Blender 가 저장할 때마다 직전 판을 .blend1 로 남긴다. 원본이 아니라 백업이고
 # 매 저장마다 10 MB 씩 새로 쌓이므로 커밋하지 않는다.
 *.blend1
+
+# 제출 PDF 빌드의 중간 산출물. PDF 만 커밋한다
+docs/submission/*.html
